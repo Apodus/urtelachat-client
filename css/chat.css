@@ -1,0 +1,270 @@
+body
+{
+	overflow:hidden;
+}
+	
+button.user-button
+{
+	text-align:left;
+}
+	
+#logo
+{
+	padding:0px;
+	margin:0px;
+	margin-top:-10px;
+	margin-bottom:-10px;
+}
+
+span.who
+{
+	font-size:1.0em;
+}
+	
+#messages
+{
+	font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+	border-collapse:collapse;
+    overflow-y: scroll;
+    display: block;
+}
+	
+#messages > div > div > div.msg
+{
+	-ms-word-break: break-all;
+	word-break: break-all;
+	word-break: break-word;
+	-webkit-hyphens: auto;
+	-moz-hyphens: auto;
+	hyphens: auto;
+}	
+
+#messages > div.panel
+{
+	margin:0px;
+}
+
+#messages > div > div
+{
+	padding:5px;
+}
+
+.pad-5
+{
+	padding:5px;
+}
+
+.pad-0
+{
+	padding:0px;
+}
+
+#chat-topic
+{
+	text-align:center;
+	font-weight:bold;
+}
+
+#settings
+{
+	position:fixed;
+	top:10px;
+	right:10px;
+	display:block;
+	z-index:2;
+	width:400px;
+	opacity:1;
+}
+
+.dropshadow-5
+{
+	-webkit-box-shadow: 5px 5px 10px 0px rgba(0,0,0,0.75);
+	-moz-box-shadow: 5px 5px 10px 0px rgba(0,0,0,0.75);
+	box-shadow: 5px 5px 10px 0px rgba(0,0,0,0.75);
+}
+
+.transitions-all
+{
+	-webkit-transition: all 0.35s ease-in-out;
+	-moz-transition: all 0.35s ease-in-out;
+	-ms-transition: all 0.35s ease-in-out;
+	-o-transition: all 0.35s ease-in-out;
+	transition: all 0.35s ease-in-out;
+}
+
+#settings.closed
+{
+	right:-600px;
+	opacity:0;
+}
+
+/*
+* { margin: 0; padding: 0; box-sizing: border-box; }
+textarea { border: 0; padding: 0px; width: 100%; min-height: 4em; margin-right: 0%; resize: none; }
+	
+code {
+  visibility: visible;
+  max-height: 1em;
+}
+code.keyword {
+  color: #0000FF;
+}
+
+code.string {
+  color: #FF0000;
+}
+
+code.color1 {
+  color: #5C91D9;
+}
+
+td.gutter > div.line {
+  flux-shrink: 0;
+  word-break: keep-all;
+  padding: 0px 5px;
+  visibility: hidden;
+  max-height: 0px;
+}
+
+div.imdbwrap {
+  display: flex;
+  flex-direction: row;
+}
+
+div.imdbtext {
+  justify-content: flex-start;
+}
+
+div.imdbimg {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  height: 15em;
+  width: 15em;
+}
+
+#users_messages_container
+{
+  display: flex;
+  flex-direction: row;
+  transition: all 1.3s ease;
+}
+
+#channels_toggle_container
+{
+  display: flex;
+  flex-direction: row;
+  min-height: 1.74em;
+  max-height: 1.75em;
+  width: 100%;
+}
+
+#channels
+{
+  display: flex;
+  flex-direction: row;
+  min-height: 1.74em;
+  max-height: 1.75em;
+  width: 100%;
+}
+
+#channels > div
+{
+  border: 2px solid #a1a1a1;
+  padding: 2px 5px;
+  background: #dddddd;
+  border-radius: 5px;
+  justify-content: flex-start;
+}
+
+#notifytoggle
+{
+  border: 2px solid #a1a1a1;
+  padding: 2px 5px;
+  background: #dddddd;
+  border-radius: 25px;
+  justify-content: flex-end;
+  align-content: flex-end;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+
+#users
+{
+  display: flex;
+  flex-direction: column;
+  max-width: 15em;
+}
+
+#users > div
+{
+  border: 2px solid #a1a1a1;
+  padding: 2px 5px;
+  background: #dddddd;
+  border-radius: 25px;
+  justify-content: flex-start;
+  word-break: keep-all;
+}
+
+#messages
+{
+  font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+  width:100%;
+  border-collapse:collapse;
+  overflow-y: scroll;
+  display: block;
+}
+
+#messages > div
+{
+  border: 2px solid #aaddaa;
+  padding: 2px 5px;
+  background: #bbffbb;
+  border-radius: 15px;
+  
+  display: flex;
+  flex-direction: row;
+}
+
+#messages > div > div
+{
+  padding: 0px 10px;
+  justify-content: flex-start;
+  flex-shrink: 0;
+  flex-grow: 0;
+  min-width: 100px;
+}
+
+#messages > div > div.msg
+{
+  flex-shrink: 1;
+  flex-grow: 2;
+}
+
+#messages > div > div.time
+{
+  align-content: flex-end;
+  justify-content: flex-end;
+  min-width: 0px;
+}
+
+#messages tr.alt td
+{
+  color:#000;
+  background-color:#EAF2D3;
+}
+
+#m
+{
+  padding: 0px;
+  border: solid 1px #dcdcdc;
+  transition: box-shadow 0.3s, border 0.3s;
+}
+
+#m:focus,
+#m.focus
+{
+  border: solid 1px #707070; 
+}
+*/

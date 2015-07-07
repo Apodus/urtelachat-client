@@ -1,0 +1,890 @@
+<!doctype html>
+<html>
+  <head>
+    <title>LeChat</title>
+	
+	<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	
+	<link rel="stylesheet" href="css/chat.css">
+  </head>
+  <body onload="resizeScreen()">
+  
+  <script>
+  // Let's check if the we are allowed to push desktop notifications
+  var notificationsGlobal = false;
+  var notificationsTemporary = 0;
+  
+  if (!("Notification" in window)) {
+  }
+  else {
+    if (Notification.permission === "granted") {
+      notificationsGlobal = true;
+    }
+    else {
+      if (Notification.permission !== 'denied') {
+        Notification.requestPermission(function (permission) {
+          // If the user is okay, let's create a notification
+          if (permission === "granted") {
+            notificationsGlobal = true;
+          }
+        });
+      }
+    }
+  }
+  </script>
+  
+<!-- BODY -->
+<div class="panel panel-success">
+	<div class="panel-heading container-fluid row">
+		<div id="channels_toggle_container">
+			<div class="col-md-1"><img id="logo" src="img/logo.png"/></div>
+			<div id="channels" class="col-md-9">
+				<!-- <button class="btn btn-success btn-sm">Lobby<span class="badge">4</span></button> -->
+			</div>
+			<div  class="col-md-2">
+				<button id="settings-open" class="btn btn-success btn-sm pull-right">Settings</button>
+				<div id="settings" class="closed transitions-all dropshadow-5">
+					<div class="panel panel-info">
+						<div class="panel-heading">
+							<div class="container-fluid row">
+								<div class="pull-right"><button id="settings-close" class="btn btn-success btn-sm">Close</button></div>
+								<div>Settings</div>
+							</div>
+						</div>
+						<div class="panel-body">
+							<div class="row pad-5">
+								<button id="notifytoggle" class="btn btn-success btn-sm">Notifications</button>
+								Toggle Desktop notifications.
+							</div>
+						</div>
+						<div class="panel-footer">
+							Server status:<div id="server-status">Connecting...</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="panel-body container-fluid pad-5">
+		<div class="panel panel-info">
+			<div id="chat-topic" class="panel-heading container-fluid">
+				Connecting...
+			</div>
+			<div  class="panel-body container-fluid pad-5">
+				<div class="row container-fluid">
+					<div id="users_messages_container" class="pad-0">
+						<div id="users" class="col-md-1">
+							
+						</div>
+						<div id="messages" class="col-md-11">
+							<div class="panel panel-success container-fluid">
+								<div class="panel-heading row">
+									
+								</div>
+							</div>
+							<div class="panel panel-success container-fluid">
+								<div class="panel-body row">
+									
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="panel-footer">
+				<textarea id="m" class="form-control" autocomplete="off" autofocus></textarea>
+			</div>
+		</div>
+	</div>
+</div>
+  
+<script src="js/socket.io.js"></script>
+<script>
+//TODO move to another file!
+var activeChannel = "void";
+var channelHistories = {};
+var nicknames = {};
+
+$("#m").focus();
+
+function resizeScreen() {
+  var h = $(window).height() * 0.99;
+  var w = $(window).width() * 0.99;
+  
+  //$("#channels").height(h * 0.05);
+  //$("#channels").width(w * 1.00);
+  
+  $("#messages").height(h * 0.75);
+  //$("#messages").width(w * 0.999);
+  
+  //$("#m").height(h * 0.10);
+  //$("#m").width(w * 1.00);
+  
+  $("#messages").scrollTop = $("#messages").scrollHeight;
+}
+
+function small_images(str) {
+  var imageRegex = /<img\ /gi;
+  return str.replace(imageRegex, function(imageStr) {
+    return imageStr + 'width="200"';
+  });
+}
+
+function custom_emotes(str) {
+  var youTriedRegex = /\(youtried\)/gi
+  return str.replace(youTriedRegex, function(youTried) {
+    return '<img style="width: 4em;" src="http://soulaim.dy.fi/img/youtried.png"/>'
+  });
+}
+
+function universe_jira_links(str) {
+  var universeJiraRegex = /([\s]|^)uni-[0-9]+/ig;
+  return str.replace(universeJiraRegex, function(jira) {
+    var front = "";
+    if(jira.match(/\s/)) {
+      jira = jira.trim();
+      front = " ";
+    }
+    return front + '<a target="_blank" href="https://mdc-tomcat-jira76.ubisoft.org/jira/browse/' + jira + '">' + jira + '</a>';
+  });
+}
+
+window.onresize = resizeScreen;
+window.onfocus = function() {
+  unreadMessages = 0;
+  document.title = "LeChat - " + timeNow();
+}
+
+var myMsgIndex = 0;
+var myMsgHistory = [''];
+
+function historyUp() {
+  myMsgHistory[myMsgIndex] = $('#m').val();
+  myMsgIndex = myMsgIndex - 1;
+  if(myMsgIndex < 0)
+    myMsgIndex = myMsgHistory.length - 1;
+  $('#m').val(myMsgHistory[myMsgIndex]);
+}
+
+function historyDown() {
+  myMsgHistory[myMsgIndex] = $('#m').val();
+  myMsgIndex = myMsgIndex + 1;
+  if(myMsgIndex >= myMsgHistory.length)
+    myMsgIndex = 0;
+  $('#m').val(myMsgHistory[myMsgIndex]);
+}
+
+function nextChannel() {
+  var elem = document.getElementById('channel_' + activeChannel);
+  var next = elem.nextElementSibling;
+  if(next == null) {
+    next = elem.parentNode.firstChild;
+  }
+  setCookie("userchannel", next.innerHTML, 365);
+  userchannel = next.innerHTML;
+  setActiveChannel(next.innerHTML);
+}
+
+function prevChannel() {
+  var elem = document.getElementById('channel_' + activeChannel);
+  var next = elem.previousElementSibling;
+  if(next == null) {
+    next = elem.parentNode.lastChild;
+  }
+  setCookie("userchannel", next.innerHTML, 365);
+  userchannel = next.innerHTML;
+  setActiveChannel(next.innerHTML);
+}
+
+if (typeof String.prototype.startsWith != 'function') {
+  String.prototype.startsWith = function (str) {
+    return this.indexOf(str) === 0;
+  };
+}
+
+function sharedStart(array) {
+    var A= array.concat().sort(), 
+    a1= A[0], a2= A[A.length-1], L= a1.length, i= 0;
+    while(i<L && a1.charAt(i)=== a2.charAt(i)) i++;
+    return a1.substring(0, i);
+}
+
+$(function() {
+
+  $("#m").keydown(function (e) {
+    if(e.keyCode == '38' && !e.shiftKey) {
+      e.preventDefault();
+      historyUp();
+    }
+    else if(e.keyCode == '40' && !e.shiftKey) {
+      e.preventDefault();
+      historyDown();
+    }
+    else if(e.keyCode == '37' && e.altKey) {
+      e.preventDefault();
+      prevChannel();
+    }
+    else if(e.keyCode == '39' && e.altKey) {
+      e.preventDefault();
+      nextChannel();
+    }
+    else if(e.keyCode == '9') {
+      // autocomplete
+      e.preventDefault();
+      var current = $('#m').val();
+      var arrayCurrent = current.split(" ");
+      if(arrayCurrent.length > 0) {
+        var lastEntry = arrayCurrent[arrayCurrent.length - 1];
+        var resultArray = [];
+        for(var nickName in nicknames[activeChannel]) {
+          if(lastEntry.length <= nickName.length) {
+            if(nickName.toLowerCase().startsWith(lastEntry.toLowerCase())) {
+              // found something
+              resultArray.push(nickName);
+              arrayCurrent[arrayCurrent.length - 1] = nickName;
+              $('#m').val(arrayCurrent.join(" "));
+            } 
+          }
+        }
+
+        if(resultArray.length > 0) {
+          if(resultArray.length == 1) {
+            arrayCurrent[arrayCurrent.length - 1] = resultArray[0];
+            $('#m').val(arrayCurrent.join(" "));
+          }
+          else {
+            var lowerCaseResults = [];
+            for (var str in resultArray) {
+              lowerCaseResults.push(resultArray[str].toLowerCase());
+            }
+            
+            var commonStr = sharedStart(lowerCaseResults);
+
+            arrayCurrent[arrayCurrent.length - 1] = commonStr;
+            $('#m').val(arrayCurrent.join(" "));
+          }
+        }
+      }
+    }
+  });
+
+  $("#m").keypress(function (e) {
+    if(e.which == 13 && !e.shiftKey) {
+      var msg = $('#m').val();
+      if(msg == "") {
+        e.preventDefault();
+        return;
+      }
+
+      myMsgHistory.push(msg);
+      myMsgIndex = 0;
+      myMsgHistory[myMsgIndex] = '';
+
+      var split = msg.split(" ");
+
+      if(split[0] == "/part") {
+        socket.emit('part_channel', activeChannel);
+        removeActiveChannel();
+      }
+      else if(split[0] == "/clear") {
+        delete channelHistories[activeChannel];
+        clearMessageTable();
+      }
+      else if(split[0] == "/query") {
+        console.log("looks like query");
+        if(split.length > 2) {
+          var who = split[1];
+          var what = split[2];
+          for(var i=3; i<split.length; ++i)
+            what += " " + split[i];
+          console.log(who + '|' + what);
+          socket.emit('query', who + '|' + what);
+        }
+      }
+      else if(split[0] == "/imdb") {
+        var sMovie = "";
+        var splitMsg = msg.split(" ");
+        for(var k=1; k<splitMsg.length; ++k) {
+          if(sMovie != "")
+            sMovie += " ";
+          sMovie += splitMsg[k];
+        }
+
+        var sUrl = 'http://www.omdbapi.com/?t=' + sMovie + '&plot=short&type=movie&tomatoes=true';
+
+        $.ajax(sUrl, {
+            complete: function(p_oXHR, p_sStatus) {
+            
+            // addLine(timeNow(), '<color="green">IMDB</color>', p_oXHR.responseText);
+            
+            oData = $.parseJSON(p_oXHR.responseText);
+            if("imdbID" in oData) {
+            var movieDataString = "<div class=\"imdbwrap\"><div class=\"imdbtext\">";
+            movieDataString += "<strong>" + oData.Title + "</strong> (" + oData.Year + ") (" + oData["Genre"] + ")  <br/>tomato meter: " + oData.tomatoMeter + "/100 (" + oData.tomatoImage + ")<br/>";
+            movieDataString += "imdb score: " + oData["imdbRating"] + "<br/>";
+            movieDataString += "<br/>What is it about:<br/>" + oData.Plot + "<br/>";
+            movieDataString += "<br/>Tomato concensus:<br/>" + oData.tomatoConsensus + "<br/>";
+            movieDataString += "</div><div class=\"imdbimg\">";
+            movieDataString += "<a href=\"http://www.imdb.com/title/" + oData["imdbID"] +  "/\" target=\"_blank\"><img style=\"width:10em; height:15em;\" src=\"" + oData.Poster + "\"/></a>";
+            movieDataString += "</div></div>";
+            socket.emit('imdb', activeChannel + "|" + movieDataString);
+            }
+            else {
+              addLine(timeNow(), "IMDB", "movie '" + sMovie  + "' not found :(");
+            }
+          }
+        });
+      }
+      else {
+        socket.emit('chat message', activeChannel + "|" + msg);
+      }
+      $('#m').val('');
+      e.preventDefault();
+    }
+  });
+});
+
+function setCookie(cname, cvalue, exdays) {
+    var d = new Date();
+    d.setTime(d.getTime() + (exdays*24*60*60*1000));
+    var expires = "expires="+d.toUTCString();
+    document.cookie = cname + "=" + cvalue + "; " + expires;
+}
+
+function getCookie(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0; i<ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1);
+        if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
+    }
+    return "";
+}
+
+function checkCookie() {
+    var user = getCookie("username");
+    if (user == "") {
+        user = Math.floor((Math.random() * 1000000000) + 1).toString();
+        if (user != "" && user != null) {
+            setCookie("username", user, 365);
+        }
+    }
+}
+
+var prevIsAlt = false;
+
+function addLine(time, who, what) {
+  what = universe_jira_links(what);
+  what = small_images(what);
+  what = custom_emotes(what);
+  var messages = document.getElementById("messages");
+  var autoScrollValue = messages.scrollTop + messages.clientHeight - messages.scrollHeight;
+
+  var useAlt = false;
+  var sameUser = false;
+  
+  if(messages.lastChild) {
+  try
+  {
+    if(messages.lastChild.firstChild.firstChild.innerHTML == who)
+	{
+		useAlt = prevIsAlt;
+    }
+    else
+	{
+      useAlt = !prevIsAlt;
+    }
+   }catch(e){}
+  }
+  var messageElement = null;
+  var messageBody = null;
+  
+  if(prevIsAlt == useAlt && messages.lastChild && messages.lastChild.firstChild)
+  {
+	sameUser=true;
+	messageBody = messages.lastChild.firstChild;
+  }
+  else
+  {
+    messageElement = document.createElement("div");
+	messageElement.className = "panel panel-success container-fluid";
+  
+	messageBody = document.createElement("div");
+	messageElement.appendChild(messageBody);
+	
+	messages.appendChild(messageElement);
+	
+	if(useAlt)
+	{
+		messageBody.className = "panel-heading row";
+	}
+	else
+	{
+		messageBody.className = "panel-body row";
+	}
+  }
+  
+  prevIsAlt = useAlt;
+  
+  var elem_who = null;
+  var elem_time= null;
+  var elem_what = null;
+	
+	if(!sameUser)
+	{
+	  elem_who = document.createElement("span");
+	  elem_who.className = "label label-success col-md-1 who";
+	  messageBody.appendChild(elem_who);
+	  elem_who.innerHTML = who;
+	}else{
+		elem_who = messageBody.firstChild;
+	}
+
+	if(sameUser)
+	{
+		elem_what = elem_who.nextElementSibling;
+		elem_what.innerHTML += "<br/>"+what;
+	}
+	else
+	{
+		elem_what = document.createElement("div");
+		elem_what.innerHTML = what;
+		elem_what.className = "msg col-md-10";
+		messageBody.appendChild(elem_what);
+	}
+  
+	if(sameUser)
+	{
+		elem_time = elem_what.nextElementSibling;
+		elem_time.innerHTML += "<br/>"+time;
+	}
+	else
+	{
+		elem_time = document.createElement("div");
+		elem_time.innerHTML = time;
+		elem_time.className = "time col-md-1 text-right";
+		messageBody.appendChild(elem_time);
+	}
+  
+  
+  if(autoScrollValue * autoScrollValue < 10 * 10)
+  {
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  var selectionCount = document.querySelectorAll("#messages > div").length;
+  for(var removeCounter = 400; removeCounter < selectionCount; ++removeCounter) {
+    $('#messages').find('div:first').remove();
+  }
+}
+
+function removeActiveChannel() {
+  var elem = document.getElementById('channel_' + activeChannel);
+  elem.parentNode.removeChild(elem);
+  if(document.getElementById('channels').firstChild) {
+    document.getElementById('channels').firstChild.click();
+  }
+  else {
+    socket.emit('chat message', "|/join void");
+  }
+}
+
+checkCookie();
+var socket = io.connect('http://soulaim.dy.fi:3001', { autoConnect: true});
+socket.emit('login', getCookie("username"));
+setCookie("username", getCookie("username"), 365);
+var userchannel = getCookie("userchannel");
+if(userchannel == "") {
+  setCookie("userchannel", "lobby", 365);
+  userchannel = getCookie("userchannel");
+}
+
+function timeNow() {
+  var date = new Date();
+  var hours = date.getHours().toString();
+  var minutes = date.getMinutes().toString();
+  if(minutes.length == 1)
+    minutes = "0" + minutes;
+  return hours + ":" + minutes;
+}
+
+function linkify(text) {
+  var urlRegex =/(([ \t\n]|^)(https?:\/\/|ftp:\/\/|file:\/\/)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+  return text.replace(urlRegex, function(url) {
+    return '<a target="_blank" href="' + url + '">' + url + '</a>';
+  });
+}
+
+function clearMessageTable() {
+  var messages = document.getElementById('messages');
+  while(messages.firstChild){
+    messages.removeChild(messages.firstChild);
+  }
+}
+
+/*
+title
+The title that must be shown within the notification
+options Optional
+An object that allows to configure the notification. It can have the following properties:
+dir : The direction of the notification; it can be auto, ltr, or rtl
+lang: Specify the lang used within the notification. This string must be a valid BCP 47 language tag.
+body: A string representing an extra content to display within the notification
+tag: An ID for a given notification that allows to retrieve, replace or remove it if necessary
+icon: The URL of an image to be used as an icon by the notification
+*/
+
+var unreadMessages = 0;
+
+function notifyUser(channel, user, msg) {
+  var notification = new Notification(channel + ": " + user, {"body": unwindHtml(msg), "icon":"http://urtela.redlynx.com/img/chaticon.jpg"});
+  setTimeout(function(){ notification.close(); }, 5000);
+  unreadMessages = unreadMessages + 1;
+  document.title = unreadMessages.toString() + " unread!";
+  window.focus();
+}
+
+function updateNotificationElement() {
+  var toggle = document.getElementById('notifytoggle');
+  var allow = getCookie(activeChannel + "_notify");
+  if(allow == "") {
+    allow = "allow"; // default;
+  }
+  
+  if(allow == "allow") {
+    toggle.innerHTML = "<strong>" + activeChannel + ":</strong> Notifications allowed";
+	
+	$("#notifytoggle").addClass("btn-success");
+	
+    toggle.onclick = function() {
+      setCookie(activeChannel + "_notify", "forbid");
+	  updateNotificationElement();
+    }
+  }
+  else {
+    toggle.innerHTML = "<strong>" + activeChannel + ":</strong> Notifications disabled";
+	
+	$("#notifytoggle").removeClass("btn-success");
+	
+    toggle.onclick = function() {
+      setCookie(activeChannel + "_notify", "allow");
+      updateNotificationElement();
+    }
+  }
+}
+
+function setActiveChannel(channel) {
+  if(userchannel != channel)
+    return;
+ 
+  var prevChannel = document.getElementById('channel_' + activeChannel)
+  if(prevChannel)
+  {
+		$("#channel_"+activeChannel).removeClass("btn-success");
+  }
+  activeChannel = channel;
+  
+  $("#channel_"+activeChannel).addClass("btn-success");
+  
+  clearMessageTable();
+  
+  // populate with history if available
+  if(activeChannel in channelHistories) {
+    for(var index in channelHistories[activeChannel]) {
+      addLine(channelHistories[activeChannel][index][0], channelHistories[activeChannel][index][1], channelHistories[activeChannel][index][2]);
+    }
+  }
+  
+  updateUserList_Active();
+  updateNotificationElement();
+}
+
+function updateUserList_Active() {
+  var usersList = document.getElementById("users");
+  
+  while(usersList.firstChild)
+    usersList.removeChild(usersList.firstChild);
+  
+  for(var nickName in nicknames[activeChannel]) {
+    var user = document.createElement("button");
+	user.className = "btn btn-block btn-xs user-button";
+    user.innerHTML = nickName;
+    usersList.appendChild(user);
+  }
+}
+
+function updateUserList(channel) {
+  if(activeChannel == channel) {
+    updateUserList_Active();
+  }
+}
+
+function newContent(channel) {
+  if(notificationsTemporary == 0) {
+    var element = document.getElementById('channel_' + channel);
+	element.className = element.className + " btn-success";
+  }
+}
+
+function unwindHtml(html) {
+  return html
+   .replace(/\&amp\;/g, "&")
+   .replace(/\&lt\;/g, "<")
+   .replace(/\&gt\;/g, ">")
+   .replace(/\&quot\;/g, "\"")
+   .replace(/\&\#039\;/g, "'");
+}
+
+function pushToChannelHistory(channel, time, who, what) {
+  channelHistories[channel].push([time, who, what]);
+  if(channelHistories[channel].length > 400) {
+    channelHistories[channel].shift();
+  }
+}
+
+socket.on('chat message', function(msg) {
+  var splitMsg = msg.split("|");
+  var time = splitMsg[0];
+  var channel = splitMsg[1];
+  var sender = splitMsg[2];
+  var textLine = splitMsg[3];
+  for(var i = 4; i < splitMsg.length; ++i) {
+    textLine = textLine + "|" + splitMsg[i];
+  }
+  
+  textLine = linkify(textLine);
+  if(channel == activeChannel || channel == "") {
+    addLine(time, sender, textLine);
+  }
+  
+  if(typeof channelHistories[channel] == "undefined") {
+    channelHistories[channel] = [];
+  }
+  
+  pushToChannelHistory(channel, time, sender, textLine);
+  
+  // if window has no focus & global notify setting & channel specific rules.
+  if((notificationsTemporary == 0) && notificationsGlobal && (getCookie(channel + "_notify") != "forbid") && !document.hasFocus()) {
+    notifyUser(channel, sender, textLine);
+  }
+  
+  if(channel != activeChannel) {
+    newContent(channel);
+  }
+});
+
+socket.on('disconnect', function(msg) {
+  addLine(timeNow(), "SYSTEM", "Connection lost :(");
+  notificationsTemporary = 0;
+});
+
+socket.on('your_channel', function(msg) {
+  socket.emit('chat message', "|/join " + msg);
+});
+
+socket.on('nick_change', function(msg) {
+  var parts = msg.split("|");
+  var time = parts[0];
+  var channel = parts[1];
+  var nickOld = parts[2];
+  var nickNew = parts[3];
+  
+  if(!(channel in nicknames)) {
+    return;
+  }
+  
+  delete nicknames[channel][nickOld];
+  nicknames[channel][nickNew] = "";
+  
+  pushToChannelHistory(channel, timeNow(), '<font color="red">SYSTEM</font>', nickOld + " is now known as " + nickNew);
+  
+  if(activeChannel == channel) {
+    addLine(timeNow(), '<font color="red">SYSTEM</font>', nickOld + " is now known as " + nickNew);
+  }
+  
+  updateUserList(channel);
+});
+
+socket.on('query', function(msg) {
+  // from | to | what
+  // todo: better ui for 1on1 messages
+  console.log("got query: " + msg);
+
+  var split = msg.split('|');
+  if(split.length >= 3) {
+    var from = split[0];
+    var to = split[1];
+    var what = split[2];
+    addLine(timeNow(), '<i>' + from + '</i>', '<i>' + to + '</i>: ' + what);
+  }
+});
+
+socket.on('topic', function(msg) {
+  // who | channel | topic
+  // todo: better ui for topics
+  var split = msg.split('|');
+  if(split.length >= 3) {
+    var who = split[0];
+    var channel = split[1];
+    var what = split[2];
+    //addLine(timeNow(), '<font color="red">SYSTEM</font>', channel + ' topic: ' + what + ' (' + who + ')');
+	
+	var topic = document.getElementById("chat-topic");
+	topic.innerHTML = what;
+  }
+});
+
+socket.on('user_join', function(msg) {
+  var parts = msg.split("|");
+  var time = parts[0];
+  var channel = parts[1];
+  var user = parts[2];
+  
+  if(!(channel in nicknames)) {
+    nicknames[channel] = {};
+  }
+  
+  nicknames[channel][user] = "";
+  
+  if(!(channel in channelHistories)) {
+    channelHistories[channel] = [];
+  }
+  
+  pushToChannelHistory(channel, timeNow(), '<font color="green">' + user + '</font>', "joined the channel");
+  
+  if(activeChannel == channel) {
+    addLine(timeNow(), '<font color="green">' + user + '</font>', "joined the channel");
+  }
+  
+  updateUserList(channel);
+});
+
+socket.on('reconnect', function(msg) {
+  var myNode = document.getElementById("channels");
+  while (myNode.firstChild) {
+    myNode.removeChild(myNode.firstChild);
+  } 
+  
+  for(channel in channelHistories)
+    delete channelHistories[channel];
+
+  clearMessageTable();
+  socket.emit('login', getCookie("username"));
+  notificationsTemporary = 0;
+});
+
+socket.on('user_part', function(msg) {
+  var parts = msg.split("|");
+  var time = parts[0];
+  var channel = parts[1];
+  var user = parts[2];
+  
+  delete nicknames[channel][user];
+  
+  pushToChannelHistory(channel, timeNow(), '<font color="red">' + user + '</font>', "left the channel");
+  
+  if(activeChannel == channel) {
+    addLine(timeNow(), '<font color="red">' + user + '</font>', "left the channel");
+  }
+  updateUserList(channel);
+});
+
+socket.on('user_disconnect', function(msg) {
+  var parts = msg.split("|");
+  var time = parts[0];
+  var channel = parts[1];
+  var user = parts[2];
+  
+  if(!(channel in nicknames)) {
+    return;
+  }
+  
+  delete nicknames[channel][user];
+  
+  pushToChannelHistory(channel, timeNow(), '<font color="red">' + user + '</font>', "disconnected");
+  
+  if(activeChannel == channel) {
+    addLine(timeNow(), '<font color="red">' + user + '</font>', "disconnected");
+  }
+  
+  updateUserList(channel);
+});
+
+socket.on('user_list', function(msg) {
+  var parts = msg.split("|");
+  var time = parts[0];
+  var channel = parts[1];
+  if(!(channel in nicknames)) {
+    nicknames[channel] = {};
+  }
+  for(var i=2; i<parts.length; ++i) {
+    nicknames[channel][parts[i]] = "";
+  }
+  updateUserList(channel);
+  notificationsTemporary = notificationsTemporary - 1; // join complete, reduce to mark it
+});
+
+socket.on('join_channel', function(msg) {
+  var found = false;
+  for(var childIndex in $("#channels").childNodes) {
+    if($("#channels").childNodes[childIndex].innerHTML == msg) {
+      found = true;
+      if(msg in channelHistories) {
+        delete channelHistories[msg]; // we are about to be bombarded with the history, better clear it out.
+        if(activeChannel == msg) {
+          clearMessageTable();
+        }
+      }
+    }
+  }
+  
+  if(!found) {
+    var element = document.createElement("button");
+    element.innerHTML = msg;
+    element.id = "channel_" + msg;
+	element.className = "btn";
+	element.type = "button";
+    element.onclick = function() {
+      setCookie("userchannel", msg, 365);
+      userchannel = msg;
+      setActiveChannel(msg);
+    };
+    document.getElementById('channels').appendChild(element);
+    setActiveChannel(msg);
+  }
+  
+  nicknames[msg] = {};
+  notificationsTemporary = notificationsTemporary + 1; // join started, increase to mark it
+});
+
+function initSettings()
+{
+	var settings = document.getElementById('settings');
+	var openButton = document.getElementById('settings-open');
+	var closeButton = document.getElementById('settings-close');
+	
+	openButton.onclick = function()
+	{
+		$("#settings").toggleClass("closed");
+	}
+	
+	closeButton.onclick = function()
+	{
+		$("#settings").toggleClass("closed");
+	}
+}
+
+initSettings();
+
+function setServerStatus(status)
+{
+	$("#server-status").html(status);
+}
+
+    </script>
+  </body>
+</html>
