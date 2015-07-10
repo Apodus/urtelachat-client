@@ -27,8 +27,8 @@
 					</div>
 					<div  class="col-md-2">
 						<button id="settings-open" class="btn btn-success btn-sm pull-right">Settings</button>
-						<div id="settings" class="closed transitions-all dropshadow-5">
-							<div class="panel panel-info">
+						<div id="settings" class="closed transitions-all">
+							<div class="panel panel-info dropshadow-5">
 								<div class="panel-heading">
 									<div class="container-fluid row">
 										<div class="pull-right"><button id="settings-close" class="btn btn-success btn-sm">Close</button></div>
@@ -324,6 +324,7 @@ $(function() {
 
 
 var prevIsAlt = false;
+var useChatMessageFade = true;
 
 function addLine(time, who, what) {
   what = universe_jira_links(what);
@@ -366,6 +367,12 @@ function addLine(time, who, what) {
 	
 	messages.appendChild(messageElement);
 	
+	if(useChatMessageFade)
+	{
+		$(messageElement).hide();
+		$(messageElement).fadeIn();
+	}
+	
 	if(useAlt)
 	{
 		messageBody.className = "panel-heading row";
@@ -395,7 +402,16 @@ function addLine(time, who, what) {
 	if(sameUser)
 	{
 		elem_what = elem_who.nextElementSibling;
-		elem_what.innerHTML += "<br/>"+what;
+		
+		var newMessage = document.createElement("span");
+		newMessage.innerHTML = "<br/>"+what;
+		elem_what.appendChild(newMessage);
+		
+		if(useChatMessageFade)
+		{
+			$(newMessage).hide();
+			$(newMessage).fadeIn();
+		}
 	}
 	else
 	{
@@ -501,6 +517,8 @@ function setActiveChannel(channel) {
   if(client.userchannel != channel)
     return;
  
+	useChatMessageFade = false;
+ 
   var prevChannel = document.getElementById('channel_' + client.activeChannel)
   if(prevChannel)
   {
@@ -520,7 +538,9 @@ function setActiveChannel(channel) {
   }
   
   updateUserList_Active();
-  updateNotificationElement();
+  updateNotificationElement
+  
+  useChatMessageFade = true;
 }
 
 function updateUserList_Active() {
