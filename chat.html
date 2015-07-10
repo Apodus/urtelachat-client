@@ -673,10 +673,9 @@ client.socket.on('topic', function(msg) {
     var who = split[0];
     var channel = split[1];
     var what = split[2];
-    //addLine(timeNow(), '<font color="red">SYSTEM</font>', channel + ' topic: ' + what + ' (' + who + ')');
-	
+    
 	channelTopics[channel] = what;
-	if(channel == activeChannel)
+	if(channel == client.activeChannel)
 	{
 		var topic = document.getElementById("chat-topic");
 		topic.innerHTML = what;

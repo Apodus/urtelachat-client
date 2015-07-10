@@ -11,6 +11,14 @@ function ChatClient()
 		log("Server Status: "+msg);
 	};
 	
+	this.userchannel = getCookie("userchannel");
+	if(this.userchannel == "")
+	{
+		setCookie("userchannel", "lobby", 365);
+		this.userchannel = "lobby";
+	}
+	this.activeChannel = this.userchannel;
+	
 	this.checkUsernameCookie();
 }
 {
@@ -26,7 +34,7 @@ function ChatClient()
 				setCookie("username", user, 365);
 			}
 		}
-		log("Resolved UID:"+user);
+		log("Resolved UID: " + user);
 	}
 	
 	ChatClient.prototype.bindStatusMessage = function(callback)
@@ -43,16 +51,14 @@ function ChatClient()
 		//socket on bind here?
 		
 		this.onStatusMessageChanged("Logging in as "+getCookie("username"));
-		this.socket.emit('login', getCookie("username"));
+		
+		var myUserName = getCookie("username");
+		if(myUserName == "") { // dev env
+			myUserName = Math.floor(Math.random() * 1000000000 + 1).toString();
+		}
+		this.socket.emit('login', myUserName);
 		
 		setCookie("username", getCookie("username"), 365);
-		this.userchannel = getCookie("userchannel");
-		
-		if(this.userchannel == "")
-		{
-			setCookie("userchannel", "lobby", 365);
-			this.userchannel = getCookie("userchannel");
-		}
 		this.onStatusMessageChanged("Connected");
 	}
 
