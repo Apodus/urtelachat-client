@@ -1,57 +1,68 @@
-var client = null;
-
-function checkUsernameCookie()
+function ChatClient()
 {
-    var user = getCookie("username");
-	//alert("checkUsernameCookie:"+user);
-    if (user == "")
+	this.unreadMessages = 0;
+	this.activeChannel = "void";
+	this.channelHistories = {};
+	this.nicknames = {};
+	this.userchannel = "";
+	this.socket = null;
+	this.onStatusMessageChanged = function(msg)
 	{
-        user = Math.floor((Math.random() * 1000000000) + 1).toString();
-        if (user != "" && user != null)
-		{
-            setCookie("username", user, 365);
-        }
-    }
-}
-
-function initClient()
-{
-	client = new Object();
-	client.unreadMessages = 0;
-	client.activeChannel = "void";
-	client.channelHistories = {};
-	client.nicknames = {};
-	client.userchannel = "";
+		log("Server Status: "+msg);
+	};
 	
-	client.connect = function(url)
+	this.checkUsernameCookie();
+}
+{
+	ChatClient.prototype.checkUsernameCookie = function()
 	{
-		//alert("connect to "+url);
-		
-		checkUsernameCookie();
-		
-		client.socket = io.connect(url, { autoConnect: true});
-		
-		//socket on bind here?
-		
-		client.socket.emit('login', getCookie("username"));
-		
-		setCookie("username", getCookie("username"), 365);
-		client.userchannel = getCookie("userchannel");
-		
-		if(client.userchannel == "")
+		var user = getCookie("username");
+		//alert("checkUsernameCookie:"+user);
+		if (user == "")
 		{
-			setCookie("userchannel", "lobby", 365);
-			client.userchannel = getCookie("userchannel");
+			user = Math.floor((Math.random() * 1000000000) + 1).toString();
+			if (user != "" && user != null)
+			{
+				setCookie("username", user, 365);
+			}
 		}
+		log("Resolved UID:"+user);
 	}
 	
-	client.dump = function()
+	ChatClient.prototype.bindStatusMessage = function(callback)
+	{
+		this.onStatusMessageChanged = callback;
+	}
+
+	ChatClient.prototype.connect = function(url)
+	{
+		this.onStatusMessageChanged("connecting...");
+			
+		this.socket = io.connect(url, { autoConnect: true});
+			
+		//socket on bind here?
+		
+		this.onStatusMessageChanged("Logging in as "+getCookie("username"));
+		this.socket.emit('login', getCookie("username"));
+		
+		setCookie("username", getCookie("username"), 365);
+		this.userchannel = getCookie("userchannel");
+		
+		if(this.userchannel == "")
+		{
+			setCookie("userchannel", "lobby", 365);
+			this.userchannel = getCookie("userchannel");
+		}
+		this.onStatusMessageChanged("Connected");
+	}
+
+	ChatClient.prototype.dump = function()
 	{
 		var str = "Client DUMP\n";
 		
-		for( var i in client)
+		for( var i in this)
 		{
-			str += (i+": "+client[i]+"\n");
+			str += (i+": "+this[i]+"\n");
 		}
 		log(str);
 	}

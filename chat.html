@@ -100,22 +100,27 @@
 
 		<script>
 
-var timeout = null;
+var ui = null;
+var client = null;
+
 function init()
 {
-	if(timeout==null)
+	if(ui==null)
 	{
-		setLoading("Loading Chat");
-		timeout = setTimeout(init,5000);
+		ui = new ChatUI();
+		ui.setLoading("Loading Chat");
+		setTimeout(init,1000);
 		return;
 	}
 	
 	log("init");
-	initClient();
-	initUI();
-
+	
+	ui.init();
+	
+	client = new ChatClient();
+	client.bindStatusMessage(ui.setServerStatus);
+	
 	client.connect("http://soulaim.dy.fi:3001");
-	log("jatka bindSocket");
 	bindSocket();
 	
 	window.onfocus = function()
@@ -123,8 +128,7 @@ function init()
 		client.unreadMessages = 0;
 		document.title = "LeChat - " + timeNow();
 	}
-	
-	setLoading();
+	ui.setLoading(null);
 }
 
 try
