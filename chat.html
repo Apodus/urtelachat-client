@@ -1,161 +1,142 @@
 <!doctype html>
 <html>
-  <head>
-    <title>LeChat</title>
+	<head>
+		<title>LeChat</title>
+
+		<!-- //TODO Repack into local files -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+		
+		<link rel="stylesheet" href="css/chat.css">
 	
-	<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	</head>
 	
-	<link rel="stylesheet" href="css/chat.css">
-  </head>
-  <body onload="resizeScreen()">
+	<body>
   
-  <script>
-  // Let's check if the we are allowed to push desktop notifications
-  var notificationsGlobal = false;
-  var notificationsTemporary = 0;
-  
-  if (!("Notification" in window)) {
-  }
-  else {
-    if (Notification.permission === "granted") {
-      notificationsGlobal = true;
-    }
-    else {
-      if (Notification.permission !== 'denied') {
-        Notification.requestPermission(function (permission) {
-          // If the user is okay, let's create a notification
-          if (permission === "granted") {
-            notificationsGlobal = true;
-          }
-        });
-      }
-    }
-  }
-  </script>
-  
-<!-- BODY -->
-<div class="panel panel-success">
-	<div class="panel-heading container-fluid row">
-		<div id="channels_toggle_container">
-			<div class="col-md-1"><img id="logo" src="img/logo.png"/></div>
-			<div id="channels" class="col-md-9">
-				<!-- <button class="btn btn-success btn-sm">Lobby<span class="badge">4</span></button> -->
-			</div>
-			<div  class="col-md-2">
-				<button id="settings-open" class="btn btn-success btn-sm pull-right">Settings</button>
-				<div id="settings" class="closed transitions-all dropshadow-5">
-					<div class="panel panel-info">
-						<div class="panel-heading">
-							<div class="container-fluid row">
-								<div class="pull-right"><button id="settings-close" class="btn btn-success btn-sm">Close</button></div>
-								<div>Settings</div>
-							</div>
-						</div>
-						<div class="panel-body">
-							<div class="row pad-5">
-								<button id="notifytoggle" class="btn btn-success btn-sm">Notifications</button>
-								Toggle Desktop notifications.
-							</div>
-						</div>
-						<div class="panel-footer">
-							Server status:<div id="server-status">Connecting...</div>
-						</div>
-					</div>
-				</div>
-			</div>
+		<div id="loading">
+			<div id="loading-text" class="ready">...</div>
+			<img src="img/u.png" id="loading-indicator" class="rotating"/>
 		</div>
-	</div>
-	<div class="panel-body container-fluid pad-5">
-		<div class="panel panel-info">
-			<div id="chat-topic" class="panel-heading container-fluid">
-				Connecting...
-			</div>
-			<div  class="panel-body container-fluid pad-5">
-				<div class="row container-fluid">
-					<div id="users_messages_container" class="pad-0">
-						<div id="users" class="col-md-1">
-							
-						</div>
-						<div id="messages" class="col-md-11">
-							<div class="panel panel-success container-fluid">
-								<div class="panel-heading row">
-									
+
+		<div class="panel panel-success">
+			<div class="panel-heading container-fluid row">
+				<div id="channels_toggle_container">
+					<div class="col-md-1"><img id="logo" src="img/logo.png"/></div>
+					<div id="channels" class="col-md-9">
+						<!-- <button class="btn btn-success btn-sm">Lobby<span class="badge">4</span></button> -->
+					</div>
+					<div  class="col-md-2">
+						<button id="settings-open" class="btn btn-success btn-sm pull-right">Settings</button>
+						<div id="settings" class="closed transitions-all dropshadow-5">
+							<div class="panel panel-info">
+								<div class="panel-heading">
+									<div class="container-fluid row">
+										<div class="pull-right"><button id="settings-close" class="btn btn-success btn-sm">Close</button></div>
+										<div>Settings</div>
+									</div>
 								</div>
-							</div>
-							<div class="panel panel-success container-fluid">
-								<div class="panel-body row">
-									
+								<div class="panel-body">
+									<div class="row pad-5">
+										<div class="pull-right">
+											<button id="notifytoggle" class="btn btn-success btn-sm">Notifications</button>
+										</div>
+										Toggle Desktop notifications.
+										<hr/>
+										<div class="pull-right">
+											<button id="debug" class="btn btn-success btn-sm">Debug</button>
+										</div>
+										Debug
+									</div>
+								</div>
+								<div class="panel-footer">
+									Server status:<div id="server-status">Connecting...</div>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-			<div class="panel-footer">
-				<textarea id="m" class="form-control" autocomplete="off" autofocus></textarea>
+			<div class="panel-body container-fluid pad-5">
+				<div class="panel panel-info">
+					<div id="chat-topic" class="panel-heading container-fluid">
+						Connecting...
+					</div>
+					<div  class="panel-body container-fluid pad-5">
+						<div class="row container-fluid">
+							<div id="users_messages_container" class="pad-0">
+								<div id="users" class="col-md-1">
+									
+								</div>
+								<div id="messages" class="col-md-11">
+									<div class="panel panel-success container-fluid">
+										<div class="panel-heading row">
+											
+										</div>
+									</div>
+									<div class="panel panel-success container-fluid">
+										<div class="panel-body row">
+											
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="panel-footer">
+						<textarea id="m" class="form-control" autocomplete="off" autofocus></textarea>
+					</div>
+				</div>
 			</div>
 		</div>
-	</div>
-</div>
-  
-<script src="js/socket.io.js"></script>
-<script>
-//TODO move to another file!
-var activeChannel = "void";
-var channelHistories = {};
-var nicknames = {};
 
-$("#m").focus();
+		<script src="http://code.jquery.com/jquery-1.11.1.js"></script>	
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+		
+		<script src="js/socket.io.js"></script>
+		<script src="js/utils.js"></script>
+		<script src="js/notifications.js"></script>  
+		<script src="js/client.js"></script>
+		<script src="js/ui.js"></script>
 
-function resizeScreen() {
-  var h = $(window).height() * 0.99;
-  var w = $(window).width() * 0.99;
-  
-  //$("#channels").height(h * 0.05);
-  //$("#channels").width(w * 1.00);
-  
-  $("#messages").height(h * 0.75);
-  //$("#messages").width(w * 0.999);
-  
-  //$("#m").height(h * 0.10);
-  //$("#m").width(w * 1.00);
-  
-  $("#messages").scrollTop = $("#messages").scrollHeight;
+		<script>
+
+var timeout = null;
+function init()
+{
+	if(timeout==null)
+	{
+		setLoading("Loading Chat");
+		timeout = setTimeout(init,5000);
+		return;
+	}
+	
+	log("init");
+	initClient();
+	initUI();
+
+	client.connect("http://soulaim.dy.fi:3001");
+	log("jatka bindSocket");
+	bindSocket();
+	
+	window.onfocus = function()
+	{
+		client.unreadMessages = 0;
+		document.title = "LeChat - " + timeNow();
+	}
+	
+	setLoading();
 }
 
-function small_images(str) {
-  var imageRegex = /<img\ /gi;
-  return str.replace(imageRegex, function(imageStr) {
-    return imageStr + 'width="200"';
-  });
+try
+{
+	$(document).ready(init);
 }
-
-function custom_emotes(str) {
-  var youTriedRegex = /\(youtried\)/gi
-  return str.replace(youTriedRegex, function(youTried) {
-    return '<img style="width: 4em;" src="http://soulaim.dy.fi/img/youtried.png"/>'
-  });
-}
-
-function universe_jira_links(str) {
-  var universeJiraRegex = /([\s]|^)uni-[0-9]+/ig;
-  return str.replace(universeJiraRegex, function(jira) {
-    var front = "";
-    if(jira.match(/\s/)) {
-      jira = jira.trim();
-      front = " ";
-    }
-    return front + '<a target="_blank" href="https://mdc-tomcat-jira76.ubisoft.org/jira/browse/' + jira + '">' + jira + '</a>';
-  });
-}
-
-window.onresize = resizeScreen;
-window.onfocus = function() {
-  unreadMessages = 0;
-  document.title = "LeChat - " + timeNow();
+catch(e)
+{
+	document.body.onload = function()
+	{
+		fatalError("Error while loading chat.<br/>please try again later.");
+	}
 }
 
 var myMsgIndex = 0;
@@ -177,40 +158,30 @@ function historyDown() {
   $('#m').val(myMsgHistory[myMsgIndex]);
 }
 
-function nextChannel() {
-  var elem = document.getElementById('channel_' + activeChannel);
+function nextChannel()
+{
+  var elem = document.getElementById('channel_' + client.activeChannel);
   var next = elem.nextElementSibling;
   if(next == null) {
     next = elem.parentNode.firstChild;
   }
   setCookie("userchannel", next.innerHTML, 365);
-  userchannel = next.innerHTML;
+  client.userchannel = next.innerHTML;
   setActiveChannel(next.innerHTML);
 }
 
 function prevChannel() {
-  var elem = document.getElementById('channel_' + activeChannel);
+  var elem = document.getElementById('channel_' + client.activeChannel);
   var next = elem.previousElementSibling;
   if(next == null) {
     next = elem.parentNode.lastChild;
   }
   setCookie("userchannel", next.innerHTML, 365);
-  userchannel = next.innerHTML;
+  client.userchannel = next.innerHTML;
   setActiveChannel(next.innerHTML);
 }
 
-if (typeof String.prototype.startsWith != 'function') {
-  String.prototype.startsWith = function (str) {
-    return this.indexOf(str) === 0;
-  };
-}
 
-function sharedStart(array) {
-    var A= array.concat().sort(), 
-    a1= A[0], a2= A[A.length-1], L= a1.length, i= 0;
-    while(i<L && a1.charAt(i)=== a2.charAt(i)) i++;
-    return a1.substring(0, i);
-}
 
 $(function() {
 
@@ -239,9 +210,9 @@ $(function() {
       if(arrayCurrent.length > 0) {
         var lastEntry = arrayCurrent[arrayCurrent.length - 1];
         var resultArray = [];
-        for(var nickName in nicknames[activeChannel]) {
+        for(var nickName in client.nicknames[client.activeChannel]) {
           if(lastEntry.length <= nickName.length) {
-            if(nickName.toLowerCase().startsWith(lastEntry.toLowerCase())) {
+            if(nickName.toLowerCase().indexOf(lastEntry.toLowerCase()) == 0) {
               // found something
               resultArray.push(nickName);
               arrayCurrent[arrayCurrent.length - 1] = nickName;
@@ -286,11 +257,11 @@ $(function() {
       var split = msg.split(" ");
 
       if(split[0] == "/part") {
-        socket.emit('part_channel', activeChannel);
+        client.socket.emit('part_channel', client.activeChannel);
         removeActiveChannel();
       }
       else if(split[0] == "/clear") {
-        delete channelHistories[activeChannel];
+        delete client.channelHistories[client.activeChannel];
         clearMessageTable();
       }
       else if(split[0] == "/query") {
@@ -301,7 +272,7 @@ $(function() {
           for(var i=3; i<split.length; ++i)
             what += " " + split[i];
           console.log(who + '|' + what);
-          socket.emit('query', who + '|' + what);
+          client.socket.emit('query', who + '|' + what);
         }
       }
       else if(split[0] == "/imdb") {
@@ -330,7 +301,7 @@ $(function() {
             movieDataString += "</div><div class=\"imdbimg\">";
             movieDataString += "<a href=\"http://www.imdb.com/title/" + oData["imdbID"] +  "/\" target=\"_blank\"><img style=\"width:10em; height:15em;\" src=\"" + oData.Poster + "\"/></a>";
             movieDataString += "</div></div>";
-            socket.emit('imdb', activeChannel + "|" + movieDataString);
+            client.socket.emit('imdb', client.activeChannel + "|" + movieDataString);
             }
             else {
               addLine(timeNow(), "IMDB", "movie '" + sMovie  + "' not found :(");
@@ -339,7 +310,7 @@ $(function() {
         });
       }
       else {
-        socket.emit('chat message', activeChannel + "|" + msg);
+        client.socket.emit('chat message', client.activeChannel + "|" + msg);
       }
       $('#m').val('');
       e.preventDefault();
@@ -347,33 +318,6 @@ $(function() {
   });
 });
 
-function setCookie(cname, cvalue, exdays) {
-    var d = new Date();
-    d.setTime(d.getTime() + (exdays*24*60*60*1000));
-    var expires = "expires="+d.toUTCString();
-    document.cookie = cname + "=" + cvalue + "; " + expires;
-}
-
-function getCookie(cname) {
-    var name = cname + "=";
-    var ca = document.cookie.split(';');
-    for(var i=0; i<ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0)==' ') c = c.substring(1);
-        if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
-    }
-    return "";
-}
-
-function checkCookie() {
-    var user = getCookie("username");
-    if (user == "") {
-        user = Math.floor((Math.random() * 1000000000) + 1).toString();
-        if (user != "" && user != null) {
-            setCookie("username", user, 365);
-        }
-    }
-}
 
 var prevIsAlt = false;
 
@@ -437,7 +381,7 @@ function addLine(time, who, what) {
 	if(!sameUser)
 	{
 	  elem_who = document.createElement("span");
-	  elem_who.className = "label label-success col-md-1 who";
+	  elem_who.className = "label label-success col-md-1 who user-label";
 	  messageBody.appendChild(elem_who);
 	  elem_who.innerHTML = who;
 	}else{
@@ -483,40 +427,14 @@ function addLine(time, who, what) {
 }
 
 function removeActiveChannel() {
-  var elem = document.getElementById('channel_' + activeChannel);
+  var elem = document.getElementById('channel_' + client.activeChannel);
   elem.parentNode.removeChild(elem);
   if(document.getElementById('channels').firstChild) {
     document.getElementById('channels').firstChild.click();
   }
   else {
-    socket.emit('chat message', "|/join void");
+    client.socket.emit('chat message', "|/join void");
   }
-}
-
-checkCookie();
-var socket = io.connect('http://soulaim.dy.fi:3001', { autoConnect: true});
-socket.emit('login', getCookie("username"));
-setCookie("username", getCookie("username"), 365);
-var userchannel = getCookie("userchannel");
-if(userchannel == "") {
-  setCookie("userchannel", "lobby", 365);
-  userchannel = getCookie("userchannel");
-}
-
-function timeNow() {
-  var date = new Date();
-  var hours = date.getHours().toString();
-  var minutes = date.getMinutes().toString();
-  if(minutes.length == 1)
-    minutes = "0" + minutes;
-  return hours + ":" + minutes;
-}
-
-function linkify(text) {
-  var urlRegex =/(([ \t\n]|^)(https?:\/\/|ftp:\/\/|file:\/\/)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-  return text.replace(urlRegex, function(url) {
-    return '<a target="_blank" href="' + url + '">' + url + '</a>';
-  });
 }
 
 function clearMessageTable() {
@@ -538,64 +456,62 @@ tag: An ID for a given notification that allows to retrieve, replace or remove i
 icon: The URL of an image to be used as an icon by the notification
 */
 
-var unreadMessages = 0;
-
 function notifyUser(channel, user, msg) {
   var notification = new Notification(channel + ": " + user, {"body": unwindHtml(msg), "icon":"http://urtela.redlynx.com/img/chaticon.jpg"});
   setTimeout(function(){ notification.close(); }, 5000);
-  unreadMessages = unreadMessages + 1;
-  document.title = unreadMessages.toString() + " unread!";
+  client.unreadMessages = client.unreadMessages + 1;
+  document.title = client.unreadMessages.toString() + " unread!";
   window.focus();
 }
 
 function updateNotificationElement() {
   var toggle = document.getElementById('notifytoggle');
-  var allow = getCookie(activeChannel + "_notify");
+  var allow = getCookie(client.activeChannel + "_notify");
   if(allow == "") {
     allow = "allow"; // default;
   }
   
   if(allow == "allow") {
-    toggle.innerHTML = "<strong>" + activeChannel + ":</strong> Notifications allowed";
+    toggle.innerHTML = "<strong>" + client.activeChannel + ":</strong> Notifications allowed";
 	
 	$("#notifytoggle").addClass("btn-success");
 	
     toggle.onclick = function() {
-      setCookie(activeChannel + "_notify", "forbid");
+      setCookie(client.activeChannel + "_notify", "forbid");
 	  updateNotificationElement();
     }
   }
   else {
-    toggle.innerHTML = "<strong>" + activeChannel + ":</strong> Notifications disabled";
+    toggle.innerHTML = "<strong>" + client.activeChannel + ":</strong> Notifications disabled";
 	
 	$("#notifytoggle").removeClass("btn-success");
 	
     toggle.onclick = function() {
-      setCookie(activeChannel + "_notify", "allow");
+      setCookie(client.activeChannel + "_notify", "allow");
       updateNotificationElement();
     }
   }
 }
 
 function setActiveChannel(channel) {
-  if(userchannel != channel)
+  if(client.userchannel != channel)
     return;
  
-  var prevChannel = document.getElementById('channel_' + activeChannel)
+  var prevChannel = document.getElementById('channel_' + client.activeChannel)
   if(prevChannel)
   {
-		$("#channel_"+activeChannel).removeClass("btn-success");
+		$("#channel_"+client.activeChannel).removeClass("btn-success");
   }
-  activeChannel = channel;
+  client.activeChannel = channel;
   
-  $("#channel_"+activeChannel).addClass("btn-success");
+  $("#channel_"+client.activeChannel).addClass("btn-success");
   
   clearMessageTable();
   
   // populate with history if available
-  if(activeChannel in channelHistories) {
-    for(var index in channelHistories[activeChannel]) {
-      addLine(channelHistories[activeChannel][index][0], channelHistories[activeChannel][index][1], channelHistories[activeChannel][index][2]);
+  if(client.activeChannel in client.channelHistories) {
+    for(var index in client.channelHistories[client.activeChannel]) {
+      addLine(client.channelHistories[client.activeChannel][index][0], client.channelHistories[client.activeChannel][index][1], client.channelHistories[client.activeChannel][index][2]);
     }
   }
   
@@ -609,16 +525,16 @@ function updateUserList_Active() {
   while(usersList.firstChild)
     usersList.removeChild(usersList.firstChild);
   
-  for(var nickName in nicknames[activeChannel]) {
+  for(var nickName in client.nicknames[client.activeChannel]) {
     var user = document.createElement("button");
-	user.className = "btn btn-block btn-xs user-button";
+	user.className = "btn btn-block btn-xs user-label";
     user.innerHTML = nickName;
     usersList.appendChild(user);
   }
 }
 
 function updateUserList(channel) {
-  if(activeChannel == channel) {
+  if(client.activeChannel == channel) {
     updateUserList_Active();
   }
 }
@@ -630,23 +546,17 @@ function newContent(channel) {
   }
 }
 
-function unwindHtml(html) {
-  return html
-   .replace(/\&amp\;/g, "&")
-   .replace(/\&lt\;/g, "<")
-   .replace(/\&gt\;/g, ">")
-   .replace(/\&quot\;/g, "\"")
-   .replace(/\&\#039\;/g, "'");
-}
-
 function pushToChannelHistory(channel, time, who, what) {
-  channelHistories[channel].push([time, who, what]);
-  if(channelHistories[channel].length > 400) {
-    channelHistories[channel].shift();
+  client.channelHistories[channel].push([time, who, what]);
+  if(client.channelHistories[channel].length > 400) {
+    client.channelHistories[channel].shift();
   }
 }
 
-socket.on('chat message', function(msg) {
+function bindSocket()
+{
+
+client.socket.on('chat message', function(msg) {
   var splitMsg = msg.split("|");
   var time = splitMsg[0];
   var channel = splitMsg[1];
@@ -657,12 +567,12 @@ socket.on('chat message', function(msg) {
   }
   
   textLine = linkify(textLine);
-  if(channel == activeChannel || channel == "") {
+  if(channel == client.activeChannel || channel == "") {
     addLine(time, sender, textLine);
   }
   
-  if(typeof channelHistories[channel] == "undefined") {
-    channelHistories[channel] = [];
+  if(typeof client.channelHistories[channel] == "undefined") {
+    client.channelHistories[channel] = [];
   }
   
   pushToChannelHistory(channel, time, sender, textLine);
@@ -672,44 +582,44 @@ socket.on('chat message', function(msg) {
     notifyUser(channel, sender, textLine);
   }
   
-  if(channel != activeChannel) {
+  if(channel != client.activeChannel) {
     newContent(channel);
   }
 });
 
-socket.on('disconnect', function(msg) {
+client.socket.on('disconnect', function(msg) {
   addLine(timeNow(), "SYSTEM", "Connection lost :(");
   notificationsTemporary = 0;
 });
 
-socket.on('your_channel', function(msg) {
-  socket.emit('chat message', "|/join " + msg);
+client.socket.on('your_channel', function(msg) {
+  client.socket.emit('chat message', "|/join " + msg);
 });
 
-socket.on('nick_change', function(msg) {
+client.socket.on('nick_change', function(msg) {
   var parts = msg.split("|");
   var time = parts[0];
   var channel = parts[1];
   var nickOld = parts[2];
   var nickNew = parts[3];
   
-  if(!(channel in nicknames)) {
+  if(!(channel in client.nicknames)) {
     return;
   }
   
-  delete nicknames[channel][nickOld];
-  nicknames[channel][nickNew] = "";
+  delete client.nicknames[channel][nickOld];
+  client.nicknames[channel][nickNew] = "";
   
   pushToChannelHistory(channel, timeNow(), '<font color="red">SYSTEM</font>', nickOld + " is now known as " + nickNew);
   
-  if(activeChannel == channel) {
+  if(client.activeChannel == channel) {
     addLine(timeNow(), '<font color="red">SYSTEM</font>', nickOld + " is now known as " + nickNew);
   }
   
   updateUserList(channel);
 });
 
-socket.on('query', function(msg) {
+client.socket.on('query', function(msg) {
   // from | to | what
   // todo: better ui for 1on1 messages
   console.log("got query: " + msg);
@@ -723,7 +633,7 @@ socket.on('query', function(msg) {
   }
 });
 
-socket.on('topic', function(msg) {
+client.socket.on('topic', function(msg) {
   // who | channel | topic
   // todo: better ui for topics
   var split = msg.split('|');
@@ -738,104 +648,104 @@ socket.on('topic', function(msg) {
   }
 });
 
-socket.on('user_join', function(msg) {
+client.socket.on('user_join', function(msg) {
   var parts = msg.split("|");
   var time = parts[0];
   var channel = parts[1];
   var user = parts[2];
   
-  if(!(channel in nicknames)) {
-    nicknames[channel] = {};
+  if(!(channel in client.nicknames)) {
+    client.nicknames[channel] = {};
   }
   
-  nicknames[channel][user] = "";
+  client.nicknames[channel][user] = "";
   
-  if(!(channel in channelHistories)) {
-    channelHistories[channel] = [];
+  if(!(channel in client.channelHistories)) {
+    client.channelHistories[channel] = [];
   }
   
   pushToChannelHistory(channel, timeNow(), '<font color="green">' + user + '</font>', "joined the channel");
   
-  if(activeChannel == channel) {
+  if(client.activeChannel == channel) {
     addLine(timeNow(), '<font color="green">' + user + '</font>', "joined the channel");
   }
   
   updateUserList(channel);
 });
 
-socket.on('reconnect', function(msg) {
+client.socket.on('reconnect', function(msg) {
   var myNode = document.getElementById("channels");
   while (myNode.firstChild) {
     myNode.removeChild(myNode.firstChild);
   } 
   
-  for(channel in channelHistories)
-    delete channelHistories[channel];
+  for(channel in client.channelHistories)
+    delete client.channelHistories[channel];
 
   clearMessageTable();
-  socket.emit('login', getCookie("username"));
+  client.socket.emit('login', getCookie("username"));
   notificationsTemporary = 0;
 });
 
-socket.on('user_part', function(msg) {
+client.socket.on('user_part', function(msg) {
   var parts = msg.split("|");
   var time = parts[0];
   var channel = parts[1];
   var user = parts[2];
   
-  delete nicknames[channel][user];
+  delete client.nicknames[channel][user];
   
   pushToChannelHistory(channel, timeNow(), '<font color="red">' + user + '</font>', "left the channel");
   
-  if(activeChannel == channel) {
+  if(client.activeChannel == channel) {
     addLine(timeNow(), '<font color="red">' + user + '</font>', "left the channel");
   }
   updateUserList(channel);
 });
 
-socket.on('user_disconnect', function(msg) {
+client.socket.on('user_disconnect', function(msg) {
   var parts = msg.split("|");
   var time = parts[0];
   var channel = parts[1];
   var user = parts[2];
   
-  if(!(channel in nicknames)) {
+  if(!(channel in client.nicknames)) {
     return;
   }
   
-  delete nicknames[channel][user];
+  delete client.nicknames[channel][user];
   
   pushToChannelHistory(channel, timeNow(), '<font color="red">' + user + '</font>', "disconnected");
   
-  if(activeChannel == channel) {
+  if(client.activeChannel == channel) {
     addLine(timeNow(), '<font color="red">' + user + '</font>', "disconnected");
   }
   
   updateUserList(channel);
 });
 
-socket.on('user_list', function(msg) {
+client.socket.on('user_list', function(msg) {
   var parts = msg.split("|");
   var time = parts[0];
   var channel = parts[1];
-  if(!(channel in nicknames)) {
-    nicknames[channel] = {};
+  if(!(channel in client.nicknames)) {
+    client.nicknames[channel] = {};
   }
   for(var i=2; i<parts.length; ++i) {
-    nicknames[channel][parts[i]] = "";
+    client.nicknames[channel][parts[i]] = "";
   }
   updateUserList(channel);
   notificationsTemporary = notificationsTemporary - 1; // join complete, reduce to mark it
 });
 
-socket.on('join_channel', function(msg) {
+client.socket.on('join_channel', function(msg) {
   var found = false;
   for(var childIndex in $("#channels").childNodes) {
     if($("#channels").childNodes[childIndex].innerHTML == msg) {
       found = true;
-      if(msg in channelHistories) {
-        delete channelHistories[msg]; // we are about to be bombarded with the history, better clear it out.
-        if(activeChannel == msg) {
+      if(msg in client.channelHistories) {
+        delete client.channelHistories[msg]; // we are about to be bombarded with the history, better clear it out.
+        if(client.activeChannel == msg) {
           clearMessageTable();
         }
       }
@@ -850,41 +760,19 @@ socket.on('join_channel', function(msg) {
 	element.type = "button";
     element.onclick = function() {
       setCookie("userchannel", msg, 365);
-      userchannel = msg;
+      client.userchannel = msg;
       setActiveChannel(msg);
     };
     document.getElementById('channels').appendChild(element);
     setActiveChannel(msg);
   }
   
-  nicknames[msg] = {};
+  client.nicknames[msg] = {};
   notificationsTemporary = notificationsTemporary + 1; // join started, increase to mark it
 });
 
-function initSettings()
-{
-	var settings = document.getElementById('settings');
-	var openButton = document.getElementById('settings-open');
-	var closeButton = document.getElementById('settings-close');
-	
-	openButton.onclick = function()
-	{
-		$("#settings").toggleClass("closed");
-	}
-	
-	closeButton.onclick = function()
-	{
-		$("#settings").toggleClass("closed");
-	}
 }
 
-initSettings();
-
-function setServerStatus(status)
-{
-	$("#server-status").html(status);
-}
-
-    </script>
-  </body>
+		</script>
+	</body>
 </html>
