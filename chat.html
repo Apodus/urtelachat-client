@@ -145,6 +145,7 @@ catch(e)
 
 var myMsgIndex = 0;
 var myMsgHistory = [''];
+var channelTopics = {};
 
 function historyUp() {
   myMsgHistory[myMsgIndex] = $('#m').val();
@@ -519,6 +520,15 @@ function setActiveChannel(channel) {
     }
   }
   
+  // set channel topic
+  var topic = document.getElementById("chat-topic");
+  if(channel in channelTopics) {
+	topic.innerHTML = channelTopics[channel];
+  }
+  else {
+	topic.innerHTML = "Welcome to " + channel;
+  }
+  
   updateUserList_Active();
   updateNotificationElement();
 }
@@ -638,8 +648,6 @@ client.socket.on('query', function(msg) {
 });
 
 client.socket.on('topic', function(msg) {
-  // who | channel | topic
-  // todo: better ui for topics
   var split = msg.split('|');
   if(split.length >= 3) {
     var who = split[0];
@@ -647,8 +655,12 @@ client.socket.on('topic', function(msg) {
     var what = split[2];
     //addLine(timeNow(), '<font color="red">SYSTEM</font>', channel + ' topic: ' + what + ' (' + who + ')');
 	
-	var topic = document.getElementById("chat-topic");
-	topic.innerHTML = what;
+	channelTopics[channel] = what;
+	if(channel == activeChannel)
+	{
+		var topic = document.getElementById("chat-topic");
+		topic.innerHTML = what;
+	}
   }
 });
 
