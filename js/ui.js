@@ -2,16 +2,49 @@ function ChatUI()
 {
 }
 {
-	ChatUI.prototype.init = function()
+	ChatUI.prototype.init = function(
+		channelButtonsContainer,
+		messagesContainer,
+		channelTopicContainer
+	)
 	{
 		log("Init UI");
+		
+		this.userchannel = "";
+		this.userchannel = getCookie("userchannel");
+		if(this.userchannel == "")
+		{
+			setCookie("userchannel", "lobby", 365);
+			this.userchannel = "lobby";
+		}
+		log("User Channel:"+this.userchannel);
+		
+		this.useAutoScroll = true;
+		this.channelButtonsContainer = channelButtonsContainer;
+		this.messagesContainer = messagesContainer;
+		this.channelTopicContainer = channelTopicContainer;
 		this.initSettings();
 		this.focusTextbox();
 		this.resizeScreen();
 	}
+	
+	ChatUI.prototype.setAutoScroll = function(scroll)
+	{
+		this.useAutoScroll = scroll;
+	}
+	
+	ChatUI.prototype.bindActions = function(
+		onSetActiveChannel
+	)
+	{
+		this.onSetActiveChannel = onSetActiveChannel;
+	}
+	
+	
 	ChatUI.prototype.resizeScreen = function()
 	{
-		window.onresize = this.resizeScreen;
+		/*
+		window.onresize = ui.resizeScreen;
 		
 		var h = $(window).height() * 0.99;
 		var w = $(window).width() * 0.99;
@@ -19,17 +52,16 @@ function ChatUI()
 		//$("#channels").height(h * 0.05);
 		//$("#channels").width(w * 1.00);
 	  
-		$("#messages").height(h * 0.75);
-		//$("#messages").width(w * 0.999);
+		$(ui.messagesContainer).height(h * 0.75);
+		//$(this.messagesContainer).width(w * 0.999);
 	  
-		//$("#m").height(h * 0.10);
-		//$("#m").width(w * 1.00);
-	  
-		$("#messages").scrollTop = $("#messages").scrollHeight;
+		ui.messagesScrollToBottom();
+		*/
 	}
 
 	ChatUI.prototype.initSettings = function()
 	{
+		/*
 		var openButton = document.getElementById('settings-open');
 		var closeButton = document.getElementById('settings-close');
 		
@@ -42,6 +74,8 @@ function ChatUI()
 		{
 			$("#settings").toggleClass("closed");
 		}
+		*/
+		
 		var ui = this;
 		$("#debug").click(function()
 		{
@@ -52,7 +86,7 @@ function ChatUI()
 
 	ChatUI.prototype.focusTextbox = function()
 	{
-		$("#m").focus();
+		$("#message-input").focus();
 	}
 
 	ChatUI.prototype.setLoading = function(str)
@@ -77,6 +111,86 @@ function ChatUI()
 	{
 		log("Server Status: "+status);
 		$("#server-status").html(status);
+	}
+	
+	ChatUI.prototype.clearChatMessages = function()
+	{
+		$(this.messagesContainer).html("");
+	}
+	
+	ChatUI.prototype.setActiveChannel = function(channel)
+	{
+		log("UI SetActiveChannel:"+channel+ " prev:"+this.userchannel);
+		
+		var prevChannel = $("#channel_" + this.userchannel);
+		if(prevChannel)
+		{
+			prevChannel.removeClass("btn-success");
+		}
+		
+		setCookie("userchannel", channel, 365);
+		this.userchannel = channel;
+		
+		$("#channel_" + this.userchannel).addClass("btn-success");
+		ui.clearChatMessages();
+		
+		this.onSetActiveChannel(channel);
+	}
+	
+	ChatUI.prototype.setTopic = function(topic)
+	{
+		assert($(this.channelTopicContainer)!=null,"channelTopicContainer is null");
+		//$(this.channelTopicContainer).hide();
+		$(this.channelTopicContainer).html(topic);
+		//$(this.channelTopicContainer).slideDown();
+	}
+	
+	ChatUI.prototype.messagesScrollToBottom = function()
+	{
+		if(!this.useAutoScroll) return;
+		
+		var h = $(this.messagesContainer)[0].scrollHeight;
+		$(ui.messagesContainer).stop().animate({ scrollTop: h}, "slow");
+		//$(this.messagesContainer).scrollTop = h;
+	}
+	
+	ChatUI.prototype.initChannelButton = function(channel)
+	{
+		log("Init button for channel: "+channel);
+		
+		var existing = false;
+		var channelButton = null;
+		
+		for(var childIndex in $(this.channelButtonsContainer).childNodes)
+		{
+			channelButton = $(this.channelButtonsContainer).childNodes[childIndex];
+			if(channelButton.innerHTML == channel)
+			{
+				existing = true;
+				break;
+			}
+		}
+	
+		if(!existing)
+		{
+			channelButton = document.createElement("button");
+			channelButton.innerHTML = channel;
+			channelButton.id = "channel_" + channel;
+			channelButton.className = "btn";
+			channelButton.type = "button";
+			if(this.userchannel == channel)
+			{
+				$(channelButton).addClass("btn-success");
+			}
+			channelButton.onclick = function()
+			{
+				log("ChannelButton:"+channel);
+				ui.setActiveChannel(channel);
+			};
+			$(this.channelButtonsContainer).append(channelButton);
+		}
+		
+		return existing;
 	}
 }
 

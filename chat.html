@@ -11,113 +11,115 @@
 	
 	</head>
 	
-	<body>
-  
-		<div id="loading">
-			<div id="loading-text" class="ready">...</div>
-			<img src="img/u.png" id="loading-indicator" class="rotating"/>
-		</div>
+	<body class="bg-body">
 
-		<div class="panel panel-success">
-			<div class="panel-heading container-fluid row">
-				<div id="channels_toggle_container">
-					<div class="col-md-1"><img id="logo" src="img/logo.png"/></div>
-					<div id="channels" class="col-md-9">
+	<div id="loading" class="bg-dark">
+		<div id="loading-text" class="ready">...</div>
+		<img src="img/u.png" id="loading-indicator" class="rotating"/>
+	</div>
+	
+	<header>
+		<div class="navbar navbar-inverse dropshadow-5">
+			<div class="container">
+				<div class="row pad-5">
+					<div id="logo" class="pull-left"><img src="img/logo.png"/></div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#settings">
+							Settings
+							<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+						</button>
+					</div>
+					<div id="channels" class="btn-group">
 						<!-- <button class="btn btn-success btn-sm">Lobby<span class="badge">4</span></button> -->
 					</div>
-					<div  class="col-md-2">
-						<button id="settings-open" class="btn btn-success btn-sm pull-right">Settings</button>
-						<div id="settings" class="closed transitions-all">
-							<div class="panel panel-info dropshadow-5">
-								<div class="panel-heading">
-									<div class="container-fluid row">
-										<div class="pull-right"><button id="settings-close" class="btn btn-success btn-sm">Close</button></div>
-										<div>Settings</div>
-									</div>
-								</div>
-								<div class="panel-body">
-									<div class="row pad-5">
-										<div class="pull-right">
-											<button id="notifytoggle" class="btn btn-success btn-sm">Notifications</button>
-										</div>
-										Toggle Desktop notifications.
-										<hr/>
-										<div class="pull-right">
-											<button id="debug" class="btn btn-success btn-sm">Debug</button>
-										</div>
-										Debug
-									</div>
-								</div>
-								<div class="panel-footer">
-									Server status:<div id="server-status">Connecting...</div>
-								</div>
-							</div>
-						</div>
-					</div>
 				</div>
 			</div>
-			<div class="panel-body container-fluid pad-5">
-				<div class="panel panel-info">
-					<div id="chat-topic" class="panel-heading container-fluid">
-						Connecting...
-					</div>
-					<div  class="panel-body container-fluid pad-5">
-						<div class="row container-fluid">
-							<div id="users_messages_container" class="pad-0">
-								<div id="users" class="col-md-1">
-									
-								</div>
-								<div id="messages" class="col-md-11">
-									<div class="panel panel-success container-fluid">
-										<div class="panel-heading row">
-											
-										</div>
-									</div>
-									<div class="panel panel-success container-fluid">
-										<div class="panel-body row">
-											
-										</div>
-									</div>
-								</div>
-							</div>
+			<div id="chat-topic" class="bg-primary text-primary">
+				Connecting...
+			</div>
+		</div>
+	</header>
+
+	<div class="modal fade" id="settings" tabindex="-1" role="dialog" aria-labelledby="settings-title">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="settings-title">Urtela Chat Client Settings</h4>
+				</div>
+				<div class="modal-body">
+					<div class="row pad-5">
+						<div class="pull-right">
+							<button id="notifytoggle" class="btn btn-success btn-sm">Notifications</button>
 						</div>
+						<span class="glyphicon glyphicon-flag" aria-hidden="true"></span>
+						Toggle Desktop notifications.
+						<hr/>
+						<div class="pull-right">
+							<button id="debug" class="btn btn-success btn-sm">Debug</button>
+						</div>
+						<span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+						Debug
 					</div>
-					<div class="panel-footer">
-						<textarea id="m" class="form-control" autocomplete="off" autofocus></textarea>
+					<div class="well">
+						<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+						Server status:<div id="server-status">Connecting...</div>
 					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<!-- <button type="button" class="btn btn-primary">Save changes</button> -->
 				</div>
 			</div>
 		</div>
-
-		<script src="http://code.jquery.com/jquery-1.11.1.js"></script>	
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	</div>
+	
+	<div id="users" class="well">
+	</div>
+	<div id="messages"></div>
+	
+	<footer class="bg-info">
+		<div class="container">
+			<textarea id="message-input" class="form-control dropshadow-5" autocomplete="off" autofocus></textarea>
+		</div>
+	</footer>
 		
-		<script src="js/socket.io.js"></script>
-		<script src="js/utils.js"></script>
-		<script src="js/notifications.js"></script>  
-		<script src="js/client.js"></script>
-		<script src="js/ui.js"></script>
+	<script src="http://code.jquery.com/jquery-1.11.1.js"></script>	
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	
+	<script src="js/socket.io.js"></script>
+	<script src="js/utils.js"></script>
+	<script src="js/notifications.js"></script>  
+	<script src="js/client.js"></script>
+	<script src="js/ui.js"></script>
 
-		<script>
+	<script>
 
 var ui = null;
 var client = null;
 
 function init()
 {
-	if(ui==null)
+	ui = new ChatUI();
+	ui.setLoading("Loading Chat");
+	setTimeout(function()
 	{
-		ui = new ChatUI();
-		ui.setLoading("Loading Chat");
-		setTimeout(init,1000);
-		return;
-	}
+		ui.setLoading(null);
+	},3000);
 	
 	log("init");
-	
-	ui.init();
-	
 	client = new ChatClient();
+	
+	ui.init(
+		"#channels",
+		"#messages",
+		"#chat-topic"
+	);
+	
+	ui.bindActions(
+		setActiveChannel
+	);
+	
 	client.bindStatusMessage(ui.setServerStatus);
 	
 	client.connect("http://soulaim.dy.fi:3001");
@@ -128,7 +130,7 @@ function init()
 		client.unreadMessages = 0;
 		document.title = "LeChat - " + timeNow();
 	}
-	ui.setLoading(null);
+	//ui.setLoading(null);
 }
 
 try
@@ -145,22 +147,21 @@ catch(e)
 
 var myMsgIndex = 0;
 var myMsgHistory = [''];
-var channelTopics = {};
 
 function historyUp() {
-  myMsgHistory[myMsgIndex] = $('#m').val();
+  myMsgHistory[myMsgIndex] = $('#message-input').val();
   myMsgIndex = myMsgIndex - 1;
   if(myMsgIndex < 0)
     myMsgIndex = myMsgHistory.length - 1;
-  $('#m').val(myMsgHistory[myMsgIndex]);
+  $('#message-input').val(myMsgHistory[myMsgIndex]);
 }
 
 function historyDown() {
-  myMsgHistory[myMsgIndex] = $('#m').val();
+  myMsgHistory[myMsgIndex] = $('#message-input').val();
   myMsgIndex = myMsgIndex + 1;
   if(myMsgIndex >= myMsgHistory.length)
     myMsgIndex = 0;
-  $('#m').val(myMsgHistory[myMsgIndex]);
+  $('#message-input').val(myMsgHistory[myMsgIndex]);
 }
 
 function nextChannel()
@@ -190,7 +191,7 @@ function prevChannel() {
 
 $(function() {
 
-  $("#m").keydown(function (e) {
+  $("#message-input").keydown(function (e) {
     if(e.keyCode == '38' && !e.shiftKey) {
       e.preventDefault();
       historyUp();
@@ -210,7 +211,7 @@ $(function() {
     else if(e.keyCode == '9') {
       // autocomplete
       e.preventDefault();
-      var current = $('#m').val();
+      var current = $('#message-input').val();
       var arrayCurrent = current.split(" ");
       if(arrayCurrent.length > 0) {
         var lastEntry = arrayCurrent[arrayCurrent.length - 1];
@@ -221,7 +222,7 @@ $(function() {
               // found something
               resultArray.push(nickName);
               arrayCurrent[arrayCurrent.length - 1] = nickName;
-              $('#m').val(arrayCurrent.join(" "));
+              $('#message-input').val(arrayCurrent.join(" "));
             } 
           }
         }
@@ -229,7 +230,7 @@ $(function() {
         if(resultArray.length > 0) {
           if(resultArray.length == 1) {
             arrayCurrent[arrayCurrent.length - 1] = resultArray[0];
-            $('#m').val(arrayCurrent.join(" "));
+            $('#message-input').val(arrayCurrent.join(" "));
           }
           else {
             var lowerCaseResults = [];
@@ -240,16 +241,16 @@ $(function() {
             var commonStr = sharedStart(lowerCaseResults);
 
             arrayCurrent[arrayCurrent.length - 1] = commonStr;
-            $('#m').val(arrayCurrent.join(" "));
+            $('#message-input').val(arrayCurrent.join(" "));
           }
         }
       }
     }
   });
 
-  $("#m").keypress(function (e) {
+  $("#message-input").keypress(function (e) {
     if(e.which == 13 && !e.shiftKey) {
-      var msg = $('#m').val();
+      var msg = $('#message-input').val();
       if(msg == "") {
         e.preventDefault();
         return;
@@ -267,7 +268,7 @@ $(function() {
       }
       else if(split[0] == "/clear") {
         delete client.channelHistories[client.activeChannel];
-        clearMessageTable();
+        ui.clearChatMessages();
       }
       else if(split[0] == "/query") {
         console.log("looks like query");
@@ -317,7 +318,7 @@ $(function() {
       else {
         client.socket.emit('chat message', client.activeChannel + "|" + msg);
       }
-      $('#m').val('');
+      $('#message-input').val('');
       e.preventDefault();
     }
   });
@@ -332,8 +333,7 @@ function addLine(time, who, what) {
   what = small_images(what);
   what = custom_emotes(what);
   var messages = document.getElementById("messages");
-  var autoScrollValue = messages.scrollTop + messages.clientHeight - messages.scrollHeight;
-
+  
   var useAlt = false;
   var sameUser = false;
   
@@ -361,7 +361,7 @@ function addLine(time, who, what) {
   else
   {
     messageElement = document.createElement("div");
-	messageElement.className = "panel panel-success container-fluid";
+	messageElement.className = "message-block";
   
 	messageBody = document.createElement("div");
 	messageElement.appendChild(messageBody);
@@ -376,11 +376,11 @@ function addLine(time, who, what) {
 	
 	if(useAlt)
 	{
-		messageBody.className = "panel-heading row";
+		messageBody.className = "message-body bg-success text-success row ";
 	}
 	else
 	{
-		messageBody.className = "panel-body row";
+		messageBody.className = "message-body text-primary row";
 	}
   }
   
@@ -418,7 +418,7 @@ function addLine(time, who, what) {
 	{
 		elem_what = document.createElement("div");
 		elem_what.innerHTML = what;
-		elem_what.className = "msg col-md-10";
+		elem_what.className = "chat-message col-md-10";
 		messageBody.appendChild(elem_what);
 	}
   
@@ -435,16 +435,13 @@ function addLine(time, who, what) {
 		messageBody.appendChild(elem_time);
 	}
   
-  
-  if(autoScrollValue * autoScrollValue < 10 * 10)
-  {
-    messages.scrollTop = messages.scrollHeight;
-  }
-
+  ui.messagesScrollToBottom();
+    
   var selectionCount = document.querySelectorAll("#messages > div").length;
   for(var removeCounter = 400; removeCounter < selectionCount; ++removeCounter) {
     $('#messages').find('div:first').remove();
   }
+  
 }
 
 function removeActiveChannel() {
@@ -458,12 +455,7 @@ function removeActiveChannel() {
   }
 }
 
-function clearMessageTable() {
-  var messages = document.getElementById('messages');
-  while(messages.firstChild){
-    messages.removeChild(messages.firstChild);
-  }
-}
+
 
 /*
 title
@@ -514,22 +506,13 @@ function updateNotificationElement() {
   }
 }
 
-function setActiveChannel(channel) {
-  if(client.userchannel != channel)
-    return;
- 
+function setActiveChannel(channel)
+{
+	log("client setActiveChannel: "+channel+" current:"+client.activeChannel);
+	
+	client.activeChannel = channel;
+	
 	useChatMessageFade = false;
- 
-  var prevChannel = document.getElementById('channel_' + client.activeChannel)
-  if(prevChannel)
-  {
-		$("#channel_"+client.activeChannel).removeClass("btn-success");
-  }
-  client.activeChannel = channel;
-  
-  $("#channel_"+client.activeChannel).addClass("btn-success");
-  
-  clearMessageTable();
   
   // populate with history if available
   if(client.activeChannel in client.channelHistories) {
@@ -537,18 +520,11 @@ function setActiveChannel(channel) {
       addLine(client.channelHistories[client.activeChannel][index][0], client.channelHistories[client.activeChannel][index][1], client.channelHistories[client.activeChannel][index][2]);
     }
   }
-  
-  // set channel topic
-  var topic = document.getElementById("chat-topic");
-  if(channel in channelTopics) {
-	topic.innerHTML = channelTopics[channel];
-  }
-  else {
-	topic.innerHTML = "Welcome to " + channel;
-  }
+
+  ui.setTopic(client.getTopic(channel));
   
   updateUserList_Active();
-  updateNotificationElement
+  updateNotificationElement();
   
   useChatMessageFade = true;
 }
@@ -561,8 +537,8 @@ function updateUserList_Active() {
   
   for(var nickName in client.nicknames[client.activeChannel]) {
     var user = document.createElement("button");
-	user.className = "btn btn-block btn-xs user-label";
-    user.innerHTML = nickName;
+	user.className = "btn btn-block btn-info btn-xs user-label";
+    user.innerHTML = '<span class="glyphicon glyphicon-user" aria-hidden="true"></span>'+nickName;
     usersList.appendChild(user);
   }
 }
@@ -674,7 +650,7 @@ client.socket.on('topic', function(msg) {
     var channel = split[1];
     var what = split[2];
     
-	channelTopics[channel] = what;
+	client.channelTopics[channel] = what;
 	if(channel == client.activeChannel)
 	{
 		var topic = document.getElementById("chat-topic");
@@ -717,7 +693,7 @@ client.socket.on('reconnect', function(msg) {
   for(channel in client.channelHistories)
     delete client.channelHistories[channel];
 
-  clearMessageTable();
+  ui.clearChatMessages();
   client.socket.emit('login', getCookie("username"));
   notificationsTemporary = 0;
 });
@@ -773,37 +749,19 @@ client.socket.on('user_list', function(msg) {
   notificationsTemporary = notificationsTemporary - 1; // join complete, reduce to mark it
 });
 
-client.socket.on('join_channel', function(msg) {
-  var found = false;
-  for(var childIndex in $("#channels").childNodes) {
-    if($("#channels").childNodes[childIndex].innerHTML == msg) {
-      found = true;
-      if(msg in client.channelHistories) {
-        delete client.channelHistories[msg]; // we are about to be bombarded with the history, better clear it out.
-        if(client.activeChannel == msg) {
-          clearMessageTable();
-        }
-      }
-    }
-  }
-  
-  if(!found) {
-    var element = document.createElement("button");
-    element.innerHTML = msg;
-    element.id = "channel_" + msg;
-	element.className = "btn";
-	element.type = "button";
-    element.onclick = function() {
-      setCookie("userchannel", msg, 365);
-      client.userchannel = msg;
-      setActiveChannel(msg);
-    };
-    document.getElementById('channels').appendChild(element);
-    setActiveChannel(msg);
-  }
-  
-  client.nicknames[msg] = {};
-  notificationsTemporary = notificationsTemporary + 1; // join started, increase to mark it
+client.socket.on('join_channel', function(msg)
+{
+	var existing = ui.initChannelButton(msg);
+	if(existing)
+	{
+		// we are about to be bombarded with the history, better clear it out.
+		delete client.channelHistories[msg];
+		ui.setActiveChannel(msg);
+	}
+	
+	client.nicknames[msg] = {};
+	// join started, increase to mark it
+	notificationsTemporary = notificationsTemporary + 1;
 });
 
 }

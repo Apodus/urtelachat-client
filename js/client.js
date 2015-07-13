@@ -4,24 +4,29 @@ function ChatClient()
 	this.activeChannel = "void";
 	this.channelHistories = {};
 	this.nicknames = {};
-	this.userchannel = "";
+	this.channelTopics = {};
+
 	this.socket = null;
 	this.onStatusMessageChanged = function(msg)
 	{
 		log("Server Status: "+msg);
 	};
 	
-	this.userchannel = getCookie("userchannel");
-	if(this.userchannel == "")
-	{
-		setCookie("userchannel", "lobby", 365);
-		this.userchannel = "lobby";
-	}
-	this.activeChannel = this.userchannel;
+	this.activeChannel = "lobby";
 	
 	this.checkUsernameCookie();
 }
 {
+	ChatClient.prototype.getTopic = function(channel)
+	{
+		var topic = "Welcome to " + channel;
+		if(channel in this.channelTopics)
+		{
+			topic = this.channelTopics[channel];
+		}
+		return topic;
+	}
+	
 	ChatClient.prototype.checkUsernameCookie = function()
 	{
 		var user = getCookie("username");

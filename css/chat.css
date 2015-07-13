@@ -1,7 +1,13 @@
+html, body 
+{
+    height: 100%;
+}
+
 body
 {
-	overflow:hidden;
 	font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+	overflow:hidden;
+/*	overflow-y:scroll; */
 }
 
 #loading
@@ -13,7 +19,7 @@ body
 	z-index:3;
 	top:0px;
 	left:0px;
-	background:#cee0c7;
+	
 	color:#fff;
 	text-align:center;
 	margin:0px;
@@ -25,9 +31,79 @@ body
 	transition:opacity 1s ease;
 }
 
+.debug
+{
+	border:1px solid #f0f;
+}
+
+header
+{
+	width:100%;
+	position:fixed;
+	top:0px;
+	left:0px;
+	z-index:2;
+}
+
+.bg-body
+{
+	background:#ffff;
+}
+
+.bg-dark
+{
+	/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#c9de96+0,8ab66b+44,398235+100;Green+3D+%233 */
+	background: #c9de96; /* Old browsers */
+	background: -moz-linear-gradient(top, #c9de96 0%, #8ab66b 44%, #398235 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#c9de96), color-stop(44%,#8ab66b), color-stop(100%,#398235)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, #c9de96 0%,#8ab66b 44%,#398235 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, #c9de96 0%,#8ab66b 44%,#398235 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top, #c9de96 0%,#8ab66b 44%,#398235 100%); /* IE10+ */
+	background: linear-gradient(to bottom, #c9de96 0%,#8ab66b 44%,#398235 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#c9de96', endColorstr='#398235',GradientType=0 ); /* IE6-9 */
+}
+
+.bg-default
+{
+	/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#e4efc0+0,abbd73+100;Olive+3D+%232 */
+	background: #e4efc0; /* Old browsers */
+	background: -moz-linear-gradient(top, #e4efc0 0%, #abbd73 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#e4efc0), color-stop(100%,#abbd73)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, #e4efc0 0%,#abbd73 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, #e4efc0 0%,#abbd73 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top, #e4efc0 0%,#abbd73 100%); /* IE10+ */
+	background: linear-gradient(to bottom, #e4efc0 0%,#abbd73 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e4efc0', endColorstr='#abbd73',GradientType=0 ); /* IE6-9 */
+}
+
+.bg-light
+{
+	/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#f8ffe8+0,e3f5ab+33,b7df2d+100;Green+3D+%234 */
+	background: #f8ffe8; /* Old browsers */
+	background: -moz-linear-gradient(top, #f8ffe8 0%, #e3f5ab 33%, #b7df2d 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8ffe8), color-stop(33%,#e3f5ab), color-stop(100%,#b7df2d)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, #f8ffe8 0%,#e3f5ab 33%,#b7df2d 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, #f8ffe8 0%,#e3f5ab 33%,#b7df2d 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top, #f8ffe8 0%,#e3f5ab 33%,#b7df2d 100%); /* IE10+ */
+	background: linear-gradient(to bottom, #f8ffe8 0%,#e3f5ab 33%,#b7df2d 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f8ffe8', endColorstr='#b7df2d',GradientType=0 ); /* IE6-9 */
+}
+
+.bg-highlight
+{
+	/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#feffff+0,ddf1f9+35,a0d8ef+100;Blue+3D+%2318 */
+	background: #feffff; /* Old browsers */
+	background: -moz-linear-gradient(top, #feffff 0%, #ddf1f9 35%, #a0d8ef 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#feffff), color-stop(35%,#ddf1f9), color-stop(100%,#a0d8ef)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, #feffff 0%,#ddf1f9 35%,#a0d8ef 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, #feffff 0%,#ddf1f9 35%,#a0d8ef 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top, #feffff 0%,#ddf1f9 35%,#a0d8ef 100%); /* IE10+ */
+	background: linear-gradient(to bottom, #feffff 0%,#ddf1f9 35%,#a0d8ef 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#feffff', endColorstr='#a0d8ef',GradientType=0 ); /* IE6-9 */
+}
+
 #loading.ready
 {
-	height:0px;
 	opacity:0;
 	pointer-events:none;
 }
@@ -65,24 +141,65 @@ body
 {
 	padding:0px;
 	margin:0px;
-	margin-top:-8px;
-	margin-bottom:-10px;
+	margin-right:5px;
 }
 
 span.who
 {
 	font-size:1.0em;
 }
+
+#users
+{
+	width:150px;
+	position:fixed;
+	top:90px;
+	bottom:10%;
+	left:10px;
+	padding:5px;
+	overflow:hidden;
+	/*overflow-y:scroll;*/
+}
 	
 #messages
 {
 	border-collapse:collapse;
-	overflow:hidden;
-    overflow-y: scroll;
-    display: block;
+	padding:25px;
+	padding-left:175px;
+	padding-top:100px;
+	height:90%;
+	overflow:scroll;
+	overflow-x:hidden;
+}
+
+@media (max-width: 720px)
+{
+    #users
+	{
+		display: none;
+	}
+	#messages
+	{
+		padding:5px;
+	}
+}
+
+.message-block
+{
+	margin:0px;
+	padding:0px;
+	border-bottom:1px solid #ccc;
+	border-left:1px solid #ccc;
+	border-right:1px solid #ccc;
+}
+
+.message-body 
+{
+	margin:0px;
+	padding:5px;
 }
 	
-#messages > div > div > div.msg
+.chat-message
 {
 	-ms-word-break: break-all;
 	word-break: break-all;
@@ -90,16 +207,6 @@ span.who
 	-webkit-hyphens: auto;
 	-moz-hyphens: auto;
 	hyphens: auto;
-}	
-
-#messages > div.panel
-{
-	margin:0px;
-}
-
-#messages > div > div
-{
-	padding:5px;
 }
 
 .pad-5
@@ -116,19 +223,8 @@ span.who
 {
 	text-align:center;
 	font-weight:bold;
+	height:20px;
 }
-
-#settings
-{
-	position:fixed;
-	top:10px;
-	right:10px;
-	display:block;
-	z-index:2;
-	width:400px;
-	opacity:1;
-}
-
 .dropshadow-5
 {
 	-webkit-box-shadow: 5px 5px 10px 0px rgba(0,0,0,0.75);
@@ -143,12 +239,6 @@ span.who
 	-ms-transition: all 0.35s ease-in-out;
 	-o-transition: all 0.35s ease-in-out;
 	transition: all 0.35s ease-in-out;
-}
-
-#settings.closed
-{
-	right:-600px;
-	opacity:0;
 }
 
 .syntaxhighlighter  .gutter
@@ -208,6 +298,35 @@ span.who
 	-ms-animation: rotating 1s linear infinite;
 	-o-animation: rotating 1s linear infinite;
 	animation: rotating 1s linear infinite;
+}
+
+footer
+{
+	margin:0px;
+	position:fixed;
+	display:block;
+	bottom:0px;
+	width:100%;
+	height:10%;
+	padding:5px;
+}
+
+#message-input
+{
+	background:#eee;
+	height:8%;
+}
+
+#message-input:focus,
+#message-input.focus
+{
+  background:#fff;
+}
+
+.fill-height
+{
+    min-height: 100%;
+    height: 100%;
 }
 
 /*
@@ -374,9 +493,5 @@ div.imdbimg {
   transition: box-shadow 0.3s, border 0.3s;
 }
 
-#m:focus,
-#m.focus
-{
-  border: solid 1px #707070; 
-}
+
 */

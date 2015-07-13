@@ -93,3 +93,8 @@ function log(str)
 {
 	console.log(timeNow() + ": " + str);
 }
+
+function assert(expr,msg)
+{
+	if(!expr) alert("ASSERT!\n\n"+msg);
+}
