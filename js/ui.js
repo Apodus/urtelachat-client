@@ -58,23 +58,42 @@ function ChatUI()
 		ui.messagesScrollToBottom();
 		*/
 	}
+	
+	ChatUI.prototype.refreshAutoScrollToggleButton = function()
+	{
+		var button = $("#auto-scroll-toggle");
+		var iconOn = $("#auto-scroll-icon-on");
+		var iconOff = $("#auto-scroll-icon-off");
+		
+		if(this.useAutoScroll)
+		{
+			button.addClass("btn-info");
+			button.removeClass("btn-warning");
+			iconOn.show();
+			iconOff.hide();
+		}
+		else
+		{
+			button.removeClass("btn-info");
+			button.addClass("btn-warning");
+			iconOff.show();
+			iconOn.hide();
+		}
+	}
 
 	ChatUI.prototype.initSettings = function()
 	{
-		/*
-		var openButton = document.getElementById('settings-open');
-		var closeButton = document.getElementById('settings-close');
+		//init tooltip
+		$("#auto-scroll-toggle").tooltip();
 		
-		openButton.onclick = function()
+		this.refreshAutoScrollToggleButton();
+		$("#auto-scroll-toggle").click(function()
 		{
-			$("#settings").toggleClass("closed");
-		}
-		
-		closeButton.onclick = function()
-		{
-			$("#settings").toggleClass("closed");
-		}
-		*/
+			ui.useAutoScroll = !ui.useAutoScroll;
+			log("Autoscroll toggled: "+ui.useAutoScroll);
+			ui.refreshAutoScrollToggleButton();
+			ui.messagesScrollToBottom();
+		});
 		
 		var ui = this;
 		$("#debug").click(function()
@@ -132,6 +151,8 @@ function ChatUI()
 		this.userchannel = channel;
 		
 		$("#channel_" + this.userchannel).addClass("btn-success");
+		$("#channel_" + this.userchannel).removeClass("btn-info");//if notified
+		$("#channel_" + this.userchannel+" .message-count:first").html("");
 		ui.clearChatMessages();
 		
 		this.onSetActiveChannel(channel);
@@ -147,7 +168,11 @@ function ChatUI()
 	
 	ChatUI.prototype.messagesScrollToBottom = function()
 	{
-		if(!this.useAutoScroll) return;
+		if(!this.useAutoScroll)
+		{
+			//$('#auto-scroll-toggle').tooltip('show');
+			return;
+		}
 		
 		var h = $(this.messagesContainer)[0].scrollHeight;
 		$(ui.messagesContainer).stop().animate({ scrollTop: h}, "slow");
@@ -158,39 +183,74 @@ function ChatUI()
 	{
 		log("Init button for channel: "+channel);
 		
-		var existing = false;
-		var channelButton = null;
+		var existing = $("#channel_" + channel).length > 0;
+		var channelButton = $("#channel_" + channel);
 		
-		for(var childIndex in $(this.channelButtonsContainer).childNodes)
-		{
-			channelButton = $(this.channelButtonsContainer).childNodes[childIndex];
-			if(channelButton.innerHTML == channel)
-			{
-				existing = true;
-				break;
-			}
-		}
-	
 		if(!existing)
 		{
 			channelButton = document.createElement("button");
-			channelButton.innerHTML = channel;
 			channelButton.id = "channel_" + channel;
 			channelButton.className = "btn";
 			channelButton.type = "button";
+			
+			//Tooltip
+			$(channelButton).hover(function()
+			{
+				if($(channelButton).attr("data-toggle")!="tooltip")
+				{
+					$(channelButton).attr("data-toggle", "tooltip");
+					$(channelButton).attr("data-placement", "bottom");
+					$(channelButton).attr("title", client.getTopic(channel));
+					$(channelButton).tooltip("show");
+				}
+				else
+				{
+					$(channelButton).attr("title", client.getTopic(channel));
+				}
+			});
+
 			if(this.userchannel == channel)
 			{
 				$(channelButton).addClass("btn-success");
 			}
+			
 			channelButton.onclick = function()
 			{
 				log("ChannelButton:"+channel);
 				ui.setActiveChannel(channel);
 			};
 			$(this.channelButtonsContainer).append(channelButton);
+			
+			var channelName = document.createElement("span");
+			channelName.className = "name";
+			channelName.innerHTML = channel;
+			$(channelButton).append(channelName);
+			
+			var messages = document.createElement("span");
+			messages.className = "message-count badge";
+			$(channelButton).append(messages);
 		}
 		
 		return existing;
+	}
+	
+	ChatUI.prototype.newContent = function(channel)
+	{
+		if(notificationsTemporary == 0)
+		{
+			var element = $("#channel_" + channel);
+			element.addClass("btn-info");
+			var name = $("#channel_" + channel+" .name:first");
+			
+			var count = parseInt($("#channel_" + channel+" .message-count:first").html());
+			if(isNaN(count))
+			{
+				count = 0;
+			}
+			count++;
+			log(count);
+			$("#channel_" + channel+" .message-count:first").html(count.toString());
+		}
 	}
 }
 
