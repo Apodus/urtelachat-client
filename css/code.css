@@ -1,0 +1,17 @@
+code {
+  visibility: visible;
+  max-height: 1em;
+  color: #333;
+  background:none;
+}
+code.keyword {
+  color: #0000FF;
+}
+
+code.string {
+  color: #FF0000;
+}
+
+code.color1 {
+  color: #5C91D9;
+}
