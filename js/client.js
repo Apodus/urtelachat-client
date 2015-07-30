@@ -15,6 +15,8 @@ function ChatClient()
 	this.activeChannel = "lobby";
 	
 	this.checkUsernameCookie();
+	
+	this.onServerCommand = null;
 }
 {
 	ChatClient.prototype.getTopic = function(channel)
@@ -25,6 +27,18 @@ function ChatClient()
 			topic = this.channelTopics[channel];
 		}
 		return topic;
+	}
+	
+	ChatClient.prototype.getUsers = function(channel)
+	{
+		if(channel==null || this.nicknames[channel] == null)
+		{
+			return this.nicknames[this.activeChannel];
+		}
+		else
+		{
+			return this.nicknames[channel];
+		}
 	}
 	
 	ChatClient.prototype.checkUsernameCookie = function()
@@ -44,7 +58,14 @@ function ChatClient()
 	
 	ChatClient.prototype.bindStatusMessage = function(callback)
 	{
+		log("Binding server status message handler.");
 		this.onStatusMessageChanged = callback;
+	}
+	
+	ChatClient.prototype.bindServerCommand = function(callback)
+	{
+		log("Binding server command handler.");
+		this.onServerCommand = callback;
 	}
 
 	ChatClient.prototype.connect = function(url)
@@ -76,5 +97,16 @@ function ChatClient()
 			str += (i+": "+this[i]+"\n");
 		}
 		log(str);
+	}
+	
+	ChatClient.prototype.serverCommand = function(command)
+	{
+		log("Server command: "+command);
+		if(this.onServerCommand==null)
+		{
+			log("No command handler ser!");
+			return;
+		}
+		this.onServerCommand(command);
 	}
 }

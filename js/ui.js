@@ -40,6 +40,10 @@ function ChatUI()
 		this.onSetActiveChannel = onSetActiveChannel;
 	}
 	
+	ChatUI.prototype.serverCommand = function(command)
+	{
+		ui.reload();
+	}
 	
 	ChatUI.prototype.resizeScreen = function()
 	{
@@ -96,11 +100,38 @@ function ChatUI()
 		});
 		
 		var ui = this;
-		$("#debug").click(function()
+		
+		$("#debug").hide();
+		
+		this.addDebugButton("Server Command",function()
 		{
-			ui.setLoading("Tsasdasd");
-			setTimeout(ui.setLoading,5000);
+			client.serverCommand("Shits and giggles");
 		});
+		
+		this.addDebugButton("User Info",function()
+		{
+			ui.showUserInfo({name:"User1",uid:123123123,avatar:"<span class='glyphicon glyphicon-user' aria-hidden='true'></span><img src='avatar.png' />",comment:"GTFO"});
+		});
+		
+		this.addDebugButton("Reload",function()
+		{
+			ui.reload();
+		});
+	}
+	
+	ChatUI.prototype.addDebugButton = function (name,callback)
+	{
+		$("#debug").show();
+		//var container = document.createElement("div");
+		//container.className = "row";
+		
+		var button = document.createElement("button");
+		button.className = "btn btn-success btn-sm";
+		button.type = "button";
+		button.innerHTML = name;
+		$("#debug").append(button);
+		//$(container).append(button);
+		$(button).click(callback);
 	}
 
 	ChatUI.prototype.focusTextbox = function()
@@ -135,6 +166,24 @@ function ChatUI()
 	ChatUI.prototype.clearChatMessages = function()
 	{
 		$(this.messagesContainer).html("");
+	}
+	
+	ChatUI.prototype.updateUsers = function(users)
+	{
+		var usersList = document.getElementById("users");
+		usersList.innerHTML="";
+		
+		for(var nickName in users)
+		{
+			var user = document.createElement("button");
+			user.className = "btn btn-block btn-info btn-xs user-label";
+			user.innerHTML = '<span class="glyphicon glyphicon-user" aria-hidden="true"></span> '+nickName;
+			$(user).click(function()
+			{
+				ui.showUserInfo({name:nickName, avatar:"<span class='glyphicon glyphicon-user' aria-hidden='true'></span>",comment:"null"});
+			});
+			usersList.appendChild(user);
+		}
 	}
 	
 	ChatUI.prototype.setActiveChannel = function(channel)
@@ -251,6 +300,44 @@ function ChatUI()
 			log(count);
 			$("#channel_" + channel+" .message-count:first").html(count.toString());
 		}
+	}
+	
+	ChatUI.prototype.closePopup = function()
+	{
+		log("Closing popups");
+		$('.modal').modal('hide');
+	}
+	
+	ChatUI.prototype.reload = function()
+	{
+		log("Reloading page!");
+		
+		ui.closePopup();
+		
+		ui.setLoading("Reloading");
+		fatalError("Server Maintenance, please wait...");
+		
+		var id = setTimeout(function()
+		{
+			window.location.reload();
+		},5000);
+	}
+	
+	ChatUI.prototype.showUserInfo = function(user)
+	{
+		log("Show user info:"+user);
+		this.closePopup();
+		$('#userInfo').modal('show');
+		
+		var content = "";
+		var i=0;
+		for(var item in user)
+		{
+			content += "<div class='row"+(i%2?"":" alt")+"'><span class='variable'>"+item+"</span><div class='value pull-right'>"+user[item] + "</div></div>";
+			i++;
+		}
+		
+		$('#userInfoBody').html(content);
 	}
 }
 

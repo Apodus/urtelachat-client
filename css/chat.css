@@ -340,6 +340,26 @@ footer
     height: 100%;
 }
 
+#userInfo .variable
+{
+	font-weight:bold;
+}
+
+#userInfo .value
+{
+	color:#555;
+}
+
+#userInfo .row
+{
+	background-color:#eee;
+}
+
+#userInfo .alt
+{
+	background-color:#fff;
+}
+
 /*
 * { margin: 0; padding: 0; box-sizing: border-box; }
 textarea { border: 0; padding: 0px; width: 100%; min-height: 4em; margin-right: 0%; resize: none; }

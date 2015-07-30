@@ -25,6 +25,7 @@ function init()
 	);
 	
 	client.bindStatusMessage(ui.setServerStatus);
+	client.bindServerCommand(ui.serverCommand);
 	
 	client.connect("http://soulaim.dy.fi:3001");
 	bindSocket();
@@ -427,29 +428,15 @@ function setActiveChannel(channel)
 
   ui.setTopic(client.getTopic(channel));
   
-  updateUserList_Active();
+  ui.updateUsers(client.getUsers());
   updateNotificationElement();
   
   useChatMessageFade = true;
 }
 
-function updateUserList_Active() {
-  var usersList = document.getElementById("users");
-  
-  while(usersList.firstChild)
-    usersList.removeChild(usersList.firstChild);
-  
-  for(var nickName in client.nicknames[client.activeChannel]) {
-    var user = document.createElement("button");
-	user.className = "btn btn-block btn-info btn-xs user-label";
-    user.innerHTML = '<span class="glyphicon glyphicon-user" aria-hidden="true"></span> '+nickName;
-    usersList.appendChild(user);
-  }
-}
-
 function updateUserList(channel) {
   if(client.activeChannel == channel) {
-    updateUserList_Active();
+    ui.updateUsers(client.getUsers());
   }
 }
 
@@ -462,6 +449,7 @@ function pushToChannelHistory(channel, time, who, what) {
 
 function bindSocket()
 {
+	client.socket.on('server command', client.serverCommand);
 
 client.socket.on('chat message', function(msg) {
   var splitMsg = msg.split("|");
