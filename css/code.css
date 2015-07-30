@@ -15,3 +15,13 @@ code.string {
 code.color1 {
   color: #5C91D9;
 }
+
+code.comments
+{
+	color: #50AB56
+}
+
+code.bold
+{
+	font-weight:bold;
+}
