@@ -20,12 +20,239 @@ function ChatUI()
 		log("User Channel:"+this.userchannel);
 		
 		this.useAutoScroll = true;
+		this.myMsgIndex = 0;
+		this.myMsgHistory = [''];
+		this.prevIsAlt = false;
+		this.useChatMessageFade = true;
 		this.channelButtonsContainer = channelButtonsContainer;
 		this.messagesContainer = messagesContainer;
 		this.channelTopicContainer = channelTopicContainer;
 		this.initSettings();
 		this.focusTextbox();
 		this.resizeScreen();
+		this.initKeyboard();
+		this.updateNotificationSettings();
+	}
+
+	ChatUI.prototype.historyUp = function()
+	{
+		this.myMsgHistory[this.myMsgIndex] = $('#message-input').val();
+
+		if(--this.myMsgIndex < 0)
+		{
+			this.myMsgIndex = this.myMsgHistory.length - 1;
+		}
+		$('#message-input').val(this.myMsgHistory[this.myMsgIndex]);
+	}
+
+	ChatUI.prototype.historyDown = function()
+	{
+		this.myMsgHistory[this.myMsgIndex] = $('#message-input').val();
+
+		if(++this.myMsgIndex >= this.myMsgHistory.length)
+		{
+			this.myMsgIndex = 0;
+		}
+		$('#message-input').val(this.myMsgHistory[this.myMsgIndex]);
+	}
+	
+	ChatUI.prototype.swapChannel = function(next)
+	{
+		var elem = document.getElementById('channel_' + this.userchannel);
+		var channel = (next==true ? elem.nextElementSibling : elem.previousSibling);
+		
+		if(channel == null)
+		{
+			channel = (next==true ? elem.parentNode.firstChild : elem.parentNode.lastChild);
+		}
+		channel = $(channel).find(".name").html();
+		if(channel != null && channel != undefined)
+		{	
+			log("goto channel: "+channel);
+			this.setActiveChannel(channel);
+		}	
+	}
+	
+	ChatUI.prototype.addToInputHistory = function(msg)
+	{
+		this.myMsgHistory.push(msg);
+		this.myMsgIndex = 0;
+		this.myMsgHistory[this.myMsgIndex] = '';
+	}
+	
+	ChatUI.prototype.initKeyboard = function()
+	{
+		$(document).keydown(function(e)
+		{
+			if(!$("#message-input").is(":focus") /*&& e.keyCode == '32' */ ) //Space
+			{
+				ui.focusTextbox();
+			}
+		});
+		
+		$("#message-input").keydown(function (e)
+		{
+			if(e.keyCode == '38' && !e.shiftKey)
+			{
+				e.preventDefault();
+				ui.historyUp();
+			}
+			else if(e.keyCode == '40' && !e.shiftKey)
+			{
+				e.preventDefault();
+				ui.historyDown();
+			}
+			else if(e.keyCode == '37' && e.altKey)
+			{
+				e.preventDefault();
+				ui.swapChannel();
+			}
+			else if(e.keyCode == '39' && e.altKey)
+			{
+				e.preventDefault();
+				ui.swapChannel(true);
+			}
+			else if(e.keyCode == '9')
+			{
+				// autocomplete Tab
+				e.preventDefault();
+				var current = $('#message-input').val();
+				var arrayCurrent = current.split(" ");
+				if(arrayCurrent.length > 0)
+				{
+					var lastEntry = arrayCurrent[arrayCurrent.length - 1];
+					var resultArray = [];
+					
+					for(var nickName in client.nicknames[ui.userchannel])
+					{
+						if(lastEntry.length <= nickName.length)
+						{
+							if(nickName.toLowerCase().indexOf(lastEntry.toLowerCase()) == 0)
+							{
+								// found something
+								resultArray.push(nickName);
+								arrayCurrent[arrayCurrent.length - 1] = nickName;
+								$('#message-input').val(arrayCurrent.join(" "));
+							} 
+						}
+					}
+
+					if(resultArray.length > 0)
+					{
+						if(resultArray.length == 1)
+						{
+							arrayCurrent[arrayCurrent.length - 1] = resultArray[0];
+							$('#message-input').val(arrayCurrent.join(" "));
+						}
+						else
+						{
+							var lowerCaseResults = [];
+							for (var str in resultArray)
+							{
+								lowerCaseResults.push(resultArray[str].toLowerCase());
+							}
+					
+							var commonStr = sharedStart(lowerCaseResults);
+
+							arrayCurrent[arrayCurrent.length - 1] = commonStr;
+							$('#message-input').val(arrayCurrent.join(" "));
+						}
+					}
+				}
+			}
+		});
+		  
+		$("#message-input").keypress(function (e)
+		{
+			//Enter/Send
+			if(e.which == 13 && !e.shiftKey)
+			{
+				var msg = $('#message-input').val();
+				if(msg == "")
+				{
+					e.preventDefault();
+					return;
+				}
+			  
+				ui.addToInputHistory(msg);
+				
+				var split = msg.split(" ");
+
+				if(split[0] == "/part")
+				{
+					ui.removeChannelButton(ui.userchannel);
+					client.exitChannel(ui.userchannel);
+				}
+				else if(split[0] == "/clear")
+				{
+					delete client.channelHistories[ui.userchannel];
+					ui.clearChatMessages();
+				}
+				else if(split[0] == "/query")
+				{
+					log("looks like query");
+					if(split.length > 2)
+					{
+						var who = split[1];
+						var what = split[2];
+						
+						for(var i=3; i<split.length; ++i)
+						{
+							what += " " + split[i];
+						}
+							
+						log(who + '|' + what);
+						client.socket.emit('query', who + '|' + what);
+					}
+				}
+				else if(split[0] == "/imdb")
+				{
+					var sMovie = "";
+					var splitMsg = msg.split(" ");
+					for(var k=1; k<splitMsg.length; ++k)
+					{
+						if(k>1) sMovie += " ";
+						
+						sMovie += splitMsg[k];
+					}
+
+					var sUrl = 'http://www.omdbapi.com/?t=' + sMovie + '&plot=short&type=movie&tomatoes=true';
+
+					$.ajax(sUrl,{
+						complete: function(p_oXHR, p_sStatus)
+						{
+							
+							// addLine(timeNow(), '<color="green">IMDB</color>', p_oXHR.responseText);
+					
+							oData = $.parseJSON(p_oXHR.responseText);
+							if("imdbID" in oData) 
+							{
+								var movieDataString = "<div class=\"imdbwrap\"><div class=\"imdbtext\">";
+								movieDataString += "<strong>" + oData.Title + "</strong> (" + oData.Year + ") (" + oData["Genre"] + ")  <br/>tomato meter: " + oData.tomatoMeter + "/100 (" + oData.tomatoImage + ")<br/>";
+								movieDataString += "imdb score: " + oData["imdbRating"] + "<br/>";
+								movieDataString += "<br/>What is it about:<br/>" + oData.Plot + "<br/>";
+								movieDataString += "<br/>Tomato concensus:<br/>" + oData.tomatoConsensus + "<br/>";
+								movieDataString += "</div><div class=\"imdbimg\">";
+								movieDataString += "<a href=\"http://www.imdb.com/title/" + oData["imdbID"] +  "/\" target=\"_blank\"><img style=\"width:10em; height:15em;\" src=\"" + oData.Poster + "\"/></a>";
+								movieDataString += "</div></div>";
+								client.socket.emit('imdb', ui.userchannel + "|" + movieDataString);
+							}
+							else
+							{
+								ui.addLine(timeNow(), "IMDB", "movie '" + sMovie  + "' not found :(");
+							}
+						}
+					});
+				}
+				else
+				{
+					client.socket.emit('chat message', ui.userchannel + "|" + msg);
+				}
+				
+				$('#message-input').val('');
+				e.preventDefault();
+			}
+	  });	
 	}
 	
 	ChatUI.prototype.setAutoScroll = function(scroll)
@@ -204,7 +431,9 @@ function ChatUI()
 		$("#channel_" + this.userchannel+" .message-count:first").html("");
 		ui.clearChatMessages();
 		
+		this.useChatMessageFade=false;
 		this.onSetActiveChannel(channel);
+		this.useChatMessageFade=true;
 	}
 	
 	ChatUI.prototype.setTopic = function(topic)
@@ -308,15 +537,20 @@ function ChatUI()
 			{
 				channelButton.onclick = null;
 				client.exitChannel(channel);
-				$("#channel_" + channel).remove();
-				if(ui.userChannel==channel)
-				{
-					ui.setActiveChannel("lobby");
-				}
+				ui.removeChannelButton(channel);
 			});
 		}
 		
 		return existing;
+	}
+	
+	ChatUI.prototype.removeChannelButton = function(channel)
+	{
+		$("#channel_" + channel).remove();
+		if(this.userchannel==channel)
+		{
+			this.setActiveChannel("lobby");
+		}
 	}
 	
 	ChatUI.prototype.newContent = function(channel)
@@ -374,6 +608,160 @@ function ChatUI()
 		}
 		
 		$('#userInfoBody').html(content);
+	}
+	
+	
+	ChatUI.prototype.addLine = function(time, who, what)
+	{
+		what = universe_jira_links(what);
+		what = small_images(what);
+		what = custom_emotes(what);	
+		var messages = document.getElementById("messages");
+		
+		var useAlt = false;
+		var sameUser = false;
+	  
+		if(messages.lastChild)
+		{
+			try
+			{
+				if(messages.lastChild.firstChild.firstChild.innerHTML == who)
+				{
+					useAlt = this.prevIsAlt;
+				}
+				else
+				{
+					useAlt = !this.prevIsAlt;
+				}
+			}catch(e){}
+		}
+		
+		var messageElement = null;
+		var messageBody = null;
+	  
+		if(this.prevIsAlt == useAlt && messages.lastChild && messages.lastChild.firstChild)
+		{
+			sameUser=true;
+			messageBody = messages.lastChild.firstChild;
+		}
+		else
+		{
+			messageElement = document.createElement("div");
+			messageElement.className = "message-block";
+	  
+			messageBody = document.createElement("div");
+			messageElement.appendChild(messageBody);
+		
+			messages.appendChild(messageElement);
+		
+			if(this.useChatMessageFade)
+			{
+				$(messageElement).hide();
+				$(messageElement).fadeIn();
+			}
+		
+			if(useAlt)
+			{
+				messageBody.className = "message-body bg-success row ";
+			}
+			else
+			{
+				messageBody.className = "message-body text-success row";
+			}
+		}
+	  
+		this.prevIsAlt = useAlt;
+	  
+		var elem_who = null;
+		var elem_time= null;
+		var elem_what = null;
+		
+		if(!sameUser)
+		{
+			elem_who = document.createElement("span");
+			elem_who.className = "label label-success col-md-1 who user-label";
+			messageBody.appendChild(elem_who);
+			elem_who.innerHTML = who;
+		}
+		else
+		{
+			elem_who = messageBody.firstChild;
+		}
+
+		if(sameUser)
+		{
+			elem_what = elem_who.nextElementSibling;
+			
+			var newMessage = document.createElement("span");
+			newMessage.innerHTML = "<br/>"+what;
+			elem_what.appendChild(newMessage);
+			
+			if(this.useChatMessageFade)
+			{
+				$(newMessage).hide();
+				$(newMessage).fadeIn();
+			}
+		}
+		else
+		{
+			elem_what = document.createElement("div");
+			elem_what.innerHTML = what;
+			elem_what.className = "chat-message col-md-10";
+			messageBody.appendChild(elem_what);
+		}
+	  
+		if(sameUser)
+		{
+			elem_time = elem_what.nextElementSibling;
+			elem_time.innerHTML += "<br/>"+time;
+		}
+		else
+		{
+			elem_time = document.createElement("div");
+			elem_time.innerHTML = time;
+			elem_time.className = "time col-md-1 text-right";
+			messageBody.appendChild(elem_time);
+		}
+	  
+		this.messagesScrollToBottom();
+		
+		var selectionCount = document.querySelectorAll("#messages > div").length;
+		while(selectionCount>400)
+		{
+			$('#messages').find('div:first').remove();
+		}
+	}
+	
+	ChatUI.prototype.updateNotificationSettings = function()
+	{
+		var allow = getCookie(this.userchannel + "_notify");
+		if(allow == "")
+		{
+			allow = "allow"; // default;
+		}
+  
+		if(allow == "allow")
+		{
+			$("#notifytoggle").html("<strong>" + this.userchannel + ":</strong> Notifications Enabled");
+			$("#notifytoggle").addClass("btn-success");
+			$("#notifytoggle").removeClass("btn-warning");
+			$("#notifytoggle").click(function()
+			{
+				setCookie(this.userchannel + "_notify", "forbid");
+				ui.updateNotificationSettings();
+			});
+		}
+		else
+		{
+			$("#notifytoggle").html("<strong>" + this.userchannel + ":</strong> Notifications Disabled");
+			$("#notifytoggle").removeClass("btn-success");
+			$("#notifytoggle").addClass("btn-warning");
+			$("#notifytoggle").click(function()
+			{
+				setCookie(this.userchannel + "_notify", "allow");
+				ui.updateNotificationSettings();
+			});
+		}
 	}
 }
 
