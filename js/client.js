@@ -41,6 +41,11 @@ function ChatClient()
 		}
 	}
 	
+	ChatClient.prototype.exitChannel = function(channel)
+	{
+		client.socket.emit('part_channel', channel);
+	}
+	
 	ChatClient.prototype.checkUsernameCookie = function()
 	{
 		var user = getCookie("username");

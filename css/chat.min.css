@@ -4,6 +4,7 @@ body{font-family:"Trebuchet MS",Arial,Helvetica,sans-serif;overflow:hidden;}
 .debug{border:1px solid #f0f;}
 header{width:100%;position:fixed;top:0px;left:0px;z-index:2;}
 #channels{padding-left:10px;padding-top:8px;}
+#channels .name{margin-right:10px;}
 .bg-body{background:#ffff;}
 .bg-dark{background:#c9de96;background:-moz-linear-gradient(top,#c9de96 0%,#8ab66b 44%,#398235 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#c9de96),color-stop(44%,#8ab66b),color-stop(100%,#398235));background:-webkit-linear-gradient(top,#c9de96 0%,#8ab66b 44%,#398235 100%);background:-o-linear-gradient(top,#c9de96 0%,#8ab66b 44%,#398235 100%);background:-ms-linear-gradient(top,#c9de96 0%,#8ab66b 44%,#398235 100%);background:linear-gradient(to bottom,#c9de96 0%,#8ab66b 44%,#398235 100%);filter:progid:DXImageTransform.Microsoft.gradient( startColorstr='#c9de96',endColorstr='#398235',GradientType=0 );}
 .bg-default{background:#e4efc0;background:-moz-linear-gradient(top,#e4efc0 0%,#abbd73 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#e4efc0),color-stop(100%,#abbd73));background:-webkit-linear-gradient(top,#e4efc0 0%,#abbd73 100%);background:-o-linear-gradient(top,#e4efc0 0%,#abbd73 100%);background:-ms-linear-gradient(top,#e4efc0 0%,#abbd73 100%);background:linear-gradient(to bottom,#e4efc0 0%,#abbd73 100%);filter:progid:DXImageTransform.Microsoft.gradient( startColorstr='#e4efc0',endColorstr='#abbd73',GradientType=0 );}

@@ -36,6 +36,23 @@ function init()
 		document.title = "LeChat - " + timeNow();
 	}
 	//ui.setLoading(null);
+	
+	/*
+	document.onpaste = function(event)
+	{
+		var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+		var blob = items[0].getAsFile();
+		var reader = new FileReader();
+		reader.onload = function(event)
+		{
+			var img = document.createElement("img");
+			img.src = event.target.result;
+			$("#messages").append(img);
+			client.socket.emit('chat message', client.activeChannel + "|" + event.target.result);
+		};
+		reader.readAsDataURL(blob);
+	}
+	*/
 }
 
 try
@@ -69,30 +86,22 @@ function historyDown() {
   $('#message-input').val(myMsgHistory[myMsgIndex]);
 }
 
-function nextChannel()
+function swapChannel(next)
 {
-  var elem = document.getElementById('channel_' + client.activeChannel);
-  var next = elem.nextElementSibling;
-  if(next == null) {
-    next = elem.parentNode.firstChild;
-  }
-  setCookie("userchannel", next.innerHTML, 365);
-  client.userchannel = next.innerHTML;
-  setActiveChannel(next.innerHTML);
+	var elem = document.getElementById('channel_' + client.activeChannel);
+	var channel = (next==true ? elem.nextElementSibling : elem.previousSibling);
+	
+	if(channel == null)
+	{
+		channel = (next==true ? elem.parentNode.firstChild : elem.parentNode.lastChild);
+	}
+	channel = $(channel).find(".name").html();
+	if(channel != null && channel != undefined)
+	{	
+		log("goto channel: "+channel);
+		ui.setActiveChannel(channel);
+	}	
 }
-
-function prevChannel() {
-  var elem = document.getElementById('channel_' + client.activeChannel);
-  var next = elem.previousElementSibling;
-  if(next == null) {
-    next = elem.parentNode.lastChild;
-  }
-  setCookie("userchannel", next.innerHTML, 365);
-  client.userchannel = next.innerHTML;
-  setActiveChannel(next.innerHTML);
-}
-
-
 
 $(function() {
 
@@ -107,11 +116,11 @@ $(function() {
     }
     else if(e.keyCode == '37' && e.altKey) {
       e.preventDefault();
-      prevChannel();
+      swapChannel();
     }
     else if(e.keyCode == '39' && e.altKey) {
       e.preventDefault();
-      nextChannel();
+      swapChannel(true);
     }
     else if(e.keyCode == '9') {
       // autocomplete
@@ -236,7 +245,7 @@ var useChatMessageFade = true;
 function addLine(time, who, what) {
   what = universe_jira_links(what);
   what = small_images(what);
-  what = custom_emotes(what);
+  what = custom_emotes(what);	
   var messages = document.getElementById("messages");
   
   var useAlt = false;
@@ -457,6 +466,7 @@ client.socket.on('chat message', function(msg) {
   var channel = splitMsg[1];
   var sender = splitMsg[2];
   var textLine = splitMsg[3];
+  
   for(var i = 4; i < splitMsg.length; ++i) {
     textLine = textLine + "|" + splitMsg[i];
   }

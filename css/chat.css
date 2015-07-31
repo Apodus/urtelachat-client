@@ -51,6 +51,11 @@ header
 	padding-top:8px;
 }
 
+#channels .name
+{
+	margin-right:10px;
+}
+
 .bg-body
 {
 	background:#ffff;

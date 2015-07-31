@@ -242,9 +242,16 @@ function ChatUI()
 			channelButton.className = "btn";
 			channelButton.type = "button";
 			
-			//Tooltip
+			var closeButton = document.createElement("span");
+			//closeButton.className = "btn btn-error btn-xs";
+			//closeButton.type = "button";
+			closeButton.id = "close_channel_" + channel;
+			
+			$(closeButton).hide();
+			
 			$(channelButton).hover(function()
 			{
+				//Tooltips
 				if($(channelButton).attr("data-toggle")!="tooltip")
 				{
 					$(channelButton).attr("data-toggle", "tooltip");
@@ -256,18 +263,30 @@ function ChatUI()
 				{
 					$(channelButton).attr("title", client.getTopic(channel));
 				}
+				
+				if(channel!="lobby")
+				{
+					//Disabled for now
+					//$(closeButton).show();
+				}
+			});
+			
+			$(channelButton).mouseleave(function()
+			{
+				$(closeButton).hide();
 			});
 
 			if(this.userchannel == channel)
 			{
 				$(channelButton).addClass("btn-success");
 			}
-			
+
 			channelButton.onclick = function()
 			{
 				log("ChannelButton:"+channel);
 				ui.setActiveChannel(channel);
 			};
+			
 			$(this.channelButtonsContainer).append(channelButton);
 			
 			var channelName = document.createElement("span");
@@ -278,6 +297,23 @@ function ChatUI()
 			var messages = document.createElement("span");
 			messages.className = "message-count badge";
 			$(channelButton).append(messages);
+			
+			var closeIcon = document.createElement("span");
+			closeIcon.className = "glyphicon glyphicon-remove";
+			$(closeIcon).attr("aria-hidden", "true");
+			$(channelButton).append(closeButton);
+			$(closeButton).append(closeIcon);
+			
+			$(closeButton).click(function()
+			{
+				channelButton.onclick = null;
+				client.exitChannel(channel);
+				$("#channel_" + channel).remove();
+				if(ui.userChannel==channel)
+				{
+					ui.setActiveChannel("lobby");
+				}
+			});
 		}
 		
 		return existing;
