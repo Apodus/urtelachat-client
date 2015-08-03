@@ -409,11 +409,13 @@ function ChatUI()
 		for(var nickName in users)
 		{
 			var user = document.createElement("button");
+			user.id = "user_"+nickName;
 			user.className = "btn btn-block btn-info btn-xs user-label";
 			user.innerHTML = '<span class="glyphicon glyphicon-user" aria-hidden="true"></span> '+nickName;
+			$(user).attr("user",nickName);
 			$(user).click(function()
 			{
-				ui.showUserInfo({name:nickName, avatar:"<span class='glyphicon glyphicon-user' aria-hidden='true'></span>",comment:"null"});
+				ui.showUserInfo({name:$(this).attr("user"), avatar:"<span class='glyphicon glyphicon-user' aria-hidden='true'></span>",comment:"null"});
 			});
 			usersList.appendChild(user);
 		}
