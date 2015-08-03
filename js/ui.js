@@ -392,7 +392,13 @@ function ChatUI()
 	
 	ChatUI.prototype.clearChatMessages = function()
 	{
-		$(this.messagesContainer).html("");
+		//$(this.messagesContainer).html("");
+		$(this.messagesContainer+' > div').each(function ()
+		{
+			/* ... */
+			$(this).hide();
+		});
+		
 	}
 	
 	ChatUI.prototype.updateUsers = function(users)
@@ -431,9 +437,17 @@ function ChatUI()
 		$("#channel_" + this.userchannel+" .message-count:first").html("");
 		ui.clearChatMessages();
 		
+		var existing = $("#channel_"+this.userchannel+"_messages").length>0;
+		
 		this.useChatMessageFade=false;
-		this.onSetActiveChannel(channel);
+		this.onSetActiveChannel(channel,existing);
 		this.useChatMessageFade=true;
+		
+		if(existing)
+		{
+			$("#channel_"+this.userchannel+"_messages").show();
+			this.messagesScrollToBottom(true);
+		}
 	}
 	
 	ChatUI.prototype.setTopic = function(topic)
@@ -444,15 +458,22 @@ function ChatUI()
 		//$(this.channelTopicContainer).slideDown();
 	}
 	
-	ChatUI.prototype.messagesScrollToBottom = function()
+	ChatUI.prototype.messagesScrollToBottom = function(fast)
 	{
-		if(!this.useAutoScroll)
+		var h = $(ui.messagesContainer)[0].scrollHeight;
+		
+		if(fast==true)
 		{
-			//$('#auto-scroll-toggle').tooltip('show');
+			//Can't set directly since stuff is still being loaded :/
+			$(ui.messagesContainer).stop().animate({ scrollTop: h},{duration:10});
 			return;
 		}
 		
-		var h = $(this.messagesContainer)[0].scrollHeight;
+		if(!this.useAutoScroll)
+		{
+			return;
+		}
+		
 		$(ui.messagesContainer).stop().animate({ scrollTop: h}, "slow");
 		//$(this.messagesContainer).scrollTop = h;
 	}
@@ -615,8 +636,22 @@ function ChatUI()
 	{
 		what = universe_jira_links(what);
 		what = small_images(what);
-		what = custom_emotes(what);	
-		var messages = document.getElementById("messages");
+		what = custom_emotes(what);
+		
+		var messagesContainer = document.getElementById("messages");
+		var messages = null;
+		
+		if($("#channel_"+this.userchannel+"_messages").length>0)
+		{
+			messages = $("#channel_"+this.userchannel+"_messages")[0];
+			$("#channel_"+this.userchannel+"_messages").show();
+		}
+		else
+		{
+			messages = document.createElement("div");
+			messages.id = "channel_"+this.userchannel+"_messages";
+			messagesContainer.appendChild(messages);
+		}
 		
 		var useAlt = false;
 		var sameUser = false;

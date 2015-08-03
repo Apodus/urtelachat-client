@@ -66,14 +66,14 @@ catch(e)
 	}
 }
 
-function setActiveChannel(channel)
+function setActiveChannel(channel,existing)
 {
-	log("client setActiveChannel: "+channel+" current:"+client.activeChannel);
+	log("client setActiveChannel: "+channel+" current:"+client.activeChannel+" Existing:"+existing);
 	
 	client.activeChannel = channel;
 	
 	// populate with history if available
-	if(client.activeChannel in client.channelHistories)
+	if(!existing && client.activeChannel in client.channelHistories)
 	{
 		for(var index in client.channelHistories[client.activeChannel])
 		{
