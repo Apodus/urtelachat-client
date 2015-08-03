@@ -293,8 +293,8 @@ client.socket.on('join_channel', function(msg)
 	{
 		// we are about to be bombarded with the history, better clear it out.
 		delete client.channelHistories[msg];
-		ui.setActiveChannel(msg);
 	}
+	ui.setActiveChannel(msg);
 	
 	client.nicknames[msg] = {};
 	// join started, increase to mark it
