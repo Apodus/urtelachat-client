@@ -254,7 +254,7 @@ function ChatUI()
 							oData = $.parseJSON(p_oXHR.responseText);
 							if("imdbID" in oData) 
 							{
-								var movieDataString = "<div class=\"imdbwrap\"><div class=\"imdbtext\">";
+								var movieDataString = "<div class=\"well imdbwrap\"><div class=\"imdbtext\">";
 								movieDataString += "<strong>" + oData.Title + "</strong> (" + oData.Year + ") (" + oData["Genre"] + ")  <br/>tomato meter: " + oData.tomatoMeter + "/100 (" + oData.tomatoImage + ")<br/>";
 								movieDataString += "imdb score: " + oData["imdbRating"] + "<br/>";
 								movieDataString += "<br/>What is it about:<br/>" + oData.Plot + "<br/>";

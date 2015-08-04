@@ -365,6 +365,28 @@ footer
 	background-color:#fff;
 }
 
+.imdbwrap
+{
+	display: flex;
+	flex-direction: row;
+}
+
+.imdbtext
+{
+	justify-content: flex-start;
+	font-size:0.85em;
+}
+
+.imdbimg
+{
+	float:right;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+	height: 15em;
+	width: 15em;
+}
+
 /*
 * { margin: 0; padding: 0; box-sizing: border-box; }
 textarea { border: 0; padding: 0px; width: 100%; min-height: 4em; margin-right: 0%; resize: none; }
