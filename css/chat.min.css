@@ -47,4 +47,7 @@ footer{margin:0px;position:fixed;display:block;bottom:0px;width:100%;height:10%;
 .imdbwrap{display:flex;flex-direction:row;}
 .imdbtext{justify-content:flex-start;font-size:0.85em;}
 .imdbimg{float:right;display:flex;flex-direction:row;justify-content:flex-end;height:15em;width:15em;}
+.user-join{font-weight:bold;color:green;}
+.user-left{font-weight:bold;color:orange;}
+.user-disconnected{font-weight:bold;color:red;}
 

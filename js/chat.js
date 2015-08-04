@@ -78,7 +78,12 @@ function setActiveChannel(channel,existing)
 	{
 		for(var index in client.channelHistories[client.activeChannel])
 		{
-			ui.addLine(client.channelHistories[client.activeChannel][index][0], client.channelHistories[client.activeChannel][index][1], client.channelHistories[client.activeChannel][index][2]);
+			ui.addLine(
+				client.channelHistories[client.activeChannel][index][0],
+				client.channelHistories[client.activeChannel][index][1],
+				client.channelHistories[client.activeChannel][index][2],
+				client.channelHistories[client.activeChannel][index][3]
+			);
 		}
 	}
 
@@ -95,11 +100,19 @@ function updateUserList(channel)
 	}
 }
 
-function pushToChannelHistory(channel, time, who, what) {
-  client.channelHistories[channel].push([time, who, what]);
-  if(client.channelHistories[channel].length > 400) {
-    client.channelHistories[channel].shift();
-  }
+function pushToChannelHistory(channel, time, who, what, marker)
+{
+	if(!(channel in client.channelHistories))
+	{
+		client.channelHistories[channel] = [];
+	}
+	
+	client.channelHistories[channel].push([time, who, what, marker]);
+	
+	if(client.channelHistories[channel].length > 400)
+	{
+		client.channelHistories[channel].shift();
+	}
 }
 
 function bindSocket()
@@ -122,10 +135,6 @@ client.socket.on('chat message', function(msg) {
     ui.addLine(time, sender, textLine);
   }
   
-  if(typeof client.channelHistories[channel] == "undefined") {
-    client.channelHistories[channel] = [];
-  }
-  
   pushToChannelHistory(channel, time, sender, textLine);
   
   showDesktopNotification(channel, sender, textLine);
@@ -135,8 +144,33 @@ client.socket.on('chat message', function(msg) {
   }
 });
 
+client.socket.on('system message', function(msg) {
+  var splitMsg = msg.split("|");
+  var time = splitMsg[0];
+  var channel = splitMsg[1];
+  var sender = splitMsg[2];
+  var textLine = splitMsg[3];
+  
+  for(var i = 4; i < splitMsg.length; ++i) {
+    textLine = textLine + "|" + splitMsg[i];
+  }
+  
+  textLine = linkify(textLine);
+  if(channel == client.activeChannel || channel == "") {
+    ui.addLine(time, sender, textLine,true);
+  }
+  
+  pushToChannelHistory(channel, time, sender, textLine,true);
+  
+  showDesktopNotification(channel, sender, textLine);
+  
+  if(channel != client.activeChannel) {
+    ui.newContent(channel);
+  }
+});
+
 client.socket.on('disconnect', function(msg) {
-  ui.addLine(timeNow(), "SYSTEM", "Connection lost :(");
+  ui.addLine(timeNow(), "SYSTEM", "Connection lost :(",true);
   notificationsTemporary = 0;
 });
 
@@ -158,10 +192,13 @@ client.socket.on('nick_change', function(msg) {
   delete client.nicknames[channel][nickOld];
   client.nicknames[channel][nickNew] = "";
   
-  pushToChannelHistory(channel, timeNow(), '<font color="red">SYSTEM</font>', nickOld + " is now known as " + nickNew);
+  var msg = nickOld + " is now known as " + nickNew;
+  var timeStr = timeNow();
+  var sender = "SYSTEM";
   
+  pushToChannelHistory(channel, timeStr, sender, msg,true);
   if(client.activeChannel == channel) {
-    ui.addLine(timeNow(), '<font color="red">SYSTEM</font>', nickOld + " is now known as " + nickNew);
+    ui.addLine(timeStr, sender, msg, true);
   }
   
   updateUserList(channel);
@@ -209,14 +246,13 @@ client.socket.on('user_join', function(msg) {
   
   client.nicknames[channel][user] = "";
   
-  if(!(channel in client.channelHistories)) {
-    client.channelHistories[channel] = [];
-  }
+  var msg = "<div class='user-join'>" + user + " joined the channel</div>";
+  var timeStr = timeNow();
+  var sender = "SYSTEM";
   
-  pushToChannelHistory(channel, timeNow(), '<font color="green">' + user + '</font>', "joined the channel");
-  
+  pushToChannelHistory(channel, timeStr, sender, msg,true);
   if(client.activeChannel == channel) {
-    ui.addLine(timeNow(), '<font color="green">' + user + '</font>', "joined the channel");
+    ui.addLine(timeStr, sender, msg, true);
   }
   
   updateUserList(channel);
@@ -244,11 +280,15 @@ client.socket.on('user_part', function(msg) {
   
   delete client.nicknames[channel][user];
   
-  pushToChannelHistory(channel, timeNow(), '<font color="red">' + user + '</font>', "left the channel");
+  var msg = "<div class='user-left'>" + user + " left the channel</div>";
+  var timeStr = timeNow();
+  var sender = "SYSTEM";
   
+  pushToChannelHistory(channel, timeStr, sender, msg,true);
   if(client.activeChannel == channel) {
-    ui.addLine(timeNow(), '<font color="red">' + user + '</font>', "left the channel");
+    ui.addLine(timeStr, sender, msg, true);
   }
+  
   updateUserList(channel);
 });
 
@@ -264,10 +304,13 @@ client.socket.on('user_disconnect', function(msg) {
   
   delete client.nicknames[channel][user];
   
-  pushToChannelHistory(channel, timeNow(), '<font color="red">' + user + '</font>', "disconnected");
+  var msg = "<div class='user-disconnected'>" + user + " disconnected</div>";
+  var timeStr = timeNow();
+  var sender = "SYSTEM";
   
+  pushToChannelHistory(channel, timeStr, sender, msg,true);
   if(client.activeChannel == channel) {
-    ui.addLine(timeNow(), '<font color="red">' + user + '</font>', "disconnected");
+    ui.addLine(timeStr, sender, msg, true);
   }
   
   updateUserList(channel);
