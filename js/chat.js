@@ -82,7 +82,8 @@ function setActiveChannel(channel,existing)
 				client.channelHistories[client.activeChannel][index][0],
 				client.channelHistories[client.activeChannel][index][1],
 				client.channelHistories[client.activeChannel][index][2],
-				client.channelHistories[client.activeChannel][index][3]
+				client.channelHistories[client.activeChannel][index][3],
+				client.activeChannel
 			);
 		}
 	}
@@ -131,17 +132,12 @@ client.socket.on('chat message', function(msg) {
   }
   
   textLine = linkify(textLine);
-  if(channel == client.activeChannel || channel == "") {
-    ui.addLine(time, sender, textLine);
-  }
+  ui.addLine(time, sender, textLine,channel);
   
   pushToChannelHistory(channel, time, sender, textLine);
   
   showDesktopNotification(channel, sender, textLine);
-  
-  if(channel != client.activeChannel) {
-    ui.newContent(channel);
-  }
+  ui.newContent(channel);
 });
 
 client.socket.on('system message', function(msg) {
@@ -156,17 +152,13 @@ client.socket.on('system message', function(msg) {
   }
   
   textLine = linkify(textLine);
-  if(channel == client.activeChannel || channel == "") {
-    ui.addLine(time, sender, textLine,true);
-  }
+  ui.addLine(time, sender, textLine,true,channel);
   
   pushToChannelHistory(channel, time, sender, textLine,true);
   
   showDesktopNotification(channel, sender, textLine);
   
-  if(channel != client.activeChannel) {
-    ui.newContent(channel);
-  }
+  ui.newContent(channel);
 });
 
 client.socket.on('disconnect', function(msg) {
@@ -197,9 +189,7 @@ client.socket.on('nick_change', function(msg) {
   var sender = "SYSTEM";
   
   pushToChannelHistory(channel, timeStr, sender, msg,true);
-  if(client.activeChannel == channel) {
-    ui.addLine(timeStr, sender, msg, true);
-  }
+  ui.addLine(timeStr, sender, msg, true,channel);
   
   updateUserList(channel);
 });
@@ -251,9 +241,7 @@ client.socket.on('user_join', function(msg) {
   var sender = "SYSTEM";
   
   pushToChannelHistory(channel, timeStr, sender, msg,true);
-  if(client.activeChannel == channel) {
-    ui.addLine(timeStr, sender, msg, true);
-  }
+  ui.addLine(timeStr, sender, msg, true,channel);
   
   updateUserList(channel);
 });
@@ -285,9 +273,7 @@ client.socket.on('user_part', function(msg) {
   var sender = "SYSTEM";
   
   pushToChannelHistory(channel, timeStr, sender, msg,true);
-  if(client.activeChannel == channel) {
-    ui.addLine(timeStr, sender, msg, true);
-  }
+  ui.addLine(timeStr, sender, msg, true,channel);
   
   updateUserList(channel);
 });
@@ -309,9 +295,7 @@ client.socket.on('user_disconnect', function(msg) {
   var sender = "SYSTEM";
   
   pushToChannelHistory(channel, timeStr, sender, msg,true);
-  if(client.activeChannel == channel) {
-    ui.addLine(timeStr, sender, msg, true);
-  }
+  ui.addLine(timeStr, sender, msg, true,channel);
   
   updateUserList(channel);
 });

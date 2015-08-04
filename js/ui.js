@@ -10,14 +10,14 @@ function ChatUI()
 	{
 		log("Init UI");
 		
-		this.userchannel = "";
-		this.userchannel = getCookie("userchannel");
-		if(this.userchannel == "")
+		this.userChannel = "";
+		this.userChannel = getCookie("userchannel");
+		if(this.userChannel == "")
 		{
 			setCookie("userchannel", "lobby", 365);
-			this.userchannel = "lobby";
+			this.userChannel = "lobby";
 		}
-		log("User Channel:"+this.userchannel);
+		log("User Channel:"+this.userChannel);
 		
 		this.useAutoScroll = true;
 		this.myMsgIndex = 0;
@@ -79,7 +79,7 @@ function ChatUI()
 	
 	ChatUI.prototype.swapChannel = function(next)
 	{
-		var elem = document.getElementById('channel_' + this.userchannel);
+		var elem = document.getElementById(ui.getChannelID(ui.userChannel).substring(1));
 		var channel = (next==true ? elem.nextElementSibling : elem.previousSibling);
 		
 		if(channel == null)
@@ -144,7 +144,7 @@ function ChatUI()
 					var lastEntry = arrayCurrent[arrayCurrent.length - 1];
 					var resultArray = [];
 					
-					for(var nickName in client.nicknames[ui.userchannel])
+					for(var nickName in client.nicknames[ui.userChannel])
 					{
 						if(lastEntry.length <= nickName.length)
 						{
@@ -201,8 +201,8 @@ function ChatUI()
 
 				if(split[0] == "/part")
 				{
-					ui.removeChannelButton(ui.userchannel);
-					client.exitChannel(ui.userchannel);
+					ui.removeChannelButton(ui.userChannel);
+					client.exitChannel(ui.userChannel);
 				}
 				else if(split[0] == "/marker")
 				{
@@ -212,7 +212,7 @@ function ChatUI()
 				}
 				else if(split[0] == "/clear")
 				{
-					delete client.channelHistories[ui.userchannel];
+					delete client.channelHistories[ui.userChannel];
 					ui.clearChatMessages();
 				}
 				else if(split[0] == "/query")
@@ -229,7 +229,7 @@ function ChatUI()
 						}
 							
 						log(who + '|' + what);
-						client.socket.emit('query', who + '|' + what);
+						client.startPrivateChat(who,what);
 					}
 				}
 				else if(split[0] == "/imdb")
@@ -248,9 +248,6 @@ function ChatUI()
 					$.ajax(sUrl,{
 						complete: function(p_oXHR, p_sStatus)
 						{
-							
-							// addLine(timeNow(), '<color="green">IMDB</color>', p_oXHR.responseText);
-					
 							oData = $.parseJSON(p_oXHR.responseText);
 							if("imdbID" in oData) 
 							{
@@ -262,7 +259,7 @@ function ChatUI()
 								movieDataString += "</div><div class=\"imdbimg\">";
 								movieDataString += "<a href=\"http://www.imdb.com/title/" + oData["imdbID"] +  "/\" target=\"_blank\"><img style=\"width:10em; height:15em;\" src=\"" + oData.Poster + "\"/></a>";
 								movieDataString += "</div></div>";
-								client.socket.emit('imdb', ui.userchannel + "|" + movieDataString);
+								client.socket.emit('imdb', ui.userChannel + "|" + movieDataString);
 							}
 							else
 							{
@@ -273,7 +270,7 @@ function ChatUI()
 				}
 				else
 				{
-					client.socket.emit('chat message', ui.userchannel + "|" + msg);
+					client.socket.emit('chat message', ui.userChannel + "|" + msg);
 				}
 				
 				$('#message-input').val('');
@@ -450,23 +447,26 @@ function ChatUI()
 	
 	ChatUI.prototype.setActiveChannel = function(channel)
 	{
-		log("UI SetActiveChannel:"+channel+ " prev:"+this.userchannel);
+		log("UI SetActiveChannel:"+channel+ " prev:"+this.userChannel);
 		
-		var prevChannel = $("#channel_" + this.userchannel);
+		var channelID = this.getChannelID(this.userChannel);
+		var prevChannel = $(channelID);
 		if(prevChannel)
 		{
 			prevChannel.removeClass("btn-success");
 		}
 		
 		setCookie("userchannel", channel, 365);
-		this.userchannel = channel;
+		this.userChannel = channel;
 		
-		$("#channel_" + this.userchannel).addClass("btn-success");
-		$("#channel_" + this.userchannel).removeClass("btn-info");//if notified
-		$("#channel_" + this.userchannel+" .message-count:first").html("");
+		channelID = ui.getChannelID(ui.userChannel);
+		
+		$(channelID).addClass("btn-success");
+		$(channelID).removeClass("btn-info");//if notified
+		$(channelID+" .message-count:first").html("");
 		ui.clearChatMessages();
 		
-		var existing = $("#channel_"+this.userchannel+"_messages").length>0;
+		var existing = $(channelID+"_messages").length>0;
 		
 		this.useChatMessageFade=false;
 		this.onSetActiveChannel(channel,existing);
@@ -474,7 +474,7 @@ function ChatUI()
 		
 		if(existing)
 		{
-			$("#channel_"+this.userchannel+"_messages").show();
+			$(channelID+"_messages").show();
 			this.messagesScrollToBottom(true);
 		}
 	}
@@ -511,20 +511,22 @@ function ChatUI()
 	{
 		log("Init button for channel: "+channel);
 		
-		var existing = $("#channel_" + channel).length > 0;
-		var channelButton = $("#channel_" + channel);
+		var channelID = ui.getChannelID(channel);
+		
+		var existing = $(channelID).length > 0;
+		var channelButton = $(channelID);
 		
 		if(!existing)
 		{
 			channelButton = document.createElement("button");
-			channelButton.id = "channel_" + channel;
+			channelButton.id = channelID.substring(1);
 			channelButton.className = "btn";
 			channelButton.type = "button";
 			
 			var closeButton = document.createElement("span");
 			//closeButton.className = "btn btn-error btn-xs";
 			//closeButton.type = "button";
-			closeButton.id = "close_channel_" + channel;
+			closeButton.id = "close_channel_" + channelID.substring(1);
 			
 			$(closeButton).hide();
 			
@@ -555,7 +557,7 @@ function ChatUI()
 				$(closeButton).hide();
 			});
 
-			if(this.userchannel == channel)
+			if(this.userChannel == channel)
 			{
 				$(channelButton).addClass("btn-success");
 			}
@@ -590,35 +592,63 @@ function ChatUI()
 				ui.removeChannelButton(channel);
 			});
 		}
-		
+		if(ui.isPrivateChannel(channel))
+		{
+			channelButton.className = "btn btn-info";
+		}
 		return existing;
 	}
 	
 	ChatUI.prototype.removeChannelButton = function(channel)
 	{
-		$("#channel_" + channel).remove();
-		if(this.userchannel==channel)
+		var channelID = ui.getChannelID(channel);
+		$(channelID).remove();
+		
+		if(this.userChannel==channel)
 		{
 			this.setActiveChannel("lobby");
 		}
 	}
 	
+	ChatUI.prototype.isPrivateChannel = function(channel)
+	{
+		return channel[0]=="@";
+	}
+	
+	ChatUI.prototype.getChannelID = function(channel)
+	{
+		assert(channel!=null);
+		assert(channel!=undefined);
+		assert(channel!="");
+		
+		if(channel != null && channel.length>0 && channel[0]=="@")
+		{
+			log("Got Private Channnel: "+channel);
+			channel = "private_"+channel.substring(1);
+		}
+		channel = "#channel_"+channel;
+		
+		return channel;
+	}
+	
 	ChatUI.prototype.newContent = function(channel)
 	{
+		var channelID = ui.getChannelID(channel);
+		
 		if(notificationsTemporary == 0)
 		{
-			var element = $("#channel_" + channel);
+			var element = $(channelID);
 			element.addClass("btn-info");
-			var name = $("#channel_" + channel+" .name:first");
+			var name = $(channelID+" .name:first");
 			
-			var count = parseInt($("#channel_" + channel+" .message-count:first").html());
+			var count = parseInt($(channelID+" .message-count:first").html());
 			if(isNaN(count))
 			{
 				count = 0;
 			}
 			count++;
-			log(count);
-			$("#channel_" + channel+" .message-count:first").html(count.toString());
+			log("New Content: "+count);
+			$(channelID+" .message-count:first").html(count.toString());
 		}
 	}
 	
@@ -658,6 +688,23 @@ function ChatUI()
 		}
 		
 		$('#userInfoBody').html(content);
+		
+		var container = document.createElement("div");
+		var privaButton = document.createElement("button");
+		$('#userInfoBody').append(container);
+		$(container).append(privaButton);
+		
+		container.className = "well";
+		privaButton.className = "btn btn-info btn-sm";
+		privaButton.type = "button";
+		privaButton.innerHTML = "Private Message";
+		$(privaButton).attr("user",user["name"]);
+		
+		$(privaButton).click(function()
+		{
+			ui.closePopup();
+			client.startPrivateChat($(this).attr("user"),"Private Chat Request");
+		});
 	}
 	
 	ChatUI.prototype.addMarker = function(marker)
@@ -665,8 +712,22 @@ function ChatUI()
 		ui.addLine("","<span class='glyphicon glyphicon-time' aria-hidden='true'></span>",new Date().toString()+"<br/>"+marker,true);
 	}
 	
-	ChatUI.prototype.addLine = function(time, who, what,marker)
+	ChatUI.prototype.addLine = function(time, who, what,marker,channel)
 	{
+		if(channel==null)
+		{
+			channel = ui.userChannel;
+		}
+		else
+		{
+			log("addline to"+channel);
+		}
+		
+		if(channel!=ui.userChannel)
+		{
+			log("Got message to another channel than current?");
+		}
+		
 		what = universe_jira_links(what);
 		what = small_images(what);
 		what = custom_emotes(what);
@@ -674,15 +735,17 @@ function ChatUI()
 		var messagesContainer = document.getElementById("messages");
 		var messages = null;
 		
-		if($("#channel_"+this.userchannel+"_messages").length>0)
+		var channelID = ui.getChannelID(channel);
+		
+		if($(channelID+"_messages").length>0)
 		{
-			messages = $("#channel_"+this.userchannel+"_messages")[0];
-			$("#channel_"+this.userchannel+"_messages").show();
+			messages = $(channelID+"_messages")[0];
+			$(channelID+"_messages").show();
 		}
 		else
 		{
 			messages = document.createElement("div");
-			messages.id = "channel_"+this.userchannel+"_messages";
+			messages.id = channelID.substring(1)+"_messages";
 			messagesContainer.appendChild(messages);
 		}
 		
@@ -805,16 +868,16 @@ function ChatUI()
 	  
 		this.messagesScrollToBottom();
 		
-		var selectionCount = document.querySelectorAll("#channel_"+this.userchannel+"_messages > div").length;
+		var selectionCount = document.querySelectorAll(channelID+"_messages > div").length;
 		while(selectionCount>400)
 		{
-			$("#channel_"+this.userchannel+"_messages").find('div:first').remove();
+			$(channelID+"_messages").find('div:first').remove();
 		}
 	}
 	
 	ChatUI.prototype.updateNotificationSettings = function()
 	{
-		var allow = getCookie(this.userchannel + "_notify");
+		var allow = getCookie(this.userChannel + "_notify");
 		if(allow == "")
 		{
 			allow = "allow"; // default;
@@ -822,23 +885,23 @@ function ChatUI()
   
 		if(allow == "allow")
 		{
-			$("#notifytoggle").html("<strong>" + this.userchannel + ":</strong> Notifications Enabled");
+			$("#notifytoggle").html("<strong>" + this.userChannel + ":</strong> Notifications Enabled");
 			$("#notifytoggle").addClass("btn-success");
 			$("#notifytoggle").removeClass("btn-warning");
 			$("#notifytoggle").click(function()
 			{
-				setCookie(this.userchannel + "_notify", "forbid");
+				setCookie(this.userChannel + "_notify", "forbid");
 				ui.updateNotificationSettings();
 			});
 		}
 		else
 		{
-			$("#notifytoggle").html("<strong>" + this.userchannel + ":</strong> Notifications Disabled");
+			$("#notifytoggle").html("<strong>" + this.userChannel + ":</strong> Notifications Disabled");
 			$("#notifytoggle").removeClass("btn-success");
 			$("#notifytoggle").addClass("btn-warning");
 			$("#notifytoggle").click(function()
 			{
-				setCookie(this.userchannel + "_notify", "allow");
+				setCookie(this.userChannel + "_notify", "allow");
 				ui.updateNotificationSettings();
 			});
 		}

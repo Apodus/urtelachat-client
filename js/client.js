@@ -43,7 +43,13 @@ function ChatClient()
 	
 	ChatClient.prototype.exitChannel = function(channel)
 	{
-		client.socket.emit('part_channel', channel);
+		this.socket.emit('part_channel', channel);
+	}
+	
+	ChatClient.prototype.startPrivateChat = function(targetUser,msg)
+	{
+		log("Start query:"+targetUser+"|"+msg);
+		this.socket.emit('query', targetUser + '|' + msg);
 	}
 	
 	ChatClient.prototype.checkUsernameCookie = function()
