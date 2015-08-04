@@ -32,6 +32,27 @@ function ChatUI()
 		this.resizeScreen();
 		this.initKeyboard();
 		this.updateNotificationSettings();
+		this.timeCheck();
+	}
+	
+	ChatUI.prototype.timeCheck = function()
+	{
+		var date = new Date();
+		var day = date.getDay();
+		//var day = date.getSeconds();
+		if(ui.prevDay==null)
+		{
+			ui.prevDay = day
+		}
+		else
+		{
+			if(ui.prevDay!=day)
+			{
+				ui.prevDay=day;
+				ui.addMarker(date.toString());
+			}
+		}
+		setTimeout(ui.timeCheck, 60*1000);
 	}
 
 	ChatUI.prototype.historyUp = function()
@@ -182,6 +203,12 @@ function ChatUI()
 				{
 					ui.removeChannelButton(ui.userchannel);
 					client.exitChannel(ui.userchannel);
+				}
+				else if(split[0] == "/marker")
+				{
+					split[0] ="";
+					var markerData = split.join(" ");
+					ui.addMarker(markerData);
 				}
 				else if(split[0] == "/clear")
 				{
@@ -633,8 +660,12 @@ function ChatUI()
 		$('#userInfoBody').html(content);
 	}
 	
+	ChatUI.prototype.addMarker = function(marker)
+	{
+		ui.addLine("","<span class='glyphicon glyphicon-time' aria-hidden='true'></span>",new Date().toString()+"<br/>"+marker,true);
+	}
 	
-	ChatUI.prototype.addLine = function(time, who, what)
+	ChatUI.prototype.addLine = function(time, who, what,marker)
 	{
 		what = universe_jira_links(what);
 		what = small_images(what);
@@ -676,7 +707,7 @@ function ChatUI()
 		var messageElement = null;
 		var messageBody = null;
 	  
-		if(this.prevIsAlt == useAlt && messages.lastChild && messages.lastChild.firstChild)
+		if(marker != true && this.prevIsAlt == useAlt && messages.lastChild && messages.lastChild.firstChild)
 		{
 			sameUser=true;
 			messageBody = messages.lastChild.firstChild;
@@ -685,6 +716,10 @@ function ChatUI()
 		{
 			messageElement = document.createElement("div");
 			messageElement.className = "message-block";
+			if(marker==true)
+			{
+				messageElement.className += " well";	
+			}
 	  
 			messageBody = document.createElement("div");
 			messageElement.appendChild(messageBody);
@@ -697,7 +732,7 @@ function ChatUI()
 				$(messageElement).fadeIn();
 			}
 		
-			if(useAlt)
+			if(marker != true && useAlt)
 			{
 				messageBody.className = "message-body bg-success row ";
 			}
@@ -716,7 +751,15 @@ function ChatUI()
 		if(!sameUser)
 		{
 			elem_who = document.createElement("span");
-			elem_who.className = "label label-success col-md-1 who user-label";
+			elem_who.className = "label col-md-1 who user-label";
+			if(marker!=true)
+			{
+				elem_who.className += " label-success";
+			}
+			else
+			{
+				elem_who.className += " label-info";
+			}
 			messageBody.appendChild(elem_who);
 			elem_who.innerHTML = who;
 		}
@@ -762,10 +805,10 @@ function ChatUI()
 	  
 		this.messagesScrollToBottom();
 		
-		var selectionCount = document.querySelectorAll("#messages > div").length;
+		var selectionCount = document.querySelectorAll("#channel_"+this.userchannel+"_messages > div").length;
 		while(selectionCount>400)
 		{
-			$('#messages').find('div:first').remove();
+			$("#channel_"+this.userchannel+"_messages").find('div:first').remove();
 		}
 	}
 	
