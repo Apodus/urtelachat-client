@@ -119,6 +119,7 @@ function pushToChannelHistory(channel, time, who, what, marker)
 function bindSocket()
 {
 	client.socket.on('server command', client.serverCommand);
+	client.socket.on("status",client.updateUserStatus);
 
 client.socket.on('chat message', function(msg) {
   var splitMsg = msg.split("|");

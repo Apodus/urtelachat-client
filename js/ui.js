@@ -368,6 +368,12 @@ function ChatUI()
 		{
 			ui.reload();
 		});
+		
+		this.addDebugButton("Private Chat",function()
+		{
+			pushToChannelHistory("@pena", "00", "pena", "no moro moro");
+			ui.addLine("00", "Pena", "no moro moro",null,"@pena");
+		});
 	}
 	
 	ChatUI.prototype.addDebugButton = function (name,callback)
@@ -633,6 +639,8 @@ function ChatUI()
 	
 	ChatUI.prototype.newContent = function(channel)
 	{
+		if(channel == ui.userChannel) return;
+		
 		var channelID = ui.getChannelID(channel);
 		
 		if(notificationsTemporary == 0)
@@ -720,12 +728,15 @@ function ChatUI()
 		}
 		else
 		{
-			log("addline to"+channel);
+			log("addline to:"+channel);
 		}
 		
 		if(channel!=ui.userChannel)
 		{
-			log("Got message to another channel than current?");
+			log("Got message to another channel than current! Current:"+ui.userChannel+" New:"+channel);
+			ui.initChannelButton(channel);
+			ui.newContent(channel);
+			return;
 		}
 		
 		what = universe_jira_links(what);
