@@ -18,12 +18,12 @@ header{width:100%;position:fixed;top:0px;left:0px;z-index:2;}
 .user-label{text-align:left;}
 #logo{padding:0px;margin:0px;margin-right:5px;}
 span.who{font-size:1.0em;font-weight:normal;}
-#users{width:150px;position:fixed;top:90px;bottom:10%;left:10px;padding:5px;overflow:hidden;}
-#messages{border-collapse:collapse;padding:25px;padding-left:175px;padding-top:100px;height:90%;overflow:scroll;overflow-x:hidden;}
+#users{width:150px;position:fixed;top:90px;bottom:10%;left:10px;padding:2px;overflow:hidden;}
+#messages{border-collapse:collapse;padding:20px;padding-left:175px;padding-top:100px;height:90%;overflow:scroll;overflow-x:hidden;}
 @media (max-width:720px){#users{display:none;}
 #messages{padding:5px;}}
 .message-block{margin:0px;padding:0px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;}
-.message-body{margin:0px;padding:5px;}
+.message-body{margin:0px;padding:2px;}
 .chat-message{-ms-word-break:break-all;word-break:break-all;word-break:break-word;-webkit-hyphens:auto;-moz-hyphens:auto;hyphens:auto;}
 .pad-5{padding:5px;}
 .pad-0{padding:0px;}

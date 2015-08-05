@@ -168,7 +168,7 @@ span.who
 	top:90px;
 	bottom:10%;
 	left:10px;
-	padding:5px;
+	padding:2px;
 	overflow:hidden;
 	/*overflow-y:scroll;*/
 }
@@ -176,7 +176,7 @@ span.who
 #messages
 {
 	border-collapse:collapse;
-	padding:25px;
+	padding:20px;
 	padding-left:175px;
 	padding-top:100px;
 	height:90%;
@@ -208,7 +208,7 @@ span.who
 .message-body 
 {
 	margin:0px;
-	padding:5px;
+	padding:2px;
 }
 	
 .chat-message

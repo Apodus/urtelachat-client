@@ -48,7 +48,6 @@ function ChatClient()
 	
 	ChatClient.prototype.updateUserStatus = function(data)
 	{
-		//('status', timeNow() + '|' + userChannel + '|' +  socket.urtela_nick + '|' + status);
 		data = data.split("|");
 		var time = data[0];
 		var channel = data[1];
@@ -56,6 +55,7 @@ function ChatClient()
 		var status = data[3];
 		
 		ui.addLine(time,"SYSTEM",sender + " is now "+status,true,channel);
+		ui.updateUsers(client.getUsers());
 	}
 	
 	ChatClient.prototype.startPrivateChat = function(targetUser,msg)
