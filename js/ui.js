@@ -227,9 +227,10 @@ function ChatUI()
 						{
 							what += " " + split[i];
 						}
-							
+						
 						log(who + '|' + what);
-						client.startPrivateChat(who,what);
+						client.sendPrivateChat(who,what);
+						log("finished query");
 					}
 				}
 				else if(split[0] == "/imdb")
@@ -711,7 +712,10 @@ function ChatUI()
 		$(privaButton).click(function()
 		{
 			ui.closePopup();
-			client.startPrivateChat($(this).attr("user"),"Private Chat Request");
+			var targetUser = $(this).attr("user");
+			log("Priva: "+targetUser);
+			client.sendPrivateChat(targetUser,"Private Chat Request");
+			//ui.addLine("",targetUser,"This is private chat.",null,"@"+targetUser);
 		});
 	}
 	
@@ -735,7 +739,7 @@ function ChatUI()
 		{
 			log("Got message to another channel than current! Current:"+ui.userChannel+" New:"+channel);
 			ui.initChannelButton(channel);
-			ui.newContent(channel);
+			//ui.newContent(channel);
 			return;
 		}
 		

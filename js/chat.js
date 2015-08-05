@@ -133,7 +133,7 @@ client.socket.on('chat message', function(msg) {
   }
   
   textLine = linkify(textLine);
-  ui.addLine(time, sender, textLine,channel);
+  ui.addLine(time, sender, textLine,null,channel);
   
   pushToChannelHistory(channel, time, sender, textLine);
   

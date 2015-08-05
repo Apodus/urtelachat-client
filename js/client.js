@@ -58,10 +58,11 @@ function ChatClient()
 		ui.updateUsers(client.getUsers());
 	}
 	
-	ChatClient.prototype.startPrivateChat = function(targetUser,msg)
+	ChatClient.prototype.sendPrivateChat = function(targetUser,msg)
 	{
-		log("Start query:"+targetUser+"|"+msg);
-		this.socket.emit('query', targetUser + '|' + msg);
+		msg = "@"+targetUser + "|" + msg;
+		//log("chat message "+msg);
+		client.socket.emit("chat message", msg);
 	}
 	
 	ChatClient.prototype.checkUsernameCookie = function()
