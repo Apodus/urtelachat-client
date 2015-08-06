@@ -502,7 +502,8 @@ function ChatUI()
 						addLine:function(msg,channel)
 						{
 							//log(msg+": "+channel);
-							ui.addLine(timeNow(),"Plugin",msg,false,channel);
+							//ui.addLine(timeNow(),"Plugin",msg,false,channel);
+							client.socket.emit('chat message', channel + "|" + msg);
 						}
 					};
 				break;
