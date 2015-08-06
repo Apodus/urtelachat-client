@@ -73,21 +73,6 @@ function setActiveChannel(channel,existing)
 	
 	client.activeChannel = channel;
 	
-	// populate with history if available
-	if(!existing && client.activeChannel in client.channelHistories)
-	{
-		for(var index in client.channelHistories[client.activeChannel])
-		{
-			ui.addLine(
-				client.channelHistories[client.activeChannel][index][0],
-				client.channelHistories[client.activeChannel][index][1],
-				client.channelHistories[client.activeChannel][index][2],
-				client.channelHistories[client.activeChannel][index][3],
-				client.activeChannel
-			);
-		}
-	}
-
 	ui.setTopic(client.getTopic(channel));
 	ui.updateUsers(client.getUsers());
 	ui.updateNotificationSettings();

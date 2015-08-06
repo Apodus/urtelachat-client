@@ -33,6 +33,8 @@ function ChatUI()
 		this.initKeyboard();
 		this.updateNotificationSettings();
 		this.timeCheck();
+		
+		this.activePlugin = null;
 	}
 	
 	ChatUI.prototype.timeCheck = function()
@@ -464,6 +466,60 @@ function ChatUI()
 		ui.addLine(timeNow(),"SYSTEM","Private chat with "+user,true,channel);
 	}
 	
+	ChatUI.prototype.getChannelPlugin = function(channel)
+	{
+		var channelInfo = channel.split("#");
+		
+		var plugin = null;
+		if(channelInfo.length>1)
+		{
+			switch(channelInfo[1])
+			{
+				case "whiteboard":
+					plugin = {
+						init:function()
+						{
+							log("Init "+this.name+" for:"+this.channel);
+							var script = document.createElement('script');
+							script.src = "js/plugin/" + this.name + ".js";
+							script.setAttribute("name",this.name);
+							script.onload = function () 
+							{
+								eval(this.getAttribute("name")+"ChatPluginInit")(plugin);
+							};
+							document.head.appendChild(script);
+						},
+						channel:channelInfo[0],
+						name:channelInfo[1],
+						onClose:function()
+						{
+							log("plugin onClose not overridden!");
+						},
+						onAddLine:function(time, who, what,marker,channel)
+						{
+							log("plugin onAddLine not overridden!");
+						},
+						addLine:function(msg,channel)
+						{
+							//log(msg+": "+channel);
+							ui.addLine(timeNow(),"Plugin",msg,false,channel);
+						}
+					};
+				break;
+				
+				default:
+					plugin = null;
+				break;
+			}
+		}
+		
+		if(plugin==null)
+		{
+			log("no plugin for channel:"+channel);
+		}
+		return plugin;
+	}
+	
 	ChatUI.prototype.setActiveChannel = function(channel)
 	{
 		log("UI SetActiveChannel:"+channel+ " prev:"+this.userChannel);
@@ -478,6 +534,19 @@ function ChatUI()
 		setCookie("userchannel", channel, 365);
 		this.userChannel = channel;
 		
+		if(this.activePlugin!=null)
+		{
+			this.activePlugin.onClose();
+			this.activePlugin=null;
+		}
+		
+		var channelPlugin = this.getChannelPlugin(channel);
+		if(channelPlugin!=null)
+		{
+			channelPlugin.init(this);
+			this.activePlugin = channelPlugin;
+		}
+		
 		channelID = ui.getChannelID(ui.userChannel);
 		
 		$(channelID).addClass("btn-success");
@@ -489,6 +558,25 @@ function ChatUI()
 		
 		this.useChatMessageFade=false;
 		this.onSetActiveChannel(channel,existing);
+		if(!existing)
+		{
+			// populate with history if available
+			var history = client.getChannelHistory(channel);
+			if(history!=null)
+			{
+				for(var index in history)
+				{
+					this.addLine(
+						history[index][0],
+						history[index][1],
+						history[index][2],
+						history[index][3],
+						channel
+					);
+				}
+			}
+		}
+		
 		this.useChatMessageFade=true;
 		
 		if(existing)
@@ -648,6 +736,9 @@ function ChatUI()
 			log("Got Private Channnel: "+channel);
 			channel = "private_"+channel.substring(1);
 		}
+		
+		channel = channel.split("#").join("_plugin_");
+		
 		channel = "#channel_"+channel;
 		
 		return channel;
@@ -741,6 +832,15 @@ function ChatUI()
 	
 	ChatUI.prototype.addLine = function(time, who, what,marker,channel)
 	{
+		if(this.activePlugin!=null)
+		{
+			var result = this.activePlugin.onAddLine(time,who,what,marker,channel);
+			if(result)
+			{
+				return;
+			}
+		}
+		
 		if(channel==null)
 		{
 			channel = ui.userChannel;

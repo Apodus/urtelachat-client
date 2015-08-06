@@ -19,6 +19,16 @@ function ChatClient()
 	this.onServerCommand = null;
 }
 {
+	ChatClient.prototype.getChannelHistory = function(channel)
+	{
+		if(channel in this.channelHistories)
+		{
+			return this.channelHistories[channel];
+		}
+		log("no history for channel:"+channel);
+		return null;
+	}
+	
 	ChatClient.prototype.getTopic = function(channel)
 	{
 		var topic = "Welcome to " + channel;
