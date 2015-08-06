@@ -466,8 +466,9 @@ function ChatUI()
 		ui.addLine(timeNow(),"SYSTEM","Private chat with "+user,true,channel);
 	}
 	
-	ChatUI.prototype.getChannelPlugin = function(channel)
+	ChatUI.prototype.getChannelPlugin = function(channel,history)
 	{
+		history = history || [];
 		var channelInfo = channel.split("#");
 		
 		var plugin = null;
@@ -486,6 +487,7 @@ function ChatUI()
 							script.onload = function () 
 							{
 								eval(this.getAttribute("name")+"ChatPluginInit")(plugin);
+								plugin.loaded = true;
 							};
 							document.head.appendChild(script);
 						},
@@ -504,7 +506,9 @@ function ChatUI()
 							//log(msg+": "+channel);
 							//ui.addLine(timeNow(),"Plugin",msg,false,channel);
 							client.socket.emit('chat message', channel + "|" + msg);
-						}
+						},
+						history:history,
+						loaded:false
 					};
 				break;
 				
@@ -541,13 +545,6 @@ function ChatUI()
 			this.activePlugin=null;
 		}
 		
-		var channelPlugin = this.getChannelPlugin(channel);
-		if(channelPlugin!=null)
-		{
-			channelPlugin.init(this);
-			this.activePlugin = channelPlugin;
-		}
-		
 		channelID = ui.getChannelID(ui.userChannel);
 		
 		$(channelID).addClass("btn-success");
@@ -559,21 +556,32 @@ function ChatUI()
 		
 		this.useChatMessageFade=false;
 		this.onSetActiveChannel(channel,existing);
-		if(!existing)
+		
+		var history = client.getChannelHistory(channel);
+		
+		var channelPlugin = this.getChannelPlugin(channel,history);
+		if(channelPlugin!=null)
 		{
-			// populate with history if available
-			var history = client.getChannelHistory(channel);
-			if(history!=null)
+			channelPlugin.init();
+			this.activePlugin = channelPlugin;
+		}
+		else
+		{
+			if(!existing)
 			{
-				for(var index in history)
+				// populate with history if available
+				if(history!=null)
 				{
-					this.addLine(
-						history[index][0],
-						history[index][1],
-						history[index][2],
-						history[index][3],
-						channel
-					);
+					for(var index in history)
+					{
+						this.addLine(
+							history[index][0],
+							history[index][1],
+							history[index][2],
+							history[index][3],
+							channel
+						);
+					}
 				}
 			}
 		}
@@ -835,10 +843,17 @@ function ChatUI()
 	{
 		if(this.activePlugin!=null)
 		{
-			var result = this.activePlugin.onAddLine(time,who,what,marker,channel);
-			if(result)
+			if(this.activePlugin.loaded==true)
 			{
-				return;
+				var result = this.activePlugin.onAddLine(time,who,what,marker,channel);
+				if(result)
+				{
+					return;
+				}
+			}
+			else
+			{
+				this.activePlugin.history.push([time,who,what,marker,channel]);
 			}
 		}
 		

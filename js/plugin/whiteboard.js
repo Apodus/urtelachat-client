@@ -99,10 +99,12 @@ whiteboardChatPluginInit = function(pcontext)
 	}
 	else
 	{
-		var h = $(window).height() * 0.99;
-		var w = $(window).width() * 0.99;
-		var wbWidth = w-150;
-		var wbHeight = h-75;
+		var h = $(window).height();
+		var w = $(window).width();
+		var headerSize = 80;
+		var usersPanelSize = 155;
+		var wbWidth = w-usersPanelSize;
+		var wbHeight = h-headerSize;
 		
 		canvas = document.createElement("canvas");
 		canvas.id=whiteboardID.substring(1);
@@ -111,9 +113,9 @@ whiteboardChatPluginInit = function(pcontext)
 		canvas.style.width = wbWidth;
 		canvas.style.height = wbHeight;
 		canvas.style.position = "fixed";
-		canvas.style.bottom = "0px";
-		canvas.style.right = "0px";
-		canvas.style.border = "2px solid #000";
+		canvas.style.top = headerSize+"px";
+		canvas.style.left = usersPanelSize+"px";
+		canvas.style.borderLeft = "5px solid #000";
 		canvas.style.background = "#fff";
 		canvas.style.zIndex = 10;
 		
@@ -163,4 +165,19 @@ whiteboardChatPluginInit = function(pcontext)
 		draw(null,null,null,output);
 		return true;
 	};
+	
+	var history = pluginContext.history;
+	if(history!=null)
+	{
+		for(var index in history)
+		{
+			pluginContext.onAddLine(
+				history[index][0],
+				history[index][1],
+				history[index][2],
+				history[index][3],
+				pluginContext.channel+"#whiteboard"
+			);
+		}
+	}
 }
