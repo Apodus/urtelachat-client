@@ -201,8 +201,10 @@ function ChatUI()
 
 				if(split[0] == "/part")
 				{
-					ui.removeChannelButton(ui.userChannel);
-					client.exitChannel(ui.userChannel);
+					var channel = ui.userChannel;
+					log("Part: "+channel);
+					ui.removeChannelButton(channel);
+					client.exitChannel(channel);
 				}
 				else if(split[0] == "/marker")
 				{
@@ -446,10 +448,20 @@ function ChatUI()
 			$(user).attr("user",nickName);
 			$(user).click(function()
 			{
-				ui.showUserInfo({name:$(this).attr("user"), avatar:"<span class='glyphicon glyphicon-user' aria-hidden='true'></span>",comment:"null"});
+				//ui.showUserInfo({name:$(this).attr("user"), avatar:"<span class='glyphicon glyphicon-user' aria-hidden='true'></span>",comment:"null"});
+				ui.startPrivateChat($(this).attr("user"));
 			});
 			usersList.appendChild(user);
 		}
+	}
+	
+	ChatUI.prototype.startPrivateChat = function(user)
+	{
+		assert(user!=null,"No User set!");
+		var channel = "@"+user;
+		ui.initChannelButton(channel);
+		ui.setActiveChannel(channel);
+		ui.addLine(timeNow(),"SYSTEM","Private chat with "+user,true,channel);
 	}
 	
 	ChatUI.prototype.setActiveChannel = function(channel)
@@ -608,11 +620,14 @@ function ChatUI()
 	
 	ChatUI.prototype.removeChannelButton = function(channel)
 	{
+		log("Removing channel: "+channel);
+		
 		var channelID = ui.getChannelID(channel);
 		$(channelID).remove();
 		
 		if(this.userChannel==channel)
 		{
+			log("Was the active channel...");
 			this.setActiveChannel("lobby");
 		}
 	}
@@ -737,7 +752,7 @@ function ChatUI()
 		
 		if(channel!=ui.userChannel)
 		{
-			log("Got message to another channel than current! Current:"+ui.userChannel+" New:"+channel);
+			log("Got message to another channel than current! Current:"+ui.userChannel+" New:"+channel+" Msg:"+what);
 			ui.initChannelButton(channel);
 			//ui.newContent(channel);
 			return;

@@ -43,6 +43,7 @@ function ChatClient()
 	
 	ChatClient.prototype.exitChannel = function(channel)
 	{
+		log("part_channel: "+channel);
 		this.socket.emit('part_channel', channel);
 	}
 	
