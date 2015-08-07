@@ -4,7 +4,10 @@ var clickDrag = new Array();
 var paint;
 var context;
 var pluginContext;
-
+var userColor = "#0033ff";
+var userSize = 2;
+var container;
+var userImage;
 var chatMsg = "";
 
 function addClick(x, y, dragging)
@@ -15,7 +18,7 @@ function addClick(x, y, dragging)
   
   if(dragging!=true)
   {	
-	chatMsg = "";  
+	chatMsg = userColor+","+userSize+";";
   }
   else
   {
@@ -31,6 +34,9 @@ function onStopDraw()
 		pluginContext.addLine(chatMsg,pluginContext.channel+"#whiteboard");
 	}
 	chatMsg="";
+	
+	//context.closePath();
+	context.stroke();
 }
 
 function clear()
@@ -38,24 +44,21 @@ function clear()
 	context.clearRect(0, 0, context.canvas.width, context.canvas.height); // Clears the canvas
 }
 
-function redraw()
+function onStartDraw(x,y)
 {
-	context.strokeStyle = "#0033ff";
+	context.strokeStyle = userColor;
 	context.lineJoin = "round";
-	context.lineWidth = 2;
-			
-	for(var i=0; i < clickX.length; i++)
-	{		
-		context.beginPath();
-		if(clickDrag[i] && i){
-			context.moveTo(clickX[i-1], clickY[i-1]);
-		}else{
-			context.moveTo(clickX[i]-1, clickY[i]);
-		}
-		context.lineTo(clickX[i], clickY[i]);
-		//context.closePath();
-		context.stroke();
-	}
+	context.lineWidth = userSize;
+		
+	context.beginPath();
+	context.moveTo(x, y-1);
+	context.lineTo(x, y);
+}
+
+function onDraw(x,y)
+{
+	context.lineTo(x, y);
+	context.stroke();
 }
 
 function draw(style,join,width,data)
@@ -83,6 +86,24 @@ function draw(style,join,width,data)
 	context.stroke();
 }
 
+function placeImage(x,y)
+{
+	if(userImage!=null)
+	{
+		client.socket.emit('chat message', pluginContext.channel+"#whiteboard" + "|" + "#image,"+x+","+y+";"+userImage);
+	}
+	userImage=null;
+}
+
+function drawImage(src,x,y,w,h)
+{
+	var outlineImage = new Image();
+	outlineImage.src = src;
+	w = w || outlineImage.width;
+	h = h || outlineImage.height;
+	context.drawImage(outlineImage, x||0, y||0, w, h);
+}
+
 whiteboardChatPluginInit = function(pcontext)
 {
 	pluginContext = pcontext;
@@ -94,8 +115,7 @@ whiteboardChatPluginInit = function(pcontext)
 	if(context!=null)
 	{
 		canvas = document.getElementById(whiteboardID.substring(1));
-		$(canvas).show();
-		redraw();
+		$(container).show();
 	}
 	else
 	{
@@ -106,40 +126,112 @@ whiteboardChatPluginInit = function(pcontext)
 		var wbWidth = w-usersPanelSize;
 		var wbHeight = h-headerSize;
 		
+		container = document.createElement("div");
+		container.id = "whiteboard-container";
+		container.style.display = "block";
+		container.style.width = wbWidth;
+		container.style.height = wbHeight;
+		container.style.position = "fixed";
+		container.style.top = headerSize+"px";
+		container.style.left = usersPanelSize+"px";
+		container.style.borderLeft = "5px solid #000";
+		container.style.background = "#fff";
+		container.style.zIndex = 2;
+		
+		var toolsPanelSize = 32;
+		var tools = document.createElement("div");
+		tools.style.border = "1px solid #eee";
+		tools.style.background = "#eee";
+		tools.style.display = "block";
+		tools.style.width = "100%";
+		tools.style.height = toolsPanelSize;
+		
+		var addLabel = function(label)
+		{
+			var btn = document.createElement("div");
+			btn.className = "label label-info";
+			btn.innerHTML = label;
+			tools.appendChild(btn);
+		};
+		
+		var addButton = function(btnText)
+		{
+			var btn = document.createElement("button");
+			btn.className = "btn btn-default btn-xs";
+			btn.innerHTML = "<div style='background:"+btnText+";'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+			btn.setAttribute("userColor",btnText);
+			$(btn).click(function()
+			{
+				userColor = this.getAttribute("userColor");
+				log(userColor);
+			});
+			tools.appendChild(btn);
+		};
+		
+		var addSizeButton = function(size)
+		{
+			var btn = document.createElement("button");
+			btn.className = "btn btn-default btn-xs";
+			btn.innerHTML = size;
+			btn.setAttribute("userSize",size);
+			$(btn).click(function()
+			{
+				userSize = this.getAttribute("userSize");
+				log(userSize);
+			});
+			tools.appendChild(btn);
+		};
+		addLabel("Color");
+		addButton("#000000");
+		addButton("#ffffff");
+		addButton("#666666");
+		addButton("#ff0000");
+		addButton("#00ff00");
+		addButton("#0000ff");
+		addButton("#00ffff");
+		addButton("#ffff00");
+		addButton("#ff00ff");
+		
+		addLabel("Size");
+		addSizeButton(1);
+		for(var i = 2; i<=10; i++)
+		{
+			addSizeButton(i*i);
+		}
+		
 		canvas = document.createElement("canvas");
 		canvas.id=whiteboardID.substring(1);
 		canvas.setAttribute("width",wbWidth);
-		canvas.setAttribute("height",wbHeight);
+		canvas.setAttribute("height",wbHeight-toolsPanelSize);
 		canvas.style.width = wbWidth;
 		canvas.style.height = wbHeight;
-		canvas.style.position = "fixed";
-		canvas.style.top = headerSize+"px";
-		canvas.style.left = usersPanelSize+"px";
-		canvas.style.borderLeft = "5px solid #000";
-		canvas.style.background = "#fff";
-		canvas.style.zIndex = 10;
 		
-		document.body.appendChild(canvas);
-		
+		document.body.appendChild(container);
+		container.appendChild(tools);
+		container.appendChild(canvas);
+				
 		context = canvas.getContext("2d");
 	}
 
 	$(whiteboardID).mousedown(function(e)
 	{
-		var mouseX = e.pageX - this.offsetLeft;
-		var mouseY = e.pageY - this.offsetTop;
+		if(userImage!=null)
+		{
+			placeImage(e.pageX-usersPanelSize-4, e.pageY-headerSize-toolsPanelSize+10);
+			return;
+		}
 		
 		paint = true;
-		addClick(e.pageX - this.offsetLeft, e.pageY - this.offsetTop);
-		redraw();
+		addClick(e.pageX-usersPanelSize-4, e.pageY-headerSize-toolsPanelSize+10);
+		onStartDraw(e.pageX-usersPanelSize-4, e.pageY-headerSize-toolsPanelSize+10);
 	});
 	
 	$(whiteboardID).mousemove(function(e)
 	{
 		if(paint)
 		{
-			addClick(e.pageX - this.offsetLeft, e.pageY - this.offsetTop, true);
-			redraw();
+			addClick(e.pageX-usersPanelSize-4, e.pageY-headerSize-toolsPanelSize+10,true);
+			onDraw(e.pageX-usersPanelSize-4, e.pageY-headerSize-toolsPanelSize+10);
 		}
 	});
 	
@@ -149,7 +241,7 @@ whiteboardChatPluginInit = function(pcontext)
 	pluginContext.onClose = function()
 	{
 		paint=false;
-		$(canvas).hide();
+		$(container).hide();
 	};
 	pluginContext.onAddLine = function(time, who, what,marker,channel)
 	{
@@ -157,12 +249,26 @@ whiteboardChatPluginInit = function(pcontext)
 		
 		var data = what.split(";");
 		var output = [];
+		
+		//Verify that we have proper data
+		var type = data.shift().split(",");
+		if(type[0][0]!="#") return false;
+		
+		if(type[0]=="#image")
+		{
+			drawImage(data.join(";"),type[1],type[2]);
+			return;
+		}
+		
+		var color = type[0];
+		var size = type[1];
+		
 		for	(var i =0; i<data.length; i++)
 		{
 			var values = data[i].split(",");
 			output.push([parseInt(values[0]),parseInt(values[1])]);
 		}
-		draw(null,null,null,output);
+		draw(color,null,size,output);
 		return true;
 	};
 	
@@ -179,5 +285,17 @@ whiteboardChatPluginInit = function(pcontext)
 				pluginContext.channel+"#whiteboard"
 			);
 		}
+	}
+	
+	document.onpaste = function(event)
+	{
+		var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+		var blob = items[0].getAsFile();
+		var reader = new FileReader();
+		reader.onload = function(event)
+		{
+			userImage = event.target.result;
+		};
+		reader.readAsDataURL(blob);
 	}
 }
