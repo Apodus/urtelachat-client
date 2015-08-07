@@ -36,6 +36,7 @@ function ChatUI()
 		this.idleTimeout=null;
 		this.autoIdle=false;
 		this.activePlugin = null;
+		this.autoIdleMinutes=1;
 		
 		this.idleTimer();
 	}
@@ -118,6 +119,11 @@ function ChatUI()
 			{
 				ui.focusTextbox();
 			}
+		});
+		
+		$(document).mousemove(function(e)
+		{
+			ui.idleTimer();
 		});
 		
 		$("#message-input").keydown(function (e)
@@ -470,7 +476,7 @@ function ChatUI()
 			client.setStatus("idle");
 			ui.clearIdleTimer();
 			ui.autoIdle = true;
-		},15*60*1000);
+		},ui.autoIdleMinutes*60*1000);
 	}
 	
 	ChatUI.prototype.updateUsers = function(users)
