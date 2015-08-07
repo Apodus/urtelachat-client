@@ -4,11 +4,26 @@ var clickDrag = new Array();
 var paint;
 var context;
 var pluginContext;
-var userColor = "#0033ff";
+var userColor = "#000000";
 var userSize = 2;
 var container;
 var userImage;
 var chatMsg = "";
+
+function initValues()
+{
+	clickX = new Array();
+	clickY = new Array();
+	clickDrag = new Array();
+	paint = false;
+	context = null;
+	pluginContext = null;
+	userColor = "#000000";
+	userSize = 2;
+	container = null;
+	userImage = null;
+	chatMsg = "";
+}
 
 function addClick(x, y, dragging)
 {
@@ -138,13 +153,12 @@ whiteboardChatPluginInit = function(pcontext)
 		container.style.background = "#fff";
 		container.style.zIndex = 2;
 		
-		var toolsPanelSize = 32;
+		
 		var tools = document.createElement("div");
 		tools.style.border = "1px solid #eee";
 		tools.style.background = "#eee";
 		tools.style.display = "block";
 		tools.style.width = "100%";
-		tools.style.height = toolsPanelSize;
 		
 		var addLabel = function(label)
 		{
@@ -199,12 +213,15 @@ whiteboardChatPluginInit = function(pcontext)
 			addSizeButton(i*i);
 		}
 		
+		var toolsPanelSize = $(tools).height();
+		
 		canvas = document.createElement("canvas");
 		canvas.id=whiteboardID.substring(1);
 		canvas.setAttribute("width",wbWidth);
 		canvas.setAttribute("height",wbHeight-toolsPanelSize);
 		canvas.style.width = wbWidth;
 		canvas.style.height = wbHeight;
+		canvas.style.cursor = "crosshair";
 		
 		document.body.appendChild(container);
 		container.appendChild(tools);
@@ -212,26 +229,29 @@ whiteboardChatPluginInit = function(pcontext)
 				
 		context = canvas.getContext("2d");
 	}
+	
+	var offSetX = -usersPanelSize-4;
+	var offSetY = -headerSize-toolsPanelSize-22;
 
 	$(whiteboardID).mousedown(function(e)
 	{
 		if(userImage!=null)
 		{
-			placeImage(e.pageX-usersPanelSize-4, e.pageY-headerSize-toolsPanelSize+10);
+			placeImage(e.pageX+offSetX, e.pageY+offSetY);
 			return;
 		}
 		
 		paint = true;
-		addClick(e.pageX-usersPanelSize-4, e.pageY-headerSize-toolsPanelSize+10);
-		onStartDraw(e.pageX-usersPanelSize-4, e.pageY-headerSize-toolsPanelSize+10);
+		addClick(e.pageX+offSetX, e.pageY+offSetY);
+		onStartDraw(e.pageX+offSetX, e.pageY+offSetY);
 	});
 	
 	$(whiteboardID).mousemove(function(e)
 	{
 		if(paint)
 		{
-			addClick(e.pageX-usersPanelSize-4, e.pageY-headerSize-toolsPanelSize+10,true);
-			onDraw(e.pageX-usersPanelSize-4, e.pageY-headerSize-toolsPanelSize+10);
+			addClick(e.pageX+offSetX, e.pageY+offSetY,true);
+			onDraw(e.pageX+offSetX, e.pageY+offSetY);
 		}
 	});
 	
@@ -242,6 +262,8 @@ whiteboardChatPluginInit = function(pcontext)
 	{
 		paint=false;
 		$(container).hide();
+		$(container).remove();
+		initValues();
 	};
 	pluginContext.onAddLine = function(time, who, what,marker,channel)
 	{
