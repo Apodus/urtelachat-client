@@ -704,6 +704,7 @@ function ChatUI()
 			$(closeButton).click(function()
 			{
 				channelButton.onclick = null;
+				$(channelButton).tooltip("hide");
 				ui.removeChannelButton(channel);
 				client.exitChannel(channel);
 			});
