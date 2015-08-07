@@ -4,6 +4,7 @@ function ChatClient()
 	this.activeChannel = "void";
 	this.channelHistories = {};
 	this.nicknames = {};
+	this.userStatus = {};
 	this.channelTopics = {};
 
 	this.socket = null;
@@ -27,6 +28,12 @@ function ChatClient()
 		}
 		log("no history for channel:"+channel);
 		return null;
+	}
+	
+	ChatClient.prototype.setStatus = function(status)
+	{
+		log("Status:"+status);
+		this.socket.emit("status",status);
 	}
 	
 	ChatClient.prototype.getTopic = function(channel)
@@ -56,7 +63,10 @@ function ChatClient()
 		log("part_channel: "+channel);
 		this.socket.emit('part_channel', channel);
 	}
-	
+	ChatClient.prototype.getUserStatus = function(user)
+	{
+		return client.userStatus[user];
+	}
 	ChatClient.prototype.updateUserStatus = function(data)
 	{
 		data = data.split("|");
@@ -64,6 +74,9 @@ function ChatClient()
 		var channel = data[1];
 		var sender = data[2];
 		var status = data[3];
+		
+		client.nicknames[channel][sender] = status;
+		client.userStatus[sender] = status;
 		
 		ui.addLine(time,"SYSTEM",sender + " is now "+status,true,channel);
 		ui.updateUsers(client.getUsers());

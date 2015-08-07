@@ -128,14 +128,12 @@ client.socket.on('chat message', function(msg) {
 
 client.socket.on('system message', function(msg) {
   var splitMsg = msg.split("|");
-  var time = splitMsg[0];
-  var channel = splitMsg[1];
-  var sender = splitMsg[2];
-  var textLine = splitMsg[3];
   
-  for(var i = 4; i < splitMsg.length; ++i) {
-    textLine = textLine + "|" + splitMsg[i];
-  }
+  var channel = splitMsg.shift();
+  var time = splitMsg.shift();
+  var textLine = splitMsg.join("|");
+  
+  var sender = "SYSTEM"
   
   textLine = linkify(textLine);
   ui.addLine(time, sender, textLine,true,channel);

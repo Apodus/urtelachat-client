@@ -146,7 +146,8 @@ function ChatUI()
 					var lastEntry = arrayCurrent[arrayCurrent.length - 1];
 					var resultArray = [];
 					
-					for(var nickName in client.nicknames[ui.userChannel])
+					var users = client.getUsers(ui.userChannel);
+					for(var nickName in users)
 					{
 						if(lastEntry.length <= nickName.length)
 						{
@@ -207,6 +208,11 @@ function ChatUI()
 					log("Part: "+channel);
 					ui.removeChannelButton(channel);
 					client.exitChannel(channel);
+				}
+				if(split[0] == "/status")
+				{
+					split.shift();
+					client.setStatus(split.join(" "));
 				}
 				else if(split[0] == "/marker")
 				{
@@ -443,9 +449,32 @@ function ChatUI()
 		
 		for(var nickName in users)
 		{
+			log("User "+nickName+" status: "+users[nickName]);
+			
 			var user = document.createElement("button");
 			user.id = "user_"+nickName;
-			user.className = "btn btn-block btn-info btn-xs user-label";
+			user.className = "btn btn-block btn-xs user-label";
+			
+			var status = client.getUserStatus(nickName) || users[nickName];
+			switch(status)
+			{
+				case "away":
+				case "afk":
+					user.className += " btn-warning";
+					break;
+				case "idle":
+				case "paskalla":
+					user.className += " btn-info";
+					break;
+				case "busy":
+				case "offline":
+					user.className += " btn-danger";
+					break;
+				default:
+					user.className += " btn-primary";
+					break;
+			}
+			
 			user.innerHTML = '<span class="glyphicon glyphicon-user" aria-hidden="true"></span> '+nickName;
 			$(user).attr("user",nickName);
 			$(user).click(function()

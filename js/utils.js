@@ -43,6 +43,8 @@ function timeNow()
 
 function linkify(text)
 {
+	if(text==null) return text;
+	
 	var urlRegex =/(([ \t\n]|^)(https?:\/\/|ftp:\/\/|file:\/\/)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
 	return text.replace(urlRegex, function(url)
 	{
