@@ -33,8 +33,12 @@ function ChatUI()
 		this.initKeyboard();
 		this.updateNotificationSettings();
 		this.timeCheck();
-		
+		this.idleTimeout=null;
+		this.autoIdle=false;
 		this.activePlugin = null;
+		this.autoIdleMinutes=1;
+		
+		this.idleTimer();
 	}
 	
 	ChatUI.prototype.timeCheck = function()
@@ -107,10 +111,19 @@ function ChatUI()
 	{
 		$(document).keydown(function(e)
 		{
+			ui.idleTimer();
+			
+			if(e.shiftKey || e.ctrlKey) return;
+			
 			if(!$("#message-input").is(":focus") /*&& e.keyCode == '32' */ ) //Space
 			{
 				ui.focusTextbox();
 			}
+		});
+		
+		$(document).mousemove(function(e)
+		{
+			ui.idleTimer();
 		});
 		
 		$("#message-input").keydown(function (e)
@@ -440,6 +453,30 @@ function ChatUI()
 			$(this).hide();
 		});
 		
+	}
+	ChatUI.prototype.clearIdleTimer = function()
+	{
+		if(ui.idleTimeout!=null)
+		{
+			clearTimeout(ui.idleTimeout);
+		}
+		ui.idleTimeout=null;
+	}
+	ChatUI.prototype.idleTimer = function()
+	{
+		if(ui.autoIdle)
+		{
+			client.setStatus("back");
+			ui.autoIdle=false;
+		}
+		
+		ui.clearIdleTimer();
+		ui.idleTimeout = setTimeout(function()
+		{
+			client.setStatus("idle");
+			ui.clearIdleTimer();
+			ui.autoIdle = true;
+		},ui.autoIdleMinutes*60*1000);
 	}
 	
 	ChatUI.prototype.updateUsers = function(users)
