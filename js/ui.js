@@ -664,7 +664,7 @@ function ChatUI()
 				if(channel!="lobby")
 				{
 					//Disabled for now
-					//$(closeButton).show();
+					$(closeButton).show();
 				}
 			});
 			
@@ -704,8 +704,8 @@ function ChatUI()
 			$(closeButton).click(function()
 			{
 				channelButton.onclick = null;
-				client.exitChannel(channel);
 				ui.removeChannelButton(channel);
+				client.exitChannel(channel);
 			});
 		}
 		if(ui.isPrivateChannel(channel))
