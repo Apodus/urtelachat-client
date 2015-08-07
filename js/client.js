@@ -78,7 +78,7 @@ function ChatClient()
 		client.nicknames[channel][sender] = status;
 		client.userStatus[sender] = status;
 		
-		ui.addLine(time,"SYSTEM",sender + " is now "+status,true,channel);
+		ui.addLine(time,"SYSTEM",sender + " is now " + status, true, channel);
 		ui.updateUsers(client.getUsers());
 	}
 	

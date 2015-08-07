@@ -427,7 +427,7 @@ function ChatUI()
 
 	ChatUI.prototype.setServerStatus = function(status)
 	{
-		log("Server Status: "+status);
+		log("Server Status: " + status);
 		$("#server-status").html(status);
 	}
 	
@@ -449,7 +449,7 @@ function ChatUI()
 		
 		for(var nickName in users)
 		{
-			log("User "+nickName+" status: "+users[nickName]);
+			log("User " + nickName + " status: " + users[nickName]);
 			
 			var user = document.createElement("button");
 			user.id = "user_"+nickName;
