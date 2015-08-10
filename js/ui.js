@@ -24,6 +24,7 @@ function ChatUI()
 		this.myMsgHistory = [''];
 		this.prevIsAlt = false;
 		this.useChatMessageFade = true;
+		this.myDropzone = null;
 		this.channelButtonsContainer = channelButtonsContainer;
 		this.messagesContainer = messagesContainer;
 		this.channelTopicContainer = channelTopicContainer;
@@ -381,6 +382,16 @@ function ChatUI()
 		this.addDebugButton("Server Command",function()
 		{
 			client.serverCommand("Shits and giggles");
+		});
+		
+		this.addDebugButton("Dropzone",function()
+		{
+			if(ui.myDropzone==null)
+			{
+				ui.myDropzone = new Dropzone("div#fileForm", { url: "/"});
+			}
+			ui.closePopup();
+			$('#fileUpload').modal('show');
 		});
 		
 		this.addDebugButton("User Info",function()
