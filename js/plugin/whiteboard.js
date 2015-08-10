@@ -312,12 +312,25 @@ whiteboardChatPluginInit = function(pcontext)
 	document.onpaste = function(event)
 	{
 		var items = (event.clipboardData || event.originalEvent.clipboardData).items;
-		var blob = items[0].getAsFile();
-		var reader = new FileReader();
-		reader.onload = function(event)
+
+		var load = function(idx)
 		{
-			userImage = event.target.result;
-		};
-		reader.readAsDataURL(blob);
+			var blob = items[idx].getAsFile();
+			var reader = new FileReader();
+			reader.onload = function(event)
+			{
+				userImage = event.target.result;
+			};
+			reader.readAsDataURL(blob);
+		}
+		
+		try
+		{
+			load(0);
+		}
+		catch(error)
+		{
+			load(1);
+		}
 	}
 }
