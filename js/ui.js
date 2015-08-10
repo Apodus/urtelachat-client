@@ -389,7 +389,17 @@ function ChatUI()
 			if(ui.myDropzone==null)
 			{
 				ui.myDropzone = new Dropzone("div#fileForm", { url: "/"});
-			}
+                                ui.myDropzone.on("success", function(file, response) {
+                                  if(file.type.search("image") != -1) {
+                                    // preview + link
+                                    client.socket.emit('chat message', ui.userChannel + '|/html <a href="http://urtela.redlynx.com/upload/' + file.name + '" target="_blank">' + '<img class="thumbnail" src="http://urtela.redlynx.com/upload/' + file.name + '"></img></a>');
+                                  }
+                                  else {
+                                    // text + link
+                                    client.socket.emit('chat message', ui.userChannel + '|/html <a href="http://urtela.redlynx.com/upload/' + file.name + '" target="_blank">' + file.name + '</a>');
+                                  }
+                                });
+                        }
 			ui.closePopup();
 			$('#fileUpload').modal('show');
 		});

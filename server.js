@@ -1,8 +1,35 @@
 
 var express = require('express');
-var app = express();
+var multer = require('multer');
+
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, '/var/www/upload')
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  }
+})
+
+// var upload = multer({ dest: '/var/www/upload/' });
+var upload = multer({storage: storage});
+
 var http_ = require('http');
+var app = express();
 var http = http_.Server(app);
+
+app.post('/', upload.single('file'), function(req, res){ 
+    var origName = req['file']['originalname'];
+    var serverFileName = req['file']['filename'];
+    var link = 'http://urtela.redlynx.com/upload/' + serverFileName;
+    var htmlAnchor = '<a href=\"' + link + '\">' + origName + '</a>';
+    var jsonObj = {href : htmlAnchor};
+    res.status(204).json(
+      jsonObj
+    );
+    
+    console.log(JSON.stringify(jsonObj)); 
+});
 
 var io = require('socket.io')(http);
 var fs = require('fs');
@@ -18,6 +45,7 @@ var channelsMap = {};
 var peopleInChannel = {};
 var socketMap = {};
 var onlineNickMap = {};
+var userStatus = {};
 
 var nickParts = ["mi", "ka", "yu", "ho", "pe", "ko", "yo", "a", "ta", "ri", "sa", "i"];
 
@@ -25,10 +53,13 @@ var channelHistories = {};
 var language = nsh.getLanguage("cpp");
 var password = "";
 
-app.use('/styles', express.static(__dirname + '/html/styles'));
-app.use('/js', express.static(__dirname + '/html/js'));
+app.use('/css', express.static(__dirname + '/client/css'));
+app.use('/fonts', express.static(__dirname + '/client/fonts'));
+app.use('/img', express.static(__dirname + '/client/img'));
+app.use('/js', express.static(__dirname + '/client/js'));
+
 app.get('/chat', function(req, res) {
-  res.sendFile(__dirname + '/html/index.html');
+  res.sendFile(__dirname + '/client/chat.html');
 });
 
 io.on('connection', function(socket) {
@@ -45,7 +76,8 @@ options["encoding"] = "utf-8";
 
 if(fs.existsSync(__dirname + "/pw")) {
   try {
-    password = fs.readFileSync(__dirname + "/pw", options);
+    password = fs.readFileSync(__dirname + "/pw", options).trim();
+    console.log("password: '" + password + "'");
   }
   catch(e) {
     console.log('password was not set.');
@@ -104,6 +136,18 @@ function nickChanged(id, nick) {
   });
 }
 
+function systemMsgToChannel(channel, htmlClass, payLoad) {
+  for(var userId in peopleInChannel[channel]) {
+    systemMsgToUserId(userId, channel, htmlClass, payLoad);
+  }
+}
+
+function systemMsgToUserId(userId, channel, htmlClass, payLoad) {
+  if(userId in socketMap) {
+    socketMap[userId].emit('system message', channel + '|' + timeNow() + '|' + '<p class="' + htmlClass + '">' + payLoad + '</p>');
+  }
+}
+
 function gracefulShutdown() {
   for(var channel in channelHistories) {
     console.log(channel);
@@ -136,16 +180,37 @@ startUpLoad();
 function sendMessage(socket, channel, msg) {
   var channelMessage = socket.urtela_nick + "|" + msg;
   
-  // send to those who are present in the channel.
-  for(var userId in peopleInChannel[channel]) {
-    if(userId in socketMap) {
-      socketMap[userId].emit('chat message', timeNow() + '|' + channel + '|' + channelMessage);
-    }
-  }
+  if(channel.charAt(0) == '@') {
+	  // private message
+	  var to = channel.substr(1);
+	  var from = socket.urtela_nick;
+	  
+	  if(!(to in idMap))
+      {
+        systemMsgToUserId(socket.urtela_id, '@' + to, 'error', '<strong>' + to + '</strong> is not online to receive your message.');
+        return;
+      }
+      if(!(idMap[to] in socketMap))
+      {
+        systemMsgToUserId(socket.urtela_id, '@' + to, 'error', '<strong>' + to + '</strong> is not online to receive your message.');
+        return;
+      }
       
-  if(!(channel in channelHistories))
-    loadHistory(channel);
-  channelHistories[channel].push([timeNow(), channelMessage]);
+      socketMap[idMap[to]].emit('chat message', timeNow() + '|@' + from + '|' + socket.urtela_nick + '|' +  msg);
+      socketMap[idMap[from]].emit('chat message', timeNow() + '|@' + to + '|' + socket.urtela_nick + '|' +  msg);
+  }
+  else {
+    // send to those who are present in the channel.
+    for(var userId in peopleInChannel[channel]) {
+      if(userId in socketMap) {
+        socketMap[userId].emit('chat message', timeNow() + '|' + channel + '|' + channelMessage);
+      }
+    }
+      
+    if(!(channel in channelHistories))
+      loadHistory(channel);
+    channelHistories[channel].push([timeNow(), channelMessage]);
+  }
 }
 
 function escapePipes(pipes) {
@@ -173,6 +238,12 @@ function timeNow() {
 io.on('connection', function(socket) {
   socket.on('login', function(msg) {
     socket.urtela_id = msg;
+	
+	if(msg in socketMap) {
+		socket.disconnect(); // do not accept duplicate connections with identical user ids.
+		return;
+	}
+	
     if((msg + "_") in nickMap) {
       socket.urtela_privilege = nickMap[msg + "_"];
     }
@@ -229,13 +300,17 @@ io.on('connection', function(socket) {
   });
 
   socket.on('part_channel', function(msg) {
-    delete channelsMap[socket.urtela_id][msg];
-    delete peopleInChannel[msg][socket.urtela_id];
+    if(msg in channelsMap[socket.urtela_id])
+	  delete channelsMap[socket.urtela_id][msg];
+	
+	if(msg in peopleInChannel) {
+      delete peopleInChannel[msg][socket.urtela_id];
     
-    // notify all remaining people on the channel you were on, of your part
-    for(var userId in peopleInChannel[msg]) {
-      socketMap[userId].emit('user_part', timeNow() + '|' + msg + '|' + socket.urtela_nick);
-    }
+      // notify all remaining people on the channel you were on, of your part
+      for(var userId in peopleInChannel[msg]) {
+        socketMap[userId].emit('user_part', timeNow() + '|' + msg + '|' + socket.urtela_nick);
+      }
+	}
   });
   
   socket.on('disconnect', function() {
@@ -256,34 +331,25 @@ io.on('connection', function(socket) {
         }
       }
     }
+
+    delete socketMap[socket.urtela_id];
   });
   
-  socket.on('query', function(msg) {
-    console.log("got query");
-    var split = msg.split("|");
-    if(split.length >= 2) {
-      var from = socket.urtela_nick;
-      var to = split[0];
-      var payload = split[1];
-      for(var i=2; i<split.length; ++i) {
-        payload = payload + ' ' + split[i];
-      }
-
-      if(!(to in idMap))
-      {
-        socket.emit('query', 'SYSTEM|' + socket.urtela_nick + '|' + to + ' is not online to reach your message');
-        return;
-      }
-      if(!(idMap[to] in socketMap))
-      {
-        socket.emit('query', 'SYSTEM|' + socket.urtela_nick + '|' + to + ' is not online to reach your message');
-        return;
-      }
-      
-      console.log("sending: " + from + '|' + to + '|' + payload);
-      socketMap[idMap[to]].emit('query', from + '|' + to + '|' + payload);
-    }
+  socket.on('status', function(msg) {
+          var from = socket.urtela_nick;
+          var status = msg;
+	  
+	  userStatus[socket.urtela_id] = status;
+	  
+	  // notify all channels you were on, of your nick change.
+	  for(var userChannel in channelsMap[socket.urtela_id]) {
+            for(var userId in peopleInChannel[userChannel]) {
+              if(userId in socketMap)
+                socketMap[userId].emit('status', timeNow() + '|' + userChannel + '|' +  socket.urtela_nick + '|' + status);
+            }
+          }
   });
+      
   
   socket.on('imdb', function(msg) {
     var channelSplit = msg.split("|");
@@ -303,7 +369,7 @@ io.on('connection', function(socket) {
     for(var i=2; i<channelSplit.length; ++i) {
       msg = msg + '|' + channelSplit[i];
     }
-    
+	
     if(msg.length > 0 && msg.charAt(0) == '/') {
       var splitMsg = msg.split(" ");
       if(splitMsg.length > 0) {
@@ -343,6 +409,10 @@ io.on('connection', function(socket) {
             if(channel.length > 15)
               channel = channel.substr(0, 15);
             
+			if(channel.charAt(0) == '@') {
+				return;
+			}
+			
             if(!(socket.urtela_id in channelsMap)) {
               channelsMap[socket.urtela_id] = {};
             }
@@ -375,12 +445,19 @@ io.on('connection', function(socket) {
             var peopleMsg = timeNow() + '|' + channel;
             for(user in peopleInChannel[channel]) {
               peopleMsg = peopleMsg + '|' + nickMap[user];
+			  
+			  // send user status
+			  if(user in idMap) {
+				  if(idMap[user] in userStatus) {
+					  socket.emit('status', timeNow() + '|' + channel + '|' +  user + '|' + userStatus[idMap[user]]);
+				  }
+			  }
             }
           }
           if(channel in channelTopics) {
             socket.emit('topic', '|' + channel + '|' + channelTopics[channel]);
           }
-          socket.emit('chat message', timeNow() + '|' + channel + '|<font color="red">SYSTEM</font>|Welcome to <font color="green">' + channel + '</font>, ' + socket.urtela_nick + '!');
+          systemMsgToUserId(socket.urtela_id, channel, 'welcome', 'Welcome to <strong>' + channel + '</strong>, ' + socket.urtela_nick);
           socket.emit('user_list', peopleMsg);
         }
         else if(splitMsg[0] == "/topic") {
@@ -424,12 +501,12 @@ io.on('connection', function(socket) {
               }
             }
             else {
-              socket.emit('chat message', timeNow() + "|" + channel + '|<font color="red">SYSTEM</color>|' + splitMsg[1] + " is already reserved. Try something else.");
+              systemMsgToUserId(socket.urtela_id, channel, 'error', '<strong>' + splitMsg[1] + '</strong> is already reserved. Try something else.');
             }
           }
         }
         else if(splitMsg[0] == "/html") {
-          if(socket.urtela_privilege > 0) {
+          if(socket.urtela_privilege > 0 || true) {
           if(splitMsg.length > 1) {
             var codeblock = splitMsg[1];
             for(var k=2; k<splitMsg.length; ++k) {
@@ -438,11 +515,11 @@ io.on('connection', function(socket) {
             try {
               libxmljs.parseXml(codeblock);
               if(codeblock.search("(%61|a)(%75|u)(%74|t)(%6F|%6f|o)(%70|p)(%6C|%6c|l)(%61|a)(%79|y)") != -1) {
-                socket.emit('chat message', timeNow() + "|" + channel + '|<font color="red">SYSTEM</color>|Message did not pass manners test (autoplay). Thank you for your understanding.');
+                systemMsgToUserId(socket.urtela_id, channel, 'error', 'Message did not pass manners test (autoplay). Thank you.');
               }
               else {
                 if(codeblock.search("(%69|i)(%66|f)(%72|r)(%61|a)(%6D|%6d|m)(%65|e)") != -1) {
-                  socket.emit('chat message', timeNow() + "|" + channel + '|<font color="red">SYSTEM</color>|Message did not pass manners test (iframe). Thank you for your understanding.');
+                  systemMsgToUserId(socket.urtela_id, channel, 'error', 'Message did not pass manners test (iframe). Thank you.');
                 }
                 else {
 	          sendMessage(socket, channel, escapePipes(codeblock));
@@ -450,11 +527,11 @@ io.on('connection', function(socket) {
               }
             }
             catch(e) {
-              socket.emit('chat message', timeNow() + "|" + channel + '|<font color="red">SYSTEM</color>|Message did not pass XML syntax check. Thank you for your understanding.');
+              systemMsgToUserId(socket.urtela_id, channel, 'error', 'XML syntax check failed.');
             }
           }
           } else {
-            socket.emit('chat message', timeNow() + "|" + channel + '|<font color="red">SYSTEM</color>|You do not have the required privileges to use the /html command. Thank you for your understanding.');
+            systemMsgToUserId(socket.urtela_id, 'channel', 'error', 'You do not have the required privilege level to access the /html command. Thank you.');
           }
         }
         else if(splitMsg[0] == password) {
@@ -465,7 +542,7 @@ io.on('connection', function(socket) {
           for(var userChannel in channelsMap[socket.urtela_id]) {
             for(var userId in peopleInChannel[userChannel]) {
               if(userId in socketMap)
-                socketMap[userId].emit('chat message', timeNow() + '|' + userChannel + '|<font color="red">SYSTEM</color>|' + socket.urtela_nick + " has been granted elevated privileges");
+                systemMsgToUserId(userId, userChannel, 'success', '<strong>' + socket.urtela_nick + '</strong> has been granted elevated privileges.');
             }
           }
         }
@@ -482,7 +559,7 @@ io.on('connection', function(socket) {
               for(var userChannel in channelsMap[socketMap[id].urtela_id]) {
                 for(var userId in peopleInChannel[userChannel]) {
                   if(userId in socketMap)
-                    socketMap[userId].emit('chat message', timeNow() + '|' + userChannel + '|<font color="red">SYSTEM</color>|' + socketMap[id].urtela_nick + " has been granted elevated privileges");
+                    systemMsgToUserId(userId, userChannel, 'success', '<strong>' + socketMap[id].urtela_nick + '</strong> has been granted elevated privileges.');
                 }
               }
 
@@ -503,7 +580,7 @@ io.on('connection', function(socket) {
               for(var userChannel in channelsMap[socketMap[id].urtela_id]) {
                 for(var userId in peopleInChannel[userChannel]) {
                   if(userId in socketMap)
-                    socketMap[userId].emit('chat message', timeNow() + '|' + userChannel + '|<font color="red">SYSTEM</color>|' + socketMap[id].urtela_nick + " has been plunged into demoted privileges.");
+                    systemMsgToUserId(userId, userChannel, 'success', '<strong>' + socketMap[id].urtela_nick + '</strong> has been stripped of privileges.');
                 }
               }
 
