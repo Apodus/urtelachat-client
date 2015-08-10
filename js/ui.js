@@ -500,7 +500,7 @@ function ChatUI()
 			log("User " + nickName + " status: " + users[nickName]);
 			
 			var user = document.createElement("button");
-			user.id = "user_"+nickName;
+			user.id = "user_" + nickName;
 			user.className = "btn btn-block btn-xs user-label";
 			
 			var status = client.getUserStatus(nickName) || users[nickName];
@@ -508,18 +508,21 @@ function ChatUI()
 			{
 				case "away":
 				case "afk":
-					user.className += " btn-warning";
+                                        user.className += " btn-info"; // light blue for unavailable but maybe back later
+					// user.className += " btn-warning";
 					break;
 				case "idle":
 				case "paskalla":
-					user.className += " btn-info";
+                                        user.className += " btn-warning"; // orange for idle + available
+					// user.className += " btn-info";
 					break;
 				case "busy":
 				case "offline":
-					user.className += " btn-danger";
+					user.className += " btn-danger"; // red for busy / dnd
 					break;
 				default:
-					user.className += " btn-primary";
+                                        user.className += " btn-success"; // green for active + available
+					// user.className += " btn-primary";
 					break;
 			}
 			
