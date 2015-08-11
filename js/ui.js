@@ -966,12 +966,12 @@ function ChatUI()
 			log("addline to:"+channel);
 		}
 		
-		if(channel!=ui.userChannel)
+		var sameChannel = channel == ui.userChannel;
+		
+		if(!sameChannel)
 		{
 			log("Got message to another channel than current! Current:"+ui.userChannel+" New:"+channel+" Msg:"+what);
 			ui.initChannelButton(channel);
-			//ui.newContent(channel);
-			return;
 		}
 		
 		what = universe_jira_links(what);
@@ -986,7 +986,10 @@ function ChatUI()
 		if($(channelID+"_messages").length>0)
 		{
 			messages = $(channelID+"_messages")[0];
-			$(channelID+"_messages").show();
+			if(sameChannel)
+			{
+				$(channelID+"_messages").show();
+			}
 		}
 		else
 		{
