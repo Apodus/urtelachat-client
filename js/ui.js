@@ -1104,31 +1104,32 @@ function ChatUI()
 	
 	ChatUI.prototype.updateNotificationSettings = function()
 	{
-		var allow = getCookie(this.userChannel + "_notify");
-		if(allow == "")
+		var allow = getCookie(ui.userChannel + "_notify");
+		log("Get cookie: "+ui.userChannel + "_notify"+"= "+allow);
+		if(allow==null || allow == "")
 		{
 			allow = "allow"; // default;
 		}
   
 		if(allow == "allow")
 		{
-			$("#notifytoggle").html("<strong>" + this.userChannel + ":</strong> Notifications Enabled");
+			$("#notifytoggle").html("<strong>" + ui.userChannel + ":</strong> Notifications Enabled");
 			$("#notifytoggle").addClass("btn-success");
 			$("#notifytoggle").removeClass("btn-warning");
 			$("#notifytoggle").click(function()
 			{
-				setCookie(this.userChannel + "_notify", "forbid");
+				setCookie(ui.userChannel + "_notify", "forbid");
 				ui.updateNotificationSettings();
 			});
 		}
 		else
 		{
-			$("#notifytoggle").html("<strong>" + this.userChannel + ":</strong> Notifications Disabled");
+			$("#notifytoggle").html("<strong>" + ui.userChannel + ":</strong> Notifications Disabled");
 			$("#notifytoggle").removeClass("btn-success");
 			$("#notifytoggle").addClass("btn-warning");
 			$("#notifytoggle").click(function()
 			{
-				setCookie(this.userChannel + "_notify", "allow");
+				setCookie(ui.userChannel + "_notify", "allow");
 				ui.updateNotificationSettings();
 			});
 		}
