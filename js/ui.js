@@ -384,26 +384,6 @@ function ChatUI()
 			client.serverCommand("Shits and giggles");
 		});
 		
-		this.addDebugButton("Dropzone",function()
-		{
-			if(ui.myDropzone==null)
-			{
-				ui.myDropzone = new Dropzone("div#fileForm", { url: "/"});
-                                ui.myDropzone.on("success", function(file, response) {
-                                  if(file.type.search("image") != -1) {
-                                    // preview + link
-                                    client.socket.emit('chat message', ui.userChannel + '|/html <a href="http://urtela.redlynx.com/upload/' + file.name + '" target="_blank">' + '<img class="thumbnail" src="http://urtela.redlynx.com/upload/' + file.name + '"></img></a>');
-                                  }
-                                  else {
-                                    // text + link
-                                    client.socket.emit('chat message', ui.userChannel + '|/html <a href="http://urtela.redlynx.com/upload/' + file.name + '" target="_blank">' + file.name + '</a>');
-                                  }
-                                });
-                        }
-			ui.closePopup();
-			$('#fileUpload').modal('show');
-		});
-		
 		this.addDebugButton("User Info",function()
 		{
 			ui.showUserInfo({name:"User1",uid:123123123,avatar:"<span class='glyphicon glyphicon-user' aria-hidden='true'></span><img src='avatar.png' />",comment:"GTFO"});
@@ -419,10 +399,39 @@ function ChatUI()
 			pushToChannelHistory("@pena", "00", "pena", "no moro moro");
 			ui.addLine("00", "Pena", "no moro moro",null,"@pena");
 		});
+		
+		if(ui.myDropzone==null)
+			{
+				ui.myDropzone = new Dropzone("div#messages", { url: "/",clickable:false,previewsContainer:"#upload-info"});
+				//ui.myDropzone = new Dropzone("div#fileForm", { url: "/"});
+				
+				ui.myDropzone.on("error", function(file, response)
+				{
+					ui.closePopup();
+					$("#fileUpload").modal("show");
+				});
+				
+				ui.myDropzone.on("success", function(file, response)
+				{
+					ui.closePopup();
+					$("#fileUpload").modal("show");
+					
+					if(file.type.search("image") != -1)
+					{
+						client.socket.emit('chat message', ui.userChannel + '|/html <a href="http://urtela.redlynx.com/upload/' + file.name + '" target="_blank">' + '<img class="thumbnail" src="http://urtela.redlynx.com/upload/' + file.name + '"></img></a>');
+					}
+					else
+					{
+						log("File Type:"+file.type);
+						client.socket.emit('chat message', ui.userChannel + '|/html <a href="http://urtela.redlynx.com/upload/' + file.name + '" target="_blank">' + file.name + '</a>');
+					}
+				});
+			}
 	}
 	
 	ChatUI.prototype.addDebugButton = function (name,callback)
 	{
+		return;
 		$("#debug").show();
 		//var container = document.createElement("div");
 		//container.className = "row";
