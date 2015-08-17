@@ -203,7 +203,7 @@ client.socket.on('topic', function(msg) {
 	if(channel == client.activeChannel)
 	{
 		var topic = document.getElementById("chat-topic");
-		topic.innerHTML = what;
+		topic.innerHTML = linkify(what);
 	}
   }
 });
