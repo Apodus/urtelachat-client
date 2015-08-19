@@ -147,7 +147,6 @@ client.socket.on('system message', function(msg) {
 
 client.socket.on('disconnect', function(msg) {
   ui.addLine(timeNow(), "SYSTEM", "Connection lost :(",true);
-  notificationsTemporary = 0;
 });
 
 client.socket.on('your_channel', function(msg) {
@@ -241,7 +240,9 @@ client.socket.on('reconnect', function(msg) {
 
   ui.clearChatMessages();
   client.socket.emit('login', getCookie("username"));
-  notificationsTemporary = 0;
+  for(var channel in notificationsTemporary) {
+    delete notificationsTemporary[channel];
+  }
 });
 
 client.socket.on('user_part', function(msg) {
@@ -295,7 +296,7 @@ client.socket.on('user_list', function(msg) {
     client.nicknames[channel][parts[i]] = "";
   }
   updateUserList(channel);
-  notificationsTemporary = notificationsTemporary - 1; // join complete, reduce to mark it
+  notificationsTemporary[channel] = true; // join complete, mark it
 });
 
 client.socket.on('join_channel', function(msg)
@@ -309,8 +310,8 @@ client.socket.on('join_channel', function(msg)
 	ui.setActiveChannel(msg);
 	
 	client.nicknames[msg] = {};
-	// join started, increase to mark it
-	notificationsTemporary = notificationsTemporary + 1;
+	// join started, mark it
+	notificationsTemporary[msg] = false;
 });
 
 }
