@@ -424,12 +424,12 @@ function ChatUI()
 					
 					if(file.type.search("image") != -1)
 					{
-						client.socket.emit('chat message', ui.userChannel + '|/html <a href="http://urtela.redlynx.com/upload/' + file.name + '" target="_blank">' + '<img class="thumbnail" src="http://urtela.redlynx.com/upload/' + file.name + '"></img></a>');
+						client.socket.emit('upload img', ui.userChannel + '|' + file.name);
 					}
 					else
 					{
 						log("File Type:"+file.type);
-						client.socket.emit('chat message', ui.userChannel + '|/html <a href="http://urtela.redlynx.com/upload/' + file.name + '" target="_blank">' + file.name + '</a>');
+						client.socket.emit('upload file', ui.userChannel + '|' + file.name);
 					}
 				});
 			}
@@ -917,7 +917,7 @@ function ChatUI()
 		
 		var channelID = ui.getChannelID(channel);
 		
-		if(notificationsTemporary == 0)
+		if(!(channel in notificationsTemporary) || notificationsTemporary[channel] == true)
 		{
 			var element = $(channelID);
 			element.addClass("btn-info");
