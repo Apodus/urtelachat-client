@@ -38,6 +38,7 @@ function ChatUI()
 		this.autoIdle=false;
 		this.activePlugin = null;
 		this.autoIdleMinutes=1;
+		this.customTheme=null;
 		
 		this.idleTimer();
 	}
@@ -400,6 +401,11 @@ function ChatUI()
 			ui.addLine("00", "Pena", "no moro moro",null,"@pena");
 		});
 		
+		this.addButton($("#themes"),"Theme1",function()
+		{
+			ui.loadTheme("css/themes/theme1.min.css");
+		});
+		
 		if(ui.myDropzone==null)
 			{
 				ui.myDropzone = new Dropzone("div#messages", { url: "/",clickable:false,previewsContainer:"#upload-info"});
@@ -429,6 +435,26 @@ function ChatUI()
 			}
 	}
 	
+	ChatUI.prototype.loadTheme = function(themeFile)
+	{
+		if(ui.customTheme!=null)
+		{
+			$(ui.customTheme).remove();
+			ui.customTheme=null;
+		}
+		  
+		var fileref=document.createElement("link");
+        fileref.setAttribute("rel", "stylesheet");
+        fileref.setAttribute("type", "text/css");
+        fileref.setAttribute("href", themeFile);
+    
+		if (typeof fileref!="undefined")
+        {
+			document.getElementsByTagName("head")[0].appendChild(fileref);
+			ui.customTheme = fileref;
+		}
+	}
+	
 	ChatUI.prototype.addDebugButton = function (name,callback)
 	{
 		return;
@@ -442,6 +468,18 @@ function ChatUI()
 		button.innerHTML = name;
 		$("#debug").append(button);
 		//$(container).append(button);
+		$(button).click(callback);
+	}
+	
+	ChatUI.prototype.addButton = function (container,name,callback)
+	{
+		$(container).show();
+		
+		var button = document.createElement("button");
+		button.className = "btn btn-success btn-sm";
+		button.type = "button";
+		button.innerHTML = name;
+		$(container).append(button);
 		$(button).click(callback);
 	}
 
@@ -573,49 +611,69 @@ function ChatUI()
 		var plugin = null;
 		if(channelInfo.length>1)
 		{
+			var pluginName;
 			switch(channelInfo[1])
 			{
 				case "whiteboard":
-					plugin = {
-						init:function()
-						{
-							log("Init "+this.name+" for:"+this.channel);
-							var script = document.createElement('script');
-							script.src = "js/plugin/" + this.name + ".js";
-							script.setAttribute("name",this.name);
-							script.onload = function () 
-							{
-								eval(this.getAttribute("name")+"ChatPluginInit")(plugin);
-								plugin.loaded = true;
-							};
-							document.head.appendChild(script);
-						},
-						channel:channelInfo[0],
-						name:channelInfo[1],
-						onClose:function()
-						{
-							log("plugin onClose not overridden!");
-						},
-						onAddLine:function(time, who, what,marker,channel)
-						{
-							log("plugin onAddLine not overridden!");
-						},
-						addLine:function(msg,channel)
-						{
-							//log(msg+": "+channel);
-							//ui.addLine(timeNow(),"Plugin",msg,false,channel);
-							client.socket.emit('chat message', channel + "|" + msg);
-						},
-						history:history,
-						loaded:false
-					};
-				break;
-				
+				case "WB":
+					pluginName = "whiteboard";
+					break;
+				case "dungeon":
+				case "D":
+					pluginName = "dungeon";
+					break;
 				default:
-					plugin = null;
+					pluginName= null;
 				break;
 			}
+			
+			if(pluginName!=null)
+			{
+				plugin = {
+					init:function()
+					{
+						log("Init "+this.name+" for:"+this.channel);
+						var script = document.createElement('script');
+						script.src = "js/plugin/" + this.name + ".js";
+						script.setAttribute("name",this.name);
+						script.onload = function () 
+						{
+							eval(this.getAttribute("name")+"ChatPluginInit")(plugin);
+							plugin.loaded = true;
+						};
+						document.head.appendChild(script);
+					},
+					channel:channelInfo[0],
+					channelInfo:channelInfo[1],
+					name:pluginName,
+					onClose:function()
+					{
+						log("plugin onClose not overridden!");
+					},
+					onAddLine:function(time, who, what,marker,channel)
+					{
+						log("plugin onAddLine not overridden!");
+					},
+					addLine:function(msg,channel)
+					{
+						//log(msg+": "+channel);
+						//ui.addLine(timeNow(),"Plugin",msg,false,channel);
+						client.socket.emit('chat message', channel + "|" + msg);
+					},
+					getUsers:function()
+					{
+						return client.getUsers(this.getChannelRealName());
+					},
+					getChannelRealName:function()
+					{
+						return this.channel+"#"+this.channelInfo;
+					},
+					history:history,
+					loaded:false
+				};
+			}
 		}
+		
 		
 		if(plugin==null)
 		{
@@ -1046,11 +1104,11 @@ function ChatUI()
 		
 			if(marker != true && useAlt)
 			{
-				messageBody.className = "message-body bg-success row ";
+				messageBody.className = "message-body alt-bg row ";
 			}
 			else
 			{
-				messageBody.className = "message-body text-success row";
+				messageBody.className = "message-body row";
 			}
 		}
 	  

@@ -16,7 +16,7 @@ body
 	width:100%;
 	height:100%;
 	position:fixed;
-	z-index:3;
+	z-index:10;
 	top:0px;
 	left:0px;
 	
@@ -58,7 +58,7 @@ header
 
 .bg-body
 {
-	background:#ffff;
+	/*background:#ffff;*/
 }
 
 .bg-dark
@@ -155,20 +155,6 @@ header
 	margin-right:5px;
 }
 
-.who
-{
-	font-size:1.0em;
-	font-weight:normal;
-	padding-left:5px;
-	margin-left:-15px;
-	margin-right:-10px;
-	border-right:5px double #fff;
-}
-.message-body > .label-success
-{
-	background-color:#4A894A;
-}
-
 #users
 {
 	width:150px;
@@ -216,12 +202,6 @@ header
 .message-block:last-child
 {
 	margin-bottom:20px;
-}
-
-.message-body 
-{
-	margin:0px;
-	padding:2px;
 }
 	
 .chat-message
@@ -334,7 +314,7 @@ footer
 	width:100%;
 	height:10%;
 	padding:0px;
-	
+	z-index:5;	
 	border:1px solid #abd;
 	border-bottom:5px double #abd;
 }
@@ -345,7 +325,6 @@ footer
 	background:#dde;
 	height:5%;
 	resize: none;
-	z-index:5;
 	transition: all 0.2s ease;
 }
 
@@ -361,6 +340,8 @@ footer
     min-height: 100%;
     height: 100%;
 }
+
+/* COLORS THEMES ETC */
 
 #userInfo .variable
 {
@@ -404,6 +385,30 @@ footer
 	width: 15em;
 }
 
+.message-body 
+{
+	margin:0px;
+	padding:2px;
+	background-color:#Fefefe;
+	color:#555;
+}
+
+.alt-bg
+{
+	color:#333;
+	background-color:#EBF5E9
+}
+
+.who
+{
+	font-size:1.0em;
+	font-weight:normal;
+	padding-left:5px;
+	margin-left:-15px;
+	margin-right:-10px;
+	border-right:5px double #fff;
+	background-color:#008200;
+}
 .user-join
 {
 	font-weight:bold;
@@ -421,167 +426,3 @@ footer
 	font-weight:bold;
 	color:red;
 }
-
-/*
-* { margin: 0; padding: 0; box-sizing: border-box; }
-textarea { border: 0; padding: 0px; width: 100%; min-height: 4em; margin-right: 0%; resize: none; }
-	
-code {
-  visibility: visible;
-  max-height: 1em;
-}
-code.keyword {
-  color: #0000FF;
-}
-
-code.string {
-  color: #FF0000;
-}
-
-code.color1 {
-  color: #5C91D9;
-}
-
-td.gutter > div.line {
-  flux-shrink: 0;
-  word-break: keep-all;
-  padding: 0px 5px;
-  visibility: hidden;
-  max-height: 0px;
-}
-
-div.imdbwrap {
-  display: flex;
-  flex-direction: row;
-}
-
-div.imdbtext {
-  justify-content: flex-start;
-}
-
-div.imdbimg {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  height: 15em;
-  width: 15em;
-}
-
-#users_messages_container
-{
-  display: flex;
-  flex-direction: row;
-  transition: all 1.3s ease;
-}
-
-#channels_toggle_container
-{
-  display: flex;
-  flex-direction: row;
-  min-height: 1.74em;
-  max-height: 1.75em;
-  width: 100%;
-}
-
-#channels
-{
-  display: flex;
-  flex-direction: row;
-  min-height: 1.74em;
-  max-height: 1.75em;
-  width: 100%;
-}
-
-#channels > div
-{
-  border: 2px solid #a1a1a1;
-  padding: 2px 5px;
-  background: #dddddd;
-  border-radius: 5px;
-  justify-content: flex-start;
-}
-
-#notifytoggle
-{
-  border: 2px solid #a1a1a1;
-  padding: 2px 5px;
-  background: #dddddd;
-  border-radius: 25px;
-  justify-content: flex-end;
-  align-content: flex-end;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-
-#users
-{
-  display: flex;
-  flex-direction: column;
-  max-width: 15em;
-}
-
-#users > div
-{
-  border: 2px solid #a1a1a1;
-  padding: 2px 5px;
-  background: #dddddd;
-  border-radius: 25px;
-  justify-content: flex-start;
-  word-break: keep-all;
-}
-
-#messages
-{
-  font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
-  width:100%;
-  border-collapse:collapse;
-  overflow-y: scroll;
-  display: block;
-}
-
-#messages > div
-{
-  border: 2px solid #aaddaa;
-  padding: 2px 5px;
-  background: #bbffbb;
-  border-radius: 15px;
-  
-  display: flex;
-  flex-direction: row;
-}
-
-#messages > div > div
-{
-  padding: 0px 10px;
-  justify-content: flex-start;
-  flex-shrink: 0;
-  flex-grow: 0;
-  min-width: 100px;
-}
-
-#messages > div > div.msg
-{
-  flex-shrink: 1;
-  flex-grow: 2;
-}
-
-#messages > div > div.time
-{
-  align-content: flex-end;
-  justify-content: flex-end;
-  min-width: 0px;
-}
-
-#messages tr.alt td
-{
-  color:#000;
-  background-color:#EAF2D3;
-}
-
-#m
-{
-  padding: 0px;
-  border: solid 1px #dcdcdc;
-  transition: box-shadow 0.3s, border 0.3s;
-}*/
