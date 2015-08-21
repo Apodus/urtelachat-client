@@ -1,0 +1,26 @@
+
+<html>
+<head></head>
+<body>
+<div id="abba"></div>
+
+<script>
+function htmlEscape(str) {
+    return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+}
+
+document.addEventListener('paste', function(e){
+    if(e.clipboardData.types.indexOf('text/html') > -1){
+        var div = document.getElementById("abba");
+		div.innerHTML = htmlEscape(JSON.stringify(e.clipboardData.getData('text/html')));
+        e.preventDefault(); // We are already handling the data from the clipboard, we do not want it inserted into the document
+    }
+});
+</script>
+</body>
+</html>
