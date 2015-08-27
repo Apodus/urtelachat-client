@@ -46,7 +46,7 @@ function onStopDraw()
 	paint=false;
 	if(chatMsg.length>3)
 	{
-		pluginContext.addLine(chatMsg,pluginContext.channel+"#whiteboard");
+		pluginContext.addLine(chatMsg,pluginContext.getChannelRealName());
 	}
 	chatMsg="";
 	
@@ -105,7 +105,7 @@ function placeImage(x,y)
 {
 	if(userImage!=null)
 	{
-		client.socket.emit('chat message', pluginContext.channel+"#whiteboard" + "|" + "#image,"+x+","+y+";"+userImage);
+		client.socket.emit('chat message', pluginContext.getChannelRealName() + "|" + "#image,"+x+","+y+";"+userImage);
 	}
 	userImage=null;
 }
@@ -267,7 +267,7 @@ whiteboardChatPluginInit = function(pcontext)
 	};
 	pluginContext.onAddLine = function(time, who, what,marker,channel)
 	{
-		if(channel!=pluginContext.channel+"#whiteboard") return false;
+		if(channel!=pluginContext.getChannelRealName()) return false;
 		
 		var data = what.split(";");
 		var output = [];
@@ -304,7 +304,7 @@ whiteboardChatPluginInit = function(pcontext)
 				history[index][1],
 				history[index][2],
 				history[index][3],
-				pluginContext.channel+"#whiteboard"
+				pluginContext.getChannelRealName()
 			);
 		}
 	}

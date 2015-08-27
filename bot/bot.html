@@ -1,0 +1,92 @@
+
+<script src="js/socket.io.js"></script>
+<script src="js/jquery-2.1.4.min.js"></script>
+
+<script>
+
+	var handlers = [];
+	var myName = "ReasonBOT";
+
+	handlers.push(
+		  function (sock, time, channel, replyto, who, what) {
+			if(what.search(/pulla/ig) != -1) {
+				sock.emit('chat message', replyto + '|' + who + ", BULLA! BULLA!");
+				return true;
+			}
+			return false;
+		  }
+	);
+	
+</script>
+
+<script src="js/universe.js"></script>
+
+<script>
+
+    var socket = io.connect('http://urtela.redlynx.com:3002', { autoConnect: true});
+    var disabled = new Date().getTime() + 5000;
+	
+	socket.on('chat message',function(msg) {
+	  if(new Date().getTime() < disabled)
+	    return;
+      
+	  var split = msg.split("|");
+	  var time = split[0];
+	  var channel = split[1];
+	  var who = split[2];
+	  var what = split[3];
+	  var replyto = channel;
+	  
+	  if(channel == "@" + myName) {
+		replyto = "@" + who;
+	  }
+	  
+	  for(var handlerFuncIndex in handlers) {
+		if(handlers[handlerFuncIndex](socket, time, channel, replyto, who, what)) {
+			return; // done
+		}
+	  }
+    });
+	socket.on('your_channel',function(msg) {
+	  if(msg == "lobby") {
+	    // nope!
+	  }
+	  else {
+	    socket.emit('chat message',"|/join "+msg);
+	  }
+	});
+	
+	socket.on('connect', function() { disabled = new Date().getTime() + 5000; socket.emit('login', "7823093835_bot"); });
+	socket.on('reconnect', function(msg) { disabled = new Date().getTime() + 5000; });
+	socket.on('join_channel', function(msg) { console.log('Client has joined: ' +msg); });
+    socket.on('disconnect', function(msg) { console.log('The client has disconnected :(' + msg); });
+</script>
+
+<html>
+<head>
+</head>
+<body>
+<textarea id="input" class="input" autocomplete="off" autofocus=""></textarea>
+<script>
+$("#input").keypress(function (e)
+{
+	//Enter/Send
+	if(e.which == 13 && !e.shiftKey)
+	{
+		var msg = $('#input').val();
+		if(msg == "")
+		{
+			e.preventDefault();
+			return;
+		}
+	  
+		var split = msg.split(" ");
+		socket.emit('chat message', "roi|" + msg);
+		
+		$('#input').val('');
+		e.preventDefault();
+	}
+});
+</script>
+</body>
+</html>
