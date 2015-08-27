@@ -1,6 +1,6 @@
 var notificationsGlobal = false;
-var notificationsTemporary = 0;
-  
+var notificationsTemporary = {};
+
 if (!("Notification" in window))
 {
   
@@ -30,7 +30,7 @@ else
 function showDesktopNotification(channel, user, msg)
 {
 	// if window has no focus & global notify setting & channel specific rules.
-	if((notificationsTemporary == 0) && notificationsGlobal && (getCookie(channel + "_notify") != "forbid") && !document.hasFocus())
+	if((!(channel in notificationsTemporary) || (notificationsTemporary[channel]) == true) && notificationsGlobal && (getCookie(channel + "_notify") != "forbid") && !document.hasFocus())
 	{
 		
 		var notification = new Notification(channel + ": " + user, {"body": unwindHtml(msg), "icon":"http://urtela.redlynx.com/img/chaticon.jpg"});

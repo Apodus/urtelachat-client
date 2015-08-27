@@ -859,7 +859,7 @@ function ChatUI()
 		
 		var channelID = ui.getChannelID(channel);
 		
-		if(notificationsTemporary == 0)
+		if(!(channel in notificationsTemporary) || notificationsTemporary[channel] == true)
 		{
 			var element = $(channelID);
 			element.addClass("btn-info");
