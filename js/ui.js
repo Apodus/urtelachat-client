@@ -1116,12 +1116,13 @@ function ChatUI()
 		}
 	  
 		this.messagesScrollToBottom();
-		
+	        /*	
 		var selectionCount = document.querySelectorAll(channelID+"_messages > div").length;
 		while(selectionCount>400)
 		{
 			$(channelID+"_messages").find('div:first').remove();
 		}
+                */
 	}
 	
 	ChatUI.prototype.updateNotificationSettings = function()
