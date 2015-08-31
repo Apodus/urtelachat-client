@@ -1090,11 +1090,7 @@ function ChatUI()
 		{
 			messageElement = document.createElement("div");
 			messageElement.className = "message-block";
-			if(marker==true)
-			{
-				messageElement.className += " well";	
-			}
-	  
+			
 			messageBody = document.createElement("div");
 			messageElement.appendChild(messageBody);
 		
@@ -1106,7 +1102,7 @@ function ChatUI()
 				$(messageElement).fadeIn();
 			}
 		
-			if(marker != true && useAlt)
+			if(useAlt)
 			{
 				messageBody.className = "message-body alt-bg row ";
 			}
@@ -1178,13 +1174,6 @@ function ChatUI()
 		}
 	  
 		this.messagesScrollToBottom();
-	        /*	
-		var selectionCount = document.querySelectorAll(channelID+"_messages > div").length;
-		while(selectionCount>400)
-		{
-			$(channelID+"_messages").find('div:first').remove();
-		}
-                */
 	}
 	
 	ChatUI.prototype.updateNotificationSettings = function()

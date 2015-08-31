@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Urtela Chat</title>
+
+		<link rel="stylesheet" href="css/bootstrap.min.css">
+		
+		<link rel="stylesheet" href="css/chat.min.css">
+		<link rel="stylesheet" href="css/code.min.css">
+	
+	</head>
+	
+	<body class="bg-body">
+
+	<div id="loading" class="bg-dark">
+		<div id="loading-text" class="">Initializing</div>
+		<img src="img/u.png" id="loading-indicator" class="rotating"/>
+	</div>
+	
+	<header>
+		<div class="navbar navbar-inverse dropshadow-5">
+			<div class="container">
+				<div class="row pad-5">
+					<div id="logo" class="pull-left"><img src="img/logo.png"/></div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-info btn-xs btn-block" data-toggle="modal" data-target="#settings">
+							<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+							 Settings
+						</button>
+						
+						<button id="auto-scroll-toggle" type="button" class="btn btn-info btn-xs btn-block" data-toggle="tooltip" data-placement="bottom" title="Toggle automatic scroll of the chat window.">
+							<span id="auto-scroll-icon-on" class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+							<span id="auto-scroll-icon-off" class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+							 AutoScroll
+						</button>
+					</div>
+					<div id="channels" class="btn-group">
+						<!-- <button class="btn btn-success btn-sm">Lobby<span class="badge">4</span></button> -->
+					</div>
+				</div>
+			</div>
+			<div id="chat-topic" class="bg-primary text-primary">
+				Connecting...
+			</div>
+		</div>
+	</header>
+
+	<div class="modal fade" id="settings" tabindex="-1" role="dialog" aria-labelledby="settings-title">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="settings-title">Urtela Chat Client Settings</h4>
+				</div>
+				<div class="modal-body">
+					<div class="well">
+						<div class="pull-right">
+							<button id="notifytoggle" class="btn btn-success btn-sm">Notifications</button>
+						</div>
+						<span class="glyphicon glyphicon-flag" aria-hidden="true"></span>
+						Toggle Desktop notifications.
+					</div>
+					<div id="debug" class="well">
+						<span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+						Debug
+					</div>
+					<div id="themes" class="well">
+						<span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+						Themes
+					</div>
+					<div class="well">
+						<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+						Server status:<div id="server-status">Connecting...</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+				</div>
+			</div>
+		</div>
+	</div>
+		
+	<div class="modal fade" id="userInfo" tabindex="-1" role="dialog" aria-labelledby="userInfo-title">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="userInfo-title">User Info</h4>
+				</div>
+				<div class="modal-body">
+					<div class="well" id="userInfoBody">
+						...
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+		
+	<div class="modal fade" id="fileUpload" tabindex="-1" role="dialog" aria-labelledby="fileUpload-title">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="fileUpload-title">File Uploads</h4>
+				</div>
+				<div class="modal-body">
+					<div class="well" id="upload-info"></div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>	
+	
+	<div id="users" class="well">
+	</div>
+	<div id="messages"></div>
+	
+	<footer class="bg-info">
+		<div class="container">
+			<textarea id="message-input" class="form-control dropshadow-5" autocomplete="off" autofocus></textarea>
+		</div>
+	</footer>
+		
+	<script src="js/jquery-2.1.4.min.js"></script>	
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/socket.io.js"></script>
+	<script src="js/dropzone.js"></script>
+	
+	<!-- LEGACY CHAT
+	<script src="js/utils.js"></script>
+	<script src="js/notifications.js"></script>  
+	<script src="js/client.js"></script>
+	<script src="js/ui.js"></script>
+	<script src="js/chat.js"></script>
+	-->
+	
+	<script src="chat.js"></script>
+	<script>Chat.create();</script>
+
+	</body>
+</html>
