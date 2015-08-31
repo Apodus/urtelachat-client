@@ -1170,8 +1170,6 @@ function ChatUI()
 		}
 	  
 		this.messagesScrollToBottom();
-		
-		var selectionCount = document.querySelectorAll(channelID+"_messages > div").length;
 	}
 	
 	ChatUI.prototype.updateNotificationSettings = function()
