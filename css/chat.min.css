@@ -48,7 +48,7 @@ footer{margin:0px;position:fixed;display:block;bottom:0px;width:100%;height:10%;
 .imdbimg{float:right;display:flex;flex-direction:row;justify-content:flex-end;height:15em;width:15em;}
 .message-body{margin:0px;padding:2px;background-color:#Fefefe;color:#555;}
 .alt-bg{color:#333;background-color:#EBF5E9}
-.who{font-size:1.0em;font-weight:normal;padding-left:5px;margin-left:-15px;margin-right:-10px;border-right:5px double #fff;background-color:#008200;}
+.who{font-size:1.0em;font-weight:normal;padding-left:5px;margin-left:-15px;margin-right:-10px;border-right:5px double #fff;}
 .user-join{font-weight:bold;color:green;}
 .user-left{font-weight:bold;color:orange;}
 .user-disconnected{font-weight:bold;color:red;}
