@@ -127,7 +127,11 @@ function ChatUI()
 		{
 			ui.idleTimer();
 		});
-		
+		$(document).keydown(function(e)	{
+                  if(e.altKey) {
+                    e.preventDefault(); // navigation
+                  }
+                });
 		$("#message-input").keydown(function (e)
 		{
 			if(e.keyCode == '38' && !e.shiftKey)
