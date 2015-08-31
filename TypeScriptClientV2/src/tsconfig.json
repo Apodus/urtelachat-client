@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "out": "bin/chat.js",
+        "sourceMap": true
+    },
+	"exclude": [
+        ".git",
+        ".gitignore"
+    ]
+}
