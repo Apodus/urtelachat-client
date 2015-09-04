@@ -1,141 +1,8 @@
-enum ChatMessageType
-{
-	NORMAL,
-	SYSTEM
-}
-
 class CookieNames
 {
 	static USER_ID:string = "userID";
 	static USER_NAME:string = "userName";
 	static ACTIVE_CHANNEL:string = "activeChannel";
-}
-
-class Signal
-{
-	callbacks:Array<Function>;
-	constructor()
-	{
-		this.callbacks = new Array<Function>();
-	}
-	add(f:Function)
-	{
-		this.callbacks.push(f);
-	}
-	remove(f:Function)
-	{
-		for(var i:number = 0; i<this.callbacks.length; i++)
-		{
-			if(this.callbacks[i]==f)
-			{
-				this.callbacks.splice(i,1);
-				return;
-			}
-		}
-		Debug.assert(false,"Can't remove callback!");
-	}
-	send(data:any, ...args:any[])
-	{
-		for(var i:number = 0; i<this.callbacks.length; i++)
-		{
-			this.callbacks[i](data,args);
-		}
-	}
-}
-
-class ChatMessage
-{
-	time:string;
-	sender:string;
-	message:string;
-	type:ChatMessageType;
-	constructor(time:string,sender:string,message:string,type:ChatMessageType)
-	{
-		this.time=time;
-		this.sender=sender;
-		this.message=message;
-		this.type=type;
-	}
-}
-
-class ChatMember
-{
-	name:string;
-	userID:string;
-	status:string;
-	constructor(name:string,id:string,status:string)
-	{
-		this.name = name;
-		this.userID = id;
-		this.status = status;
-	}
-}
-
-class ChatChannel
-{
-	name:string;
-	topic:string;
-	plugins:Array<string>;
-	messages:Array<ChatMessage>;
-	members:Array<ChatMember>;
-	id:number;
-	static nextID:number = 0;
-	constructor(name:string,topic:string)
-	{
-		this.id = ChatChannel.nextID++;
-		this.name=name;
-		this.topic=topic;
-		this.messages = new Array<ChatMessage>();
-		this.members = new Array<ChatMember>();
-	}
-	addMember(member:ChatMember)
-	{
-		this.members.push(member);
-		Debug.log("Added member: "+member.name+" to "+this.name);
-	}
-	
-	removeMemberByName(member:string)
-	{
-		for(var i: number = 0; i<this.members.length; i++)
-		{
-			if(this.members[i].name == member)
-			{
-				Debug.log("Removing member: "+member);
-				this.members.splice(i,1);
-				return;
-			}
-		}
-		Debug.log("Can't remove member: "+member);
-	}
-	removeMember(member:ChatMember)
-	{
-		for(var i: number = 0; i<this.members.length; i++)
-		{
-			if(this.members[i] == member)
-			{
-				Debug.log("Removing member: "+member.name);
-				this.members.splice(i,1);
-				return;
-			}
-		}
-		Debug.log("Can't remove member: "+member.name);
-	}
-	addMessage(message:ChatMessage)
-	{
-		this.messages.push(message);
-	}
-	setupUser(username:string)
-	{
-		for(var i: number = 0; i<this.members.length; i++)
-		{
-			if(this.members[i].name == username)
-			{
-				return;
-			}
-		}
-		
-		this.addMember(new ChatMember(username,"null","online"));
-	}
 }
 
 class ChatData
@@ -221,13 +88,19 @@ class ChatData
 	}
 	removeChannel(channelName:string)
 	{
+		if(this.channels.length<=1)
+		{
+			Debug.log("Can't remove last channel");
+			return;
+		}
+		
 		for(var i:number =0; this.channels.length; i++)
 		{
 			if(this.channels[i].name === channelName)
 			{
 				this.onChannelRemoved.send(this.channels[i]);
 				this.channels.splice(i,1);
-				this.setActiveChannel(i);
+				this.setActiveChannel(Math.max(0,i-1));
 				return;
 			}
 		}
@@ -330,9 +203,10 @@ class ChatData
 	{
 		var stored:string = this.getCookie(CookieNames.ACTIVE_CHANNEL);
 		Debug.log("restoreActiveChannel:"+stored);
-		if(stored == null || stored == "")
+		if(stored == null || stored == "" || stored == "null")
 		{
-			this.setActiveChannelByName("lobby");
+			this.activeChannel = 0;
+			//this.setActiveChannelByName("lobby");
 			return;
 		}
 		this.setActiveChannelByName(stored);
