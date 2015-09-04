@@ -23,8 +23,8 @@ class Chat
 		
 		this.client.connect(
 			"http://urtela.redlynx.com:3002",
-			"testiperse2000"
-			//this.data.localMember.userID
+			//"testiperse2000"
+			this.data.localMember.userID
 		);
 		
 		this.ui.setLoading(null);
