@@ -1,0 +1,3 @@
+[submodule "TypeScriptClientV2/ref"]
+	path = TypeScriptClientV2/ref
+	url = http://github.com/borisyankov/DefinitelyTyped
