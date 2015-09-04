@@ -313,6 +313,7 @@ var Userinterface = (function () {
         this.onChannelClosed = new Signal();
         this.onMessageSend = new Signal();
         this.onStatusChange = new Signal();
+        this.onPrivateChatStarted = new Signal();
         this.channelButtons = new Array();
         this.chatPanels = new Array();
         this.settings = new SettingsPanel();
@@ -495,8 +496,9 @@ var Userinterface = (function () {
             }
             user.innerHTML = '<span class="glyphicon glyphicon-user" aria-hidden="true"></span> ' + member.name;
             $(user).attr("user", member.name);
+            var signal = this.onPrivateChatStarted;
             $(user).click(function () {
-                alert("Priva: " + $(this).attr("user"));
+                signal.send($(this).attr("user"));
             });
             $(user).attr("title", member.status);
             $(user)['tooltip']({
@@ -559,6 +561,9 @@ var Userinterface = (function () {
     };
     Userinterface.prototype.handleGlobalKeyDown = function (e) {
         this.idleTimer();
+        if (e.altKey) {
+            e.preventDefault();
+        }
         if (e.shiftKey || e.ctrlKey)
             return;
         this.focusTextbox();
@@ -720,6 +725,11 @@ var Chat = (function () {
         });
         this.ui.onStatusChange.add(function (status) {
             self.client.setStatus(status);
+        });
+        this.ui.onPrivateChatStarted.add(function (username) {
+            var channel = new ChatChannel("@" + username, "Private chat with " + username);
+            self.data.addChannel(channel);
+            self.ui.setActiveChannel(channel);
         });
         this.client.onUserStatusUpdated.add(function (userName, data) {
             self.data.setUserStatus(userName, data[0]);
@@ -1443,7 +1453,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.344";
+        this.version = "V.2.0.347";
     }
     return ProjectConfig;
 })();
@@ -1527,15 +1537,19 @@ var Utils = (function () {
         });
     };
     Utils.universeJiraLinks = function (str) {
-        var universeJiraRegex = /([\s]|^)uni-[0-9]+/ig;
-        return str.replace(universeJiraRegex, function (jira) {
-            var front = "";
-            if (jira.match(/\s/)) {
-                jira = jira.trim();
-                front = " ";
-            }
-            return front + '<a target="_blank" href="https://mdc-tomcat-jira76.ubisoft.org/jira/browse/' + jira + '" class="btn btn-warning btn-xs">' + jira + '</a>';
-        });
+        var universeJiraRegexVerify = /([^a-zA-Z]|^)uni-[0-9]+/ig;
+        var universeJiraRegexSelect = /uni-[0-9]+/ig;
+        if (str.match(universeJiraRegexVerify) != null) {
+            return str.replace(universeJiraRegexSelect, function (jira) {
+                var front = "";
+                if (jira.match(/\s/)) {
+                    jira = jira.trim();
+                    front = " ";
+                }
+                return front + '<a target="_blank" href="https://mdc-tomcat-jira76.ubisoft.org/jira/browse/' + jira + '" class="btn btn-warning btn-xs">' + jira + '</a>';
+            });
+        }
+        return str;
     };
     Utils.linkify = function (text) {
         if (text == null)

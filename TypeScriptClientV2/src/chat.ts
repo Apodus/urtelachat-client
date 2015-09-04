@@ -102,7 +102,12 @@ class Chat
 		{
 			self.client.setStatus(status);
 		});
-		
+		this.ui.onPrivateChatStarted.add(function(username:string)
+		{
+			var channel:ChatChannel = new ChatChannel("@"+username,"Private chat with "+username);
+			self.data.addChannel(channel);
+			self.ui.setActiveChannel(channel);
+		});
 		
 		
 		// Socket bindings to update data

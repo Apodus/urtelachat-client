@@ -32,17 +32,23 @@ class Utils
 
 	static universeJiraLinks(str:string)
 	{
-		var universeJiraRegex = /([\s]|^)uni-[0-9]+/ig;
-		return str.replace(universeJiraRegex, function(jira)
+		var universeJiraRegexVerify = /([^a-zA-Z]|^)uni-[0-9]+/ig;
+        var universeJiraRegexSelect = /uni-[0-9]+/ig;
+        if(str.match(universeJiraRegexVerify) != null)
 		{
-			var front:string = "";
-			if(jira.match(/\s/))
+			return str.replace(universeJiraRegexSelect, function(jira)
 			{
-				jira = jira.trim();
-				front = " ";
-			}
-			return front + '<a target="_blank" href="https://mdc-tomcat-jira76.ubisoft.org/jira/browse/' + jira + '" class="btn btn-warning btn-xs">' + jira + '</a>';
-		});
+				var front:string = "";
+				if(jira.match(/\s/))
+				{
+					jira = jira.trim();
+					front = " ";
+				}
+				return front + '<a target="_blank" href="https://mdc-tomcat-jira76.ubisoft.org/jira/browse/' + jira + '" class="btn btn-warning btn-xs">' + jira + '</a>';
+			});
+		}
+		
+		return str;
 	}
 	
 	static linkify(text:string):string

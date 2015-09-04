@@ -1,6 +1,14 @@
 var ui = null;
 var client = null;
 
+window.addEventListener("beforeunload", function (e) {
+    var confirmationMessage = 'Plutonium brick in your pants?\n';
+    confirmationMessage += 'You are about to leave the chat.\nPlease don\'t.';
+
+    (e || window.event).returnValue = confirmationMessage; //Gecko + IE
+    return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
+});
+
 function init()
 {
 	ui = new ChatUI();

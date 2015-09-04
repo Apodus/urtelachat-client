@@ -18,8 +18,10 @@ function custom_emotes(str)
 
 function universe_jira_links(str)
 {
-	var universeJiraRegex = /([\s]|^)uni-[0-9]+/ig;
-	return str.replace(universeJiraRegex, function(jira)
+	var universeJiraRegexVerify = /([^a-zA-Z]|^)uni-[0-9]+/ig;
+        var universeJiraRegexSelect = /uni-[0-9]+/ig;
+        if(str.match(universeJiraRegexVerify) != null) {
+	return str.replace(universeJiraRegexSelect, function(jira)
 	{
 		var front = "";
 		if(jira.match(/\s/))
@@ -29,6 +31,8 @@ function universe_jira_links(str)
 		}
 		return front + '<a target="_blank" href="https://mdc-tomcat-jira76.ubisoft.org/jira/browse/' + jira + '">' + jira + '</a>';
 	});
+        }
+        return str;
 }
 
 function timeNow()

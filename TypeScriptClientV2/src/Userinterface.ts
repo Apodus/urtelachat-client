@@ -835,7 +835,12 @@ class Userinterface
 	handleGlobalKeyDown(e:any)
 	{
 		this.idleTimer();
-			
+		
+		if(e.altKey)
+		{
+			e.preventDefault();
+		}
+		
 		if(e.shiftKey || e.ctrlKey) return;
 			
 		this.focusTextbox();
