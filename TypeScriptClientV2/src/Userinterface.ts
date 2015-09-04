@@ -144,7 +144,7 @@ class Userinterface
 	}
 	setActiveChannel(channel:ChatChannel)
 	{
-		Debug.log("Select Active ChannelButton:"+channel.name);
+		Debug.log("Select Active Channel:"+channel.name);
 		var button:ChannelButton = this.initChannelButton(channel);
 		button.setActive();
 		var chat:ChatPanel = this.initChatPanel(channel);
@@ -261,6 +261,7 @@ class Userinterface
 	}
 	updateChannelMembers(channel:ChatChannel)
 	{
+		Debug.log("Update channel members: "+channel.name);
 		$(HtmlID.USERS_LIST).empty();
 		
 		for(var i:number = 0; i < channel.members.length; i++)

@@ -93,7 +93,7 @@ var Userinterface = (function () {
         Debug.assert(false, "Can't remove chat panel for channel:" + channel.name);
     };
     Userinterface.prototype.setActiveChannel = function (channel) {
-        Debug.log("Select Active ChannelButton:" + channel.name);
+        Debug.log("Select Active Channel:" + channel.name);
         var button = this.initChannelButton(channel);
         button.setActive();
         var chat = this.initChatPanel(channel);
@@ -177,6 +177,7 @@ var Userinterface = (function () {
         $(HtmlID.TOPIC).html(Utils.linkify(topic));
     };
     Userinterface.prototype.updateChannelMembers = function (channel) {
+        Debug.log("Update channel members: " + channel.name);
         $(HtmlID.USERS_LIST).empty();
         for (var i = 0; i < channel.members.length; i++) {
             var member = channel.members[i];
@@ -521,6 +522,7 @@ var Chat = (function () {
             Debug.log("Joined channel: " + channelName);
             var channel = new ChatChannel(channelName, "Welcome to " + channelName);
             self.data.addChannel(channel);
+            self.data.setActiveChannelByChannel(channel);
         });
         this.client.onUserListUpdated.add(function (channelName, data) {
             self.data.updateUsers(channelName, data[0]);
@@ -668,11 +670,15 @@ var ChatData = (function () {
         }
     };
     ChatData.prototype.removeChannel = function (channelName) {
+        if (this.channels.length <= 1) {
+            Debug.log("Can't remove last channel");
+            return;
+        }
         for (var i = 0; this.channels.length; i++) {
             if (this.channels[i].name === channelName) {
                 this.onChannelRemoved.send(this.channels[i]);
                 this.channels.splice(i, 1);
-                this.setActiveChannel(i);
+                this.setActiveChannel(Math.max(0, i - 1));
                 return;
             }
         }
@@ -753,8 +759,8 @@ var ChatData = (function () {
     ChatData.prototype.restoreActiveChannel = function () {
         var stored = this.getCookie(CookieNames.ACTIVE_CHANNEL);
         Debug.log("restoreActiveChannel:" + stored);
-        if (stored == null || stored == "") {
-            this.setActiveChannelByName("lobby");
+        if (stored == null || stored == "" || stored == "null") {
+            this.activeChannel = 0;
             return;
         }
         this.setActiveChannelByName(stored);
@@ -889,7 +895,7 @@ var ChatPanel = (function () {
         this.id = channel.id;
         this.element = document.createElement("div");
         this.element.id = "CHAT_" + this.id;
-        $(this.element).hide();
+        this.setActive();
     }
     ChatPanel.prototype.addMessage = function (message) {
         if (this.lastMessage != null && this.lastMessage.message.sender == message.sender) {
@@ -903,10 +909,21 @@ var ChatPanel = (function () {
         }
     };
     ChatPanel.prototype.setActive = function () {
+        Debug.log("Set active chat panel:" + this.channel.name);
         if (ChatPanel.activeChatPanel != null) {
-            $(ChatPanel.activeChatPanel.element).hide();
+            this.hide();
         }
         ChatPanel.activeChatPanel = this;
+        this.show();
+    };
+    ChatPanel.prototype.hide = function () {
+        Debug.log("Hide active chat panel:" + this.channel.name);
+        $(ChatPanel.activeChatPanel.element).stop();
+        $(ChatPanel.activeChatPanel.element).hide();
+    };
+    ChatPanel.prototype.show = function () {
+        Debug.log("Show active chat panel:" + this.channel.name);
+        $(ChatPanel.activeChatPanel.element).stop();
         $(ChatPanel.activeChatPanel.element).fadeIn();
     };
     ChatPanel.prototype.isActive = function () {
@@ -1365,7 +1382,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.357";
+        this.version = "V.2.0.370";
     }
     return ProjectConfig;
 })();

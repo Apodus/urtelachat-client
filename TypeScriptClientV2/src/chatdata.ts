@@ -88,13 +88,19 @@ class ChatData
 	}
 	removeChannel(channelName:string)
 	{
+		if(this.channels.length<=1)
+		{
+			Debug.log("Can't remove last channel");
+			return;
+		}
+		
 		for(var i:number =0; this.channels.length; i++)
 		{
 			if(this.channels[i].name === channelName)
 			{
 				this.onChannelRemoved.send(this.channels[i]);
 				this.channels.splice(i,1);
-				this.setActiveChannel(i);
+				this.setActiveChannel(Math.max(0,i-1));
 				return;
 			}
 		}
@@ -197,9 +203,10 @@ class ChatData
 	{
 		var stored:string = this.getCookie(CookieNames.ACTIVE_CHANNEL);
 		Debug.log("restoreActiveChannel:"+stored);
-		if(stored == null || stored == "")
+		if(stored == null || stored == "" || stored == "null")
 		{
-			this.setActiveChannelByName("lobby");
+			this.activeChannel = 0;
+			//this.setActiveChannelByName("lobby");
 			return;
 		}
 		this.setActiveChannelByName(stored);

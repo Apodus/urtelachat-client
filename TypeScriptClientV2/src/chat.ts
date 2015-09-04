@@ -126,6 +126,7 @@ class Chat
 			Debug.log("Joined channel: "+channelName);
 			var channel = new ChatChannel(channelName,"Welcome to "+channelName);
 			self.data.addChannel(channel);
+			self.data.setActiveChannelByChannel(channel);
 		});
 		
 		this.client.onUserListUpdated.add(function(channelName:string,data:Array<any>)
