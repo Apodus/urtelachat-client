@@ -2,300 +2,6 @@
 /// <reference path="..\ref\jquery.simplemodal\jquery.simplemodal.d.ts" />
 /// <reference path="..\ref\dropzone\dropzone.d.ts" />
 /// <reference path="external.d.ts" />
-var MessageInputHistory = (function () {
-    function MessageInputHistory() {
-        this.history = new Array();
-        this.index = 0;
-        this.limit = 20;
-        this.notification = null;
-    }
-    MessageInputHistory.prototype.get = function (dif) {
-        this.add($(HtmlID.MESSAGE_INPUT).val());
-        this.index += dif;
-        if (this.index < 0)
-            this.index = this.history.length - 1;
-        if (this.index >= this.history.length)
-            this.index = 0;
-        if (this.index < 0 || this.history.length == 0)
-            return $(HtmlID.MESSAGE_INPUT).val();
-        if (this.notification != null) {
-            this.notification.clearTimeout();
-        }
-        this.notification = new PopoverNotification(HtmlID.MESSAGE_INPUT, "Sent Message History " + (this.index + 1) + "/" + (this.history.length + 1));
-        this.notification.getOptions().placement = "top";
-        this.notification.show();
-        return this.history[this.index];
-    };
-    MessageInputHistory.prototype.add = function (msg) {
-        if (msg != null && msg != "") {
-            for (var i = 0; i < this.history.length; i++) {
-                if (this.history[i] == msg)
-                    return false;
-            }
-            this.history.push(msg);
-            while (this.history.length > this.limit) {
-                this.history.shift();
-            }
-            this.index = this.history.length - 1;
-            return true;
-        }
-    };
-    return MessageInputHistory;
-})();
-var SettingsPanel = (function () {
-    function SettingsPanel() {
-        this.useAutoScroll = true;
-        this.onFileDrop = new Signal();
-        this.refreshAutoScrollToggleButton();
-        var settings = this;
-        $(HtmlID.AUTO_SCROLL_TOGGLE_BUTTON).click(function () {
-            settings.toggleAutoScroll();
-        });
-        var ui = this;
-        $("#debug").hide();
-        this.addButton("#themes", "Theme1", function () {
-            new CustomTheme("css/themes/theme1.min.css");
-        });
-        if (this.myDropzone == null) {
-            this.myDropzone = new Dropzone("div#messages", { url: "/", clickable: false, previewsContainer: "#upload-info" });
-            var ui = this;
-            this.myDropzone.on("error", function (file, response) {
-                ui.closePopup();
-                $("#fileUpload").modal("show");
-            });
-            this.myDropzone.on("success", function (file, response) {
-                ui.closePopup();
-                $("#fileUpload").modal("show");
-                ui.onFileDrop.send(file);
-            });
-        }
-    }
-    SettingsPanel.prototype.closePopup = function () {
-        Debug.log("Closing popups");
-        $('.modal').modal('hide');
-    };
-    SettingsPanel.prototype.addButton = function (container, name, callback) {
-        $(container).show();
-        var button = document.createElement("button");
-        button.className = "btn btn-success btn-sm";
-        button.innerHTML = name;
-        $(container).append(button);
-        $(button).click(callback);
-    };
-    SettingsPanel.prototype.refreshAutoScrollToggleButton = function () {
-        var button = $(HtmlID.AUTO_SCROLL_TOGGLE_BUTTON);
-        var iconOn = $(HtmlID.AUTO_SCROLL_ICON_ON);
-        var iconOff = $(HtmlID.AUTO_SCROLL_ICON_OFF);
-        if (this.useAutoScroll) {
-            button.addClass("btn-info");
-            button.removeClass("btn-warning");
-            iconOn.show();
-            iconOff.hide();
-        }
-        else {
-            button.removeClass("btn-info");
-            button.addClass("btn-warning");
-            iconOff.show();
-            iconOn.hide();
-        }
-    };
-    SettingsPanel.prototype.toggleAutoScroll = function () {
-        this.useAutoScroll = !this.useAutoScroll;
-        Debug.log("Autoscroll toggled: " + this.useAutoScroll);
-        this.refreshAutoScrollToggleButton();
-    };
-    return SettingsPanel;
-})();
-var CustomTheme = (function () {
-    function CustomTheme(file) {
-        if (CustomTheme.activeTheme != null) {
-            CustomTheme.activeTheme.remove();
-            CustomTheme.activeTheme = null;
-        }
-        CustomTheme.activeTheme = this;
-        this.element = document.createElement("link");
-        this.element.setAttribute("rel", "stylesheet");
-        this.element.setAttribute("type", "text/css");
-        this.element.setAttribute("href", file);
-        if (typeof this.element != "undefined") {
-            document.getElementsByTagName("head")[0].appendChild(this.element);
-        }
-    }
-    CustomTheme.prototype.remove = function () {
-        $(this.element).remove();
-        this.element = null;
-    };
-    CustomTheme.activeTheme = null;
-    return CustomTheme;
-})();
-var ChatMessagePanel = (function () {
-    function ChatMessagePanel(message, alt) {
-        this.message = message;
-        this.element = document.createElement("div");
-        this.element.className = "message-block";
-        this.body = document.createElement("div");
-        this.body.className = "message-body row";
-        if (alt) {
-            $(this.body).addClass("alt-bg");
-        }
-        this.element.appendChild(this.body);
-        this.who = document.createElement("span");
-        this.what = document.createElement("div");
-        this.when = document.createElement("div");
-        this.body.appendChild(this.who);
-        this.body.appendChild(this.what);
-        this.body.appendChild(this.when);
-        this.who.innerHTML = message.sender;
-        this.what.innerHTML = Utils.linkify(message.message);
-        this.when.innerHTML = message.time;
-        this.who.className = "label col-md-1 who user-label";
-        this.what.className = "chat-message col-md-10";
-        this.when.className = "time col-md-1 text-right";
-        switch (message.type) {
-            case ChatMessageType.SYSTEM:
-                $(this.who).addClass("label-info");
-                break;
-            case ChatMessageType.NORMAL:
-            default:
-                $(this.who).addClass("label-success");
-                break;
-        }
-        $(this.element).hide();
-        $(this.element).fadeIn();
-    }
-    ChatMessagePanel.prototype.addMessage = function (message) {
-        var newMessage = document.createElement("span");
-        newMessage.innerHTML = "<br/>" + Utils.linkify(message.message);
-        this.what.appendChild(newMessage);
-        this.when.innerHTML += "<br/>" + message.time;
-        $(newMessage).hide();
-        $(newMessage).fadeIn();
-    };
-    return ChatMessagePanel;
-})();
-var ChatPanel = (function () {
-    function ChatPanel(channel) {
-        this.lastMessage = null;
-        this.useAlternative = false;
-        this.channel = channel;
-        this.id = channel.id;
-        this.element = document.createElement("div");
-        this.element.id = "CHAT_" + this.id;
-        $(this.element).hide();
-    }
-    ChatPanel.prototype.addMessage = function (message) {
-        if (this.lastMessage != null && this.lastMessage.message.sender == message.sender) {
-            this.lastMessage.addMessage(message);
-        }
-        else {
-            var messagePanel = new ChatMessagePanel(message, this.useAlternative);
-            this.element.appendChild(messagePanel.element);
-            this.lastMessage = messagePanel;
-            this.useAlternative = !this.useAlternative;
-        }
-    };
-    ChatPanel.prototype.setActive = function () {
-        if (ChatPanel.activeChatPanel != null) {
-            $(ChatPanel.activeChatPanel.element).hide();
-        }
-        ChatPanel.activeChatPanel = this;
-        $(ChatPanel.activeChatPanel.element).fadeIn();
-    };
-    ChatPanel.prototype.isActive = function () {
-        return ChatPanel.activeChatPanel == this;
-    };
-    return ChatPanel;
-})();
-var ChannelButton = (function () {
-    function ChannelButton(channel) {
-        this.newMessages = 0;
-        this.id = channel.id;
-        this.channel = channel;
-        this.onCloseClick = new Signal();
-        this.onNameClick = new Signal();
-        this.element = document.createElement("button");
-        this.element.id = "CHANNEL_" + this.id;
-        this.element.className = "btn channel-button";
-        var closeButton = document.createElement("button");
-        closeButton.className = "btn btn-warning btn-xs btn-close-channel";
-        var channelName = document.createElement("span");
-        channelName.className = "name";
-        channelName.innerHTML = channel.name;
-        var messages = document.createElement("span");
-        messages.className = "message-count badge";
-        this.newMessagesLabel = messages;
-        var closeIcon = document.createElement("span");
-        closeIcon.className = "glyphicon glyphicon-remove";
-        $(closeIcon).attr("aria-hidden", "true");
-        $(closeButton).append(closeIcon);
-        $(this.element).append(messages);
-        $(this.element).append(channelName);
-        $(this.element).append(closeButton);
-        var self = this;
-        $(closeButton).click(function () {
-            self.element.onclick = null;
-            $(self.element)['tooltip']("hide");
-            self.onCloseClick.send("close");
-        });
-        $(this.element).click(function () {
-            self.onNameClick.send("open");
-            $(self.element)['tooltip']("hide");
-        });
-        $(this.element).mouseleave(function () {
-            $(closeButton).fadeOut();
-        });
-        $(this.element).attr("title", channel.topic);
-        $(this.element).mouseenter(function () {
-            if (channel.name != "lobby") {
-                $(closeButton).fadeIn();
-            }
-            if ($(self.element).attr("data-toggle") != "tooltip") {
-                $(self.element).attr("data-toggle", "tooltip");
-                $(self.element).attr("data-placement", "bottom");
-                $(self.element)['tooltip']("show");
-            }
-            else {
-                $(self.element).attr("data-original-title", channel.topic);
-            }
-        });
-        $(closeButton).hide();
-    }
-    ChannelButton.prototype.setActive = function () {
-        if (ChannelButton.activeChannelButton != null) {
-            $(ChannelButton.activeChannelButton.element).removeClass("btn-info");
-            $(ChannelButton.activeChannelButton.element).removeClass("btn-success");
-        }
-        $(this.element).addClass("btn-success");
-        $(this.element).removeClass("btn-info");
-        $(this.newMessagesLabel).empty();
-        ChannelButton.activeChannelButton = this;
-    };
-    ChannelButton.prototype.addNewMarker = function () {
-        this.newMessages++;
-        $(this.element).addClass("btn-info");
-        $(this.newMessagesLabel).html(this.newMessages.toString());
-    };
-    ChannelButton.prototype.isActive = function () {
-        return ChannelButton.activeChannelButton == this;
-    };
-    return ChannelButton;
-})();
-var HtmlID = (function () {
-    function HtmlID() {
-    }
-    HtmlID.CHANNELS = "#channels";
-    HtmlID.MESSAGES = "#messages";
-    HtmlID.TOPIC = "#chat-topic";
-    HtmlID.USER_INFO = "#userInfo";
-    HtmlID.USER_INFO_BODY = "#userInfoBody";
-    HtmlID.USERS_LIST = "#users";
-    HtmlID.MESSAGE_INPUT = "#message-input";
-    HtmlID.AUTO_SCROLL_TOGGLE_BUTTON = "#auto-scroll-toggle";
-    HtmlID.AUTO_SCROLL_ICON_ON = "#auto-scroll-icon-on";
-    HtmlID.AUTO_SCROLL_ICON_OFF = "#auto-scroll-icon-off";
-    HtmlID.SERVER_STATUS = "#server-status";
-    return HtmlID;
-})();
 var Userinterface = (function () {
     function Userinterface() {
         this.focusTextbox = function () {
@@ -672,6 +378,80 @@ var Userinterface = (function () {
     };
     return Userinterface;
 })();
+var ChannelButton = (function () {
+    function ChannelButton(channel) {
+        this.newMessages = 0;
+        this.id = channel.id;
+        this.channel = channel;
+        this.onCloseClick = new Signal();
+        this.onNameClick = new Signal();
+        this.element = document.createElement("button");
+        this.element.id = "CHANNEL_" + this.id;
+        this.element.className = "btn channel-button";
+        var closeButton = document.createElement("button");
+        closeButton.className = "btn btn-warning btn-xs btn-close-channel";
+        var channelName = document.createElement("span");
+        channelName.className = "name";
+        channelName.innerHTML = channel.name;
+        var messages = document.createElement("span");
+        messages.className = "message-count badge";
+        this.newMessagesLabel = messages;
+        var closeIcon = document.createElement("span");
+        closeIcon.className = "glyphicon glyphicon-remove";
+        $(closeIcon).attr("aria-hidden", "true");
+        $(closeButton).append(closeIcon);
+        $(this.element).append(messages);
+        $(this.element).append(channelName);
+        $(this.element).append(closeButton);
+        var self = this;
+        $(closeButton).click(function () {
+            self.element.onclick = null;
+            $(self.element)['tooltip']("hide");
+            self.onCloseClick.send("close");
+        });
+        $(this.element).click(function () {
+            self.onNameClick.send("open");
+            $(self.element)['tooltip']("hide");
+        });
+        $(this.element).mouseleave(function () {
+            $(closeButton).fadeOut();
+        });
+        $(this.element).attr("title", channel.topic);
+        $(this.element).mouseenter(function () {
+            if (channel.name != "lobby") {
+                $(closeButton).fadeIn();
+            }
+            if ($(self.element).attr("data-toggle") != "tooltip") {
+                $(self.element).attr("data-toggle", "tooltip");
+                $(self.element).attr("data-placement", "bottom");
+                $(self.element)['tooltip']("show");
+            }
+            else {
+                $(self.element).attr("data-original-title", channel.topic);
+            }
+        });
+        $(closeButton).hide();
+    }
+    ChannelButton.prototype.setActive = function () {
+        if (ChannelButton.activeChannelButton != null) {
+            $(ChannelButton.activeChannelButton.element).removeClass("btn-info");
+            $(ChannelButton.activeChannelButton.element).removeClass("btn-success");
+        }
+        $(this.element).addClass("btn-success");
+        $(this.element).removeClass("btn-info");
+        $(this.newMessagesLabel).empty();
+        ChannelButton.activeChannelButton = this;
+    };
+    ChannelButton.prototype.addNewMarker = function () {
+        this.newMessages++;
+        $(this.element).addClass("btn-info");
+        $(this.newMessagesLabel).html(this.newMessages.toString());
+    };
+    ChannelButton.prototype.isActive = function () {
+        return ChannelButton.activeChannelButton == this;
+    };
+    return ChannelButton;
+})();
 var Chat = (function () {
     function Chat() {
         Debug.log(Project.name + " " + Project.version + " CodeName:" + Project.codeName);
@@ -786,63 +566,6 @@ var Chat = (function () {
     };
     return Chat;
 })();
-var ChatMessageType;
-(function (ChatMessageType) {
-    ChatMessageType[ChatMessageType["NORMAL"] = 0] = "NORMAL";
-    ChatMessageType[ChatMessageType["SYSTEM"] = 1] = "SYSTEM";
-})(ChatMessageType || (ChatMessageType = {}));
-var CookieNames = (function () {
-    function CookieNames() {
-    }
-    CookieNames.USER_ID = "userID";
-    CookieNames.USER_NAME = "userName";
-    CookieNames.ACTIVE_CHANNEL = "activeChannel";
-    return CookieNames;
-})();
-var Signal = (function () {
-    function Signal() {
-        this.callbacks = new Array();
-    }
-    Signal.prototype.add = function (f) {
-        this.callbacks.push(f);
-    };
-    Signal.prototype.remove = function (f) {
-        for (var i = 0; i < this.callbacks.length; i++) {
-            if (this.callbacks[i] == f) {
-                this.callbacks.splice(i, 1);
-                return;
-            }
-        }
-        Debug.assert(false, "Can't remove callback!");
-    };
-    Signal.prototype.send = function (data) {
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
-        for (var i = 0; i < this.callbacks.length; i++) {
-            this.callbacks[i](data, args);
-        }
-    };
-    return Signal;
-})();
-var ChatMessage = (function () {
-    function ChatMessage(time, sender, message, type) {
-        this.time = time;
-        this.sender = sender;
-        this.message = message;
-        this.type = type;
-    }
-    return ChatMessage;
-})();
-var ChatMember = (function () {
-    function ChatMember(name, id, status) {
-        this.name = name;
-        this.userID = id;
-        this.status = status;
-    }
-    return ChatMember;
-})();
 var ChatChannel = (function () {
     function ChatChannel(name, topic) {
         this.id = ChatChannel.nextID++;
@@ -888,6 +611,14 @@ var ChatChannel = (function () {
     };
     ChatChannel.nextID = 0;
     return ChatChannel;
+})();
+var CookieNames = (function () {
+    function CookieNames() {
+    }
+    CookieNames.USER_ID = "userID";
+    CookieNames.USER_NAME = "userName";
+    CookieNames.ACTIVE_CHANNEL = "activeChannel";
+    return CookieNames;
 })();
 var ChatData = (function () {
     function ChatData() {
@@ -1082,6 +813,106 @@ var ChatData = (function () {
         this.onActiveChannelMembersChanged.send(channel);
     };
     return ChatData;
+})();
+var ChatMember = (function () {
+    function ChatMember(name, id, status) {
+        this.name = name;
+        this.userID = id;
+        this.status = status;
+    }
+    return ChatMember;
+})();
+var ChatMessageType;
+(function (ChatMessageType) {
+    ChatMessageType[ChatMessageType["NORMAL"] = 0] = "NORMAL";
+    ChatMessageType[ChatMessageType["SYSTEM"] = 1] = "SYSTEM";
+})(ChatMessageType || (ChatMessageType = {}));
+var ChatMessage = (function () {
+    function ChatMessage(time, sender, message, type) {
+        this.time = time;
+        this.sender = sender;
+        this.message = message;
+        this.type = type;
+    }
+    return ChatMessage;
+})();
+var ChatMessagePanel = (function () {
+    function ChatMessagePanel(message, alt) {
+        this.message = message;
+        this.element = document.createElement("div");
+        this.element.className = "message-block";
+        this.body = document.createElement("div");
+        this.body.className = "message-body row";
+        if (alt) {
+            $(this.body).addClass("alt-bg");
+        }
+        this.element.appendChild(this.body);
+        this.who = document.createElement("span");
+        this.what = document.createElement("div");
+        this.when = document.createElement("div");
+        this.body.appendChild(this.who);
+        this.body.appendChild(this.what);
+        this.body.appendChild(this.when);
+        this.who.innerHTML = message.sender;
+        this.what.innerHTML = Utils.linkify(message.message);
+        this.when.innerHTML = message.time;
+        this.who.className = "label col-md-1 who user-label";
+        this.what.className = "chat-message col-md-10";
+        this.when.className = "time col-md-1 text-right";
+        switch (message.type) {
+            case ChatMessageType.SYSTEM:
+                $(this.who).addClass("label-info");
+                break;
+            case ChatMessageType.NORMAL:
+            default:
+                $(this.who).addClass("label-success");
+                break;
+        }
+        $(this.element).hide();
+        $(this.element).fadeIn();
+    }
+    ChatMessagePanel.prototype.addMessage = function (message) {
+        var newMessage = document.createElement("span");
+        newMessage.innerHTML = "<br/>" + Utils.linkify(message.message);
+        this.what.appendChild(newMessage);
+        this.when.innerHTML += "<br/>" + message.time;
+        $(newMessage).hide();
+        $(newMessage).fadeIn();
+    };
+    return ChatMessagePanel;
+})();
+var ChatPanel = (function () {
+    function ChatPanel(channel) {
+        this.lastMessage = null;
+        this.useAlternative = false;
+        this.channel = channel;
+        this.id = channel.id;
+        this.element = document.createElement("div");
+        this.element.id = "CHAT_" + this.id;
+        $(this.element).hide();
+    }
+    ChatPanel.prototype.addMessage = function (message) {
+        if (this.lastMessage != null && this.lastMessage.message.sender == message.sender) {
+            this.lastMessage.addMessage(message);
+        }
+        else {
+            var messagePanel = new ChatMessagePanel(message, this.useAlternative);
+            this.element.appendChild(messagePanel.element);
+            this.lastMessage = messagePanel;
+            this.useAlternative = !this.useAlternative;
+        }
+    };
+    ChatPanel.prototype.setActive = function () {
+        if (ChatPanel.activeChatPanel != null) {
+            $(ChatPanel.activeChatPanel.element).hide();
+        }
+        ChatPanel.activeChatPanel = this;
+        $(ChatPanel.activeChatPanel.element).fadeIn();
+    };
+    ChatPanel.prototype.isActive = function () {
+        return ChatPanel.activeChatPanel == this;
+    };
+    return ChatPanel;
 })();
 /// <reference path="..\ref\socket.io-client\socket.io-client.d.ts" />
 var Client = (function () {
@@ -1290,6 +1121,31 @@ var Client = (function () {
     };
     return Client;
 })();
+var CustomTheme = (function () {
+    function CustomTheme(file) {
+        CustomTheme.unload();
+        CustomTheme.activeTheme = this;
+        this.element = document.createElement("link");
+        this.element.setAttribute("rel", "stylesheet");
+        this.element.setAttribute("type", "text/css");
+        this.element.setAttribute("href", file);
+        if (typeof this.element != "undefined") {
+            document.getElementsByTagName("head")[0].appendChild(this.element);
+        }
+    }
+    CustomTheme.prototype.remove = function () {
+        $(this.element).remove();
+        this.element = null;
+    };
+    CustomTheme.unload = function () {
+        if (CustomTheme.activeTheme != null) {
+            CustomTheme.activeTheme.remove();
+            CustomTheme.activeTheme = null;
+        }
+    };
+    CustomTheme.activeTheme = null;
+    return CustomTheme;
+})();
 var Debug = (function () {
     function Debug() {
     }
@@ -1307,46 +1163,61 @@ var Debug = (function () {
     };
     return Debug;
 })();
-var PopoverNotification = (function () {
-    function PopoverNotification(container, text) {
-        this.text = text;
-        this.container = container;
-        this.options = {
-            content: this.text,
-            html: true,
-            placement: "bottom",
-            delay: { "show": 500, "hide": 100 }
-        };
+var HtmlID = (function () {
+    function HtmlID() {
     }
-    PopoverNotification.prototype.getOptions = function () {
-        return this.options;
+    HtmlID.CHANNELS = "#channels";
+    HtmlID.MESSAGES = "#messages";
+    HtmlID.TOPIC = "#chat-topic";
+    HtmlID.USER_INFO = "#userInfo";
+    HtmlID.USER_INFO_BODY = "#userInfoBody";
+    HtmlID.USERS_LIST = "#users";
+    HtmlID.MESSAGE_INPUT = "#message-input";
+    HtmlID.AUTO_SCROLL_TOGGLE_BUTTON = "#auto-scroll-toggle";
+    HtmlID.AUTO_SCROLL_ICON_ON = "#auto-scroll-icon-on";
+    HtmlID.AUTO_SCROLL_ICON_OFF = "#auto-scroll-icon-off";
+    HtmlID.SERVER_STATUS = "#server-status";
+    return HtmlID;
+})();
+var MessageInputHistory = (function () {
+    function MessageInputHistory() {
+        this.history = new Array();
+        this.index = 0;
+        this.limit = 20;
+        this.notification = null;
+    }
+    MessageInputHistory.prototype.get = function (dif) {
+        this.add($(HtmlID.MESSAGE_INPUT).val());
+        this.index += dif;
+        if (this.index < 0)
+            this.index = this.history.length - 1;
+        if (this.index >= this.history.length)
+            this.index = 0;
+        if (this.index < 0 || this.history.length == 0)
+            return $(HtmlID.MESSAGE_INPUT).val();
+        if (this.notification != null) {
+            this.notification.clearTimeout();
+        }
+        this.notification = new PopoverNotification(HtmlID.MESSAGE_INPUT, "Sent Message History " + (this.index + 1) + "/" + (this.history.length + 1));
+        this.notification.getOptions().placement = "top";
+        this.notification.show();
+        return this.history[this.index];
     };
-    PopoverNotification.prototype.show = function () {
-        $(this.container).popover(this.options);
-        $(this.container).data('bs.popover').options.content = this.text;
-        $(this.container).popover("show");
-        var self = this;
-        $('.popover').off('click').on('click', function (e) {
-            self.hide();
-            e.stopPropagation();
-        });
-        if (document.hasFocus()) {
-            this.timeoutID = setTimeout(function () {
-                self.hide();
-            }, 5000);
+    MessageInputHistory.prototype.add = function (msg) {
+        if (msg != null && msg != "") {
+            for (var i = 0; i < this.history.length; i++) {
+                if (this.history[i] == msg)
+                    return false;
+            }
+            this.history.push(msg);
+            while (this.history.length > this.limit) {
+                this.history.shift();
+            }
+            this.index = this.history.length - 1;
+            return true;
         }
     };
-    PopoverNotification.prototype.clearTimeout = function () {
-        if (this.timeoutID != null) {
-            clearTimeout(this.timeoutID);
-            this.timeoutID = null;
-        }
-    };
-    PopoverNotification.prototype.hide = function () {
-        this.clearTimeout();
-        $(this.container).popover("hide");
-    };
-    return PopoverNotification;
+    return MessageInputHistory;
 })();
 var NotificationSystem = (function () {
     function NotificationSystem() {
@@ -1449,15 +1320,147 @@ var NotificationSystem = (function () {
     };
     return NotificationSystem;
 })();
+var PopoverNotification = (function () {
+    function PopoverNotification(container, text) {
+        this.text = text;
+        this.container = container;
+        this.options = {
+            content: this.text,
+            html: true,
+            placement: "bottom",
+            delay: { "show": 500, "hide": 100 }
+        };
+    }
+    PopoverNotification.prototype.getOptions = function () {
+        return this.options;
+    };
+    PopoverNotification.prototype.show = function () {
+        $(this.container).popover(this.options);
+        $(this.container).data('bs.popover').options.content = this.text;
+        $(this.container).popover("show");
+        var self = this;
+        $('.popover').off('click').on('click', function (e) {
+            self.hide();
+            e.stopPropagation();
+        });
+        if (document.hasFocus()) {
+            this.timeoutID = setTimeout(function () {
+                self.hide();
+            }, 5000);
+        }
+    };
+    PopoverNotification.prototype.clearTimeout = function () {
+        if (this.timeoutID != null) {
+            clearTimeout(this.timeoutID);
+            this.timeoutID = null;
+        }
+    };
+    PopoverNotification.prototype.hide = function () {
+        this.clearTimeout();
+        $(this.container).popover("hide");
+    };
+    return PopoverNotification;
+})();
 var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.349";
+        this.version = "V.2.0.357";
     }
     return ProjectConfig;
 })();
 var Project = new ProjectConfig();
+var SettingsPanel = (function () {
+    function SettingsPanel() {
+        this.useAutoScroll = true;
+        this.onFileDrop = new Signal();
+        this.refreshAutoScrollToggleButton();
+        var settings = this;
+        $(HtmlID.AUTO_SCROLL_TOGGLE_BUTTON).click(function () {
+            settings.toggleAutoScroll();
+        });
+        var ui = this;
+        $("#debug").hide();
+        this.addButton("#themes", "Theme1", function () {
+            new CustomTheme("css/themes/theme1.min.css");
+        });
+        if (this.myDropzone == null) {
+            this.myDropzone = new Dropzone("div#messages", { url: "/", clickable: false, previewsContainer: "#upload-info" });
+            var ui = this;
+            this.myDropzone.on("error", function (file, response) {
+                ui.closePopup();
+                $("#fileUpload").modal("show");
+            });
+            this.myDropzone.on("success", function (file, response) {
+                ui.closePopup();
+                $("#fileUpload").modal("show");
+                ui.onFileDrop.send(file);
+            });
+        }
+    }
+    SettingsPanel.prototype.closePopup = function () {
+        Debug.log("Closing popups");
+        $('.modal').modal('hide');
+    };
+    SettingsPanel.prototype.addButton = function (container, name, callback) {
+        $(container).show();
+        var button = document.createElement("button");
+        button.className = "btn btn-success btn-sm";
+        button.innerHTML = name;
+        $(container).append(button);
+        $(button).click(callback);
+    };
+    SettingsPanel.prototype.refreshAutoScrollToggleButton = function () {
+        var button = $(HtmlID.AUTO_SCROLL_TOGGLE_BUTTON);
+        var iconOn = $(HtmlID.AUTO_SCROLL_ICON_ON);
+        var iconOff = $(HtmlID.AUTO_SCROLL_ICON_OFF);
+        if (this.useAutoScroll) {
+            button.addClass("btn-info");
+            button.removeClass("btn-warning");
+            iconOn.show();
+            iconOff.hide();
+        }
+        else {
+            button.removeClass("btn-info");
+            button.addClass("btn-warning");
+            iconOff.show();
+            iconOn.hide();
+        }
+    };
+    SettingsPanel.prototype.toggleAutoScroll = function () {
+        this.useAutoScroll = !this.useAutoScroll;
+        Debug.log("Autoscroll toggled: " + this.useAutoScroll);
+        this.refreshAutoScrollToggleButton();
+    };
+    return SettingsPanel;
+})();
+var Signal = (function () {
+    function Signal() {
+        this.callbacks = new Array();
+    }
+    Signal.prototype.add = function (f) {
+        this.callbacks.push(f);
+    };
+    Signal.prototype.remove = function (f) {
+        for (var i = 0; i < this.callbacks.length; i++) {
+            if (this.callbacks[i] == f) {
+                this.callbacks.splice(i, 1);
+                return;
+            }
+        }
+        Debug.assert(false, "Can't remove callback!");
+    };
+    Signal.prototype.send = function (data) {
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
+        }
+        for (var i = 0; i < this.callbacks.length; i++) {
+            this.callbacks[i](data, args);
+        }
+    };
+    return Signal;
+})();
 var TestSystem = (function () {
     function TestSystem(data, ui, client) {
         var channel = new ChatChannel("lobby", "Welvcomse1");
