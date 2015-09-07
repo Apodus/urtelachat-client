@@ -7,6 +7,15 @@ class Chat
 	constructor()
 	{
 		Debug.log(Project.name+" "+Project.version+" CodeName:"+Project.codeName);
+		//Error Handler
+		var chat:Chat = this;
+		Debug.setErrorHandler(function(msg:string)
+		{
+			//alert("Chat Error! (Probably user)\n"+msg);
+			//chat.ui.fatalError("Chat Error! (Probably user) <br/>"+msg);
+			console.log(msg);
+			chat.ui.reload();
+		});
 		
 		this.data = new ChatData();
 		
@@ -75,9 +84,6 @@ class Chat
 			Debug.log(member.name+" Status Changed to: "+member.status);
 			//self.ui.setServerStatus(status);
 		});
-
-		
-		
 		
 		//onActiveChannelDataAdded:Signal; // Use For plugins
 		
@@ -88,7 +94,8 @@ class Chat
 		});
 		this.ui.onChannelClosed.add(function(channel:ChatChannel)
 		{
-			self.data.removeChannel(channel.name);
+			self.client.exitChannel(channel);
+			self.data.removeChannelByName(channel.name);
 		});
 		this.ui.settings.onFileDrop.add(function(file:any)
 		{

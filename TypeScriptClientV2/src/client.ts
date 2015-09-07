@@ -155,6 +155,8 @@ class Client
 	}
 	sendData(key:string,data:string)
 	{
+		Debug.debugLog("Socket emit: "+key+" = "+data);
+		
 		if(data == "" || key == "")
 		{
 			return;

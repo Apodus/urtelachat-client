@@ -24,7 +24,16 @@ var Userinterface = (function () {
         this.chatPanels = new Array();
         this.settings = new SettingsPanel();
         this.initKeyboard();
+        this.initGlobalEvents();
     }
+    Userinterface.prototype.initGlobalEvents = function () {
+        window.addEventListener("beforeunload", function (e) {
+            var confirmationMessage = 'Plutonium brick in your pants?\n' +
+                'You are about to leave the chat.\nPlease don\'t.';
+            (e || window.event).returnValue = confirmationMessage;
+            return confirmationMessage;
+        });
+    };
     Userinterface.prototype.initChannelButton = function (channel) {
         for (var i = 0; i < this.channelButtons.length; i++) {
             if (this.channelButtons[i].id == channel.id) {
@@ -456,6 +465,11 @@ var ChannelButton = (function () {
 var Chat = (function () {
     function Chat() {
         Debug.log(Project.name + " " + Project.version + " CodeName:" + Project.codeName);
+        var chat = this;
+        Debug.setErrorHandler(function (msg) {
+            console.log(msg);
+            chat.ui.reload();
+        });
         this.data = new ChatData();
         this.client = new Client();
         this.ui = new Userinterface();
@@ -496,7 +510,8 @@ var Chat = (function () {
             self.data.setActiveChannelByChannel(channel);
         });
         this.ui.onChannelClosed.add(function (channel) {
-            self.data.removeChannel(channel.name);
+            self.client.exitChannel(channel);
+            self.data.removeChannelByName(channel.name);
         });
         this.ui.settings.onFileDrop.add(function (file) {
             self.client.uploadFile(file, self.data.getActiveChannel());
@@ -669,7 +684,7 @@ var ChatData = (function () {
             this.setActiveChannel(this.channels.length - 1);
         }
     };
-    ChatData.prototype.removeChannel = function (channelName) {
+    ChatData.prototype.removeChannelByName = function (channelName) {
         if (this.channels.length <= 1) {
             Debug.log("Can't remove last channel");
             return;
@@ -1030,6 +1045,7 @@ var Client = (function () {
         this.sendData("chat message", msg);
     };
     Client.prototype.sendData = function (key, data) {
+        Debug.debugLog("Socket emit: " + key + " = " + data);
         if (data == "" || key == "") {
             return;
         }
@@ -1163,21 +1179,49 @@ var CustomTheme = (function () {
     CustomTheme.activeTheme = null;
     return CustomTheme;
 })();
+var DebugLevel;
+(function (DebugLevel) {
+    DebugLevel[DebugLevel["DEBUG_OFF"] = 0] = "DEBUG_OFF";
+    DebugLevel[DebugLevel["DEBUG_NORMAL"] = 1] = "DEBUG_NORMAL";
+    DebugLevel[DebugLevel["DEBUG_FULL"] = 2] = "DEBUG_FULL";
+})(DebugLevel || (DebugLevel = {}));
 var Debug = (function () {
     function Debug() {
     }
     Debug.log = function (str) {
+        if (Debug.debugLevel == DebugLevel.DEBUG_OFF)
+            return;
         console.log(str);
     };
     Debug.warning = function (str) {
+        if (Debug.debugLevel == DebugLevel.DEBUG_OFF)
+            return;
         console.log("\n############################ WARNING ############################");
         console.log(str);
     };
     Debug.assert = function (expr, msg) {
         if (!expr) {
+            if (Debug.debugLevel == DebugLevel.DEBUG_OFF) {
+                if (Debug.onError) {
+                    Debug.onError.send(msg);
+                }
+                return;
+            }
             alert("ASSERT!\n\n" + msg);
         }
     };
+    Debug.debugLog = function (msg) {
+        if (Debug.debugLevel != DebugLevel.DEBUG_FULL)
+            return;
+        Debug.log("\t" + msg);
+    };
+    Debug.setErrorHandler = function (callback) {
+        if (Debug.onError == null) {
+            Debug.onError = new Signal();
+        }
+        Debug.onError.add(callback);
+    };
+    Debug.debugLevel = DebugLevel.DEBUG_OFF;
     return Debug;
 })();
 var HtmlID = (function () {
@@ -1382,7 +1426,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.370";
+        this.version = "V.2.0.390";
     }
     return ProjectConfig;
 })();

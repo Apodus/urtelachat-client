@@ -86,7 +86,7 @@ class ChatData
 			this.setActiveChannel(this.channels.length-1);
 		}
 	}
-	removeChannel(channelName:string)
+	removeChannelByName(channelName:string)
 	{
 		if(this.channels.length<=1)
 		{
