@@ -514,6 +514,7 @@ var Chat = (function () {
     Chat.prototype.init = function () {
         Debug.log("init");
         this.client.connect("http://urtela.redlynx.com:3002", this.data.localMember.userID);
+        Debug["debugLevel"] = DebugLevel.DEBUG_FULL;
         this.ui.setLoading(null);
     };
     Chat.prototype.bindDataCallbacks = function () {
@@ -1505,7 +1506,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.470";
+        this.version = "V.2.0.472";
     }
     return ProjectConfig;
 })();
