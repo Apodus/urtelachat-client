@@ -7,6 +7,7 @@ class Userinterface
 {
 	onActiveChannelChanged:Signal;
 	onChannelClosed:Signal;
+	onChannelNotificationToggled:Signal;
 	onMessageSend:Signal;
 	onStatusChange:Signal;
 	onPrivateChatStarted:Signal;
@@ -42,12 +43,27 @@ class Userinterface
 		this.onMessageSend = new Signal();
 		this.onStatusChange = new Signal();
 		this.onPrivateChatStarted = new Signal();
+		this.onChannelNotificationToggled = new Signal();
 		
 		this.channelButtons = new Array<ChannelButton>();
 		this.chatPanels = new Array<ChatPanel>();
 		this.settings = new SettingsPanel();
 	
 		this.initKeyboard();
+		
+		this.initGlobalEvents();
+	}
+	initGlobalEvents()
+	{
+		window.addEventListener("beforeunload", function (e)
+		{
+			var confirmationMessage =
+			'Plutonium brick in your pants?\n' +
+			'You are about to leave the chat.\nPlease don\'t.';
+
+			(e || window.event).returnValue = confirmationMessage; //Gecko + IE
+			return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
+		});
 	}
 	initChannelButton(channel:ChatChannel):ChannelButton
 	{
@@ -72,6 +88,10 @@ class Userinterface
 		button.onCloseClick.add(function()
 		{
 			self.onCloseChannelButtonClick(button);
+		});
+		button.onNotificationsToggled.add(function()
+		{
+			self.onChannelNotificationToggled.send(button.channel);
 		});
 		
 		return button;
@@ -107,7 +127,10 @@ class Userinterface
 			this.messagesScrollToBottom(false);
 		}
 		
-		NotificationSystem.get().notify("New Message in "+channel.name,message.sender+":"+'"'+message.message+'"');
+		if(message.type == ChatMessageType.NORMAL)
+		{
+			NotificationSystem.get().notify("New Message in "+channel.name,message.sender+":"+'"'+message.message+'"');
+		}
 	}
 	removeChannel(channel:ChatChannel)
 	{
@@ -145,6 +168,7 @@ class Userinterface
 	setActiveChannel(channel:ChatChannel)
 	{
 		Debug.log("Select Active Channel:"+channel.name);
+		TooltipManager.hideAll();
 		var button:ChannelButton = this.initChannelButton(channel);
 		button.setActive();
 		var chat:ChatPanel = this.initChatPanel(channel);
@@ -303,24 +327,9 @@ class Userinterface
 				signal.send($(this).attr("user"));
 			});
 			
-			$(user).attr("title", member.status);
-			$(user)['tooltip']({
-				placement:"right",
-				container:"body"
-			});
-			
 			$(user).mouseenter(function()
 			{
-				//$('.tooltip').each(function(){$(this)['tooltip']('hide');});
-				if($(user).attr("data-toggle")!="tooltip")
-				{
-					$(user).attr("data-toggle", "tooltip");
-					$(user)['tooltip']("show");
-				}
-				else
-				{
-					$(user).attr("data-original-title", member.status);
-				}
+				TooltipManager.show(this,member.status,"right");
 			});
 			
 			$(HtmlID.USERS_LIST).append(user);
@@ -554,5 +563,17 @@ class Userinterface
 			this.onMessageSend.send(msg);
 			this.history.add(msg);
 		}
+	}
+	updateChannelSettings(channel:ChatChannel)
+	{
+		for(var i:number = 0; i< this.channelButtons.length; i++)
+		{
+			if(this.channelButtons[i].id == channel.id)
+			{
+				var button:ChannelButton = this.channelButtons[i];
+				button.updateChannelSettings();
+				return;
+			}
+		}	
 	}
 }

@@ -7,6 +7,15 @@ class Chat
 	constructor()
 	{
 		Debug.log(Project.name+" "+Project.version+" CodeName:"+Project.codeName);
+		//Error Handler
+		var chat:Chat = this;
+		Debug.setErrorHandler(function(msg:string)
+		{
+			//alert("Chat Error! (Probably user)\n"+msg);
+			//chat.ui.fatalError("Chat Error! (Probably user) <br/>"+msg);
+			console.log(msg);
+			chat.ui.reload();
+		});
 		
 		this.data = new ChatData();
 		
@@ -26,6 +35,8 @@ class Chat
 			//"testiperse2000"
 			this.data.localMember.userID
 		);
+		
+		//Debug["debugLevel"]=DebugLevel.DEBUG_FULL;
 		
 		this.ui.setLoading(null);
 	}
@@ -65,6 +76,11 @@ class Chat
 			self.ui.setChannelTopic(channel);
 		});
 		
+		this.data.onChannelSettingsChanged.add(function(channel:ChatChannel)
+		{
+			self.ui.updateChannelSettings(channel);
+		});
+		
 		this.data.onServerStatusChanged.add(function(status:string)
 		{
 			self.ui.setServerStatus(status);
@@ -75,9 +91,6 @@ class Chat
 			Debug.log(member.name+" Status Changed to: "+member.status);
 			//self.ui.setServerStatus(status);
 		});
-
-		
-		
 		
 		//onActiveChannelDataAdded:Signal; // Use For plugins
 		
@@ -88,7 +101,10 @@ class Chat
 		});
 		this.ui.onChannelClosed.add(function(channel:ChatChannel)
 		{
-			self.data.removeChannel(channel.name);
+			if(self.data.removeChannelByName(channel.name))
+			{
+				self.client.exitChannel(channel);	
+			}
 		});
 		this.ui.settings.onFileDrop.add(function(file:any)
 		{
@@ -106,7 +122,12 @@ class Chat
 		{
 			var channel:ChatChannel = new ChatChannel("@"+username,"Private chat with "+username);
 			self.data.addChannel(channel);
-			self.ui.setActiveChannel(channel);
+			self.data.setActiveChannelByChannel(channel);
+			//self.ui.setActiveChannel(channel);
+		});
+		this.ui.onChannelNotificationToggled.add(function(channel:ChatChannel)
+		{
+			self.data.toggleChannelSetting(channel,"notification");
 		});
 		
 		

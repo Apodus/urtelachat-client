@@ -23,6 +23,7 @@ class ChatData
 	onChannelMessageAdded:Signal;
 	onServerStatusChanged:Signal;
 	onMemberStatusChanged:Signal;
+	onChannelSettingsChanged:Signal;
 	
 	constructor()
 	{
@@ -44,6 +45,7 @@ class ChatData
 		this.onActiveChannelMessageAdded = new Signal();
 		this.onActiveChannelDataAdded = new Signal();
 		this.onChannelTopicChanged = new Signal();
+		this.onChannelSettingsChanged = new Signal();
 		
 		this.onChannelMessageAdded = new Signal();
 		
@@ -67,6 +69,8 @@ class ChatData
 	}
 	addChannel(channel:ChatChannel)
 	{
+		this.checkChannelSettings(channel);
+		
 		for(var i:number =0; i < this.channels.length; i++)
 		{
 			if(this.channels[i].name === channel.name)
@@ -86,12 +90,12 @@ class ChatData
 			this.setActiveChannel(this.channels.length-1);
 		}
 	}
-	removeChannel(channelName:string)
+	removeChannelByName(channelName:string)
 	{
 		if(this.channels.length<=1)
 		{
 			Debug.log("Can't remove last channel");
-			return;
+			return false;
 		}
 		
 		for(var i:number =0; this.channels.length; i++)
@@ -101,10 +105,11 @@ class ChatData
 				this.onChannelRemoved.send(this.channels[i]);
 				this.channels.splice(i,1);
 				this.setActiveChannel(Math.max(0,i-1));
-				return;
+				return true;
 			}
 		}
 		Debug.warning("Can't remove channel: "+channelName);
+		return true;
 	}
 	setActiveChannel(id:number)
 	{
@@ -284,5 +289,39 @@ class ChatData
 		}
 		var channel:ChatChannel = this.getActiveChannel();
 		this.onActiveChannelMembersChanged.send(channel);
+	}
+	checkChannelSettings(channel:ChatChannel)
+	{
+		//Notification
+		var cookie:string = this.getChannelSetting(channel,"notification");
+		channel.allowNotifications = cookie === "true";
+		
+		//cookie = this.getCookie(channel.name+"_notification");
+		//channel.allowNotifications = notification === "allow";
+		this.onChannelSettingsChanged.send(channel);
+	}
+	setChannelSetting(channel:ChatChannel,setting:string,value:string)
+	{
+		this.setCookie(channel.name+"_"+setting,value,365);
+		this.checkChannelSettings(channel);
+	}
+	getChannelSetting(channel:ChatChannel,setting:string)
+	{
+		var cookie:string = this.getCookie(channel.name+"_"+setting);
+		return cookie;
+	}
+	toggleChannelSetting(channel:ChatChannel,setting:string)
+	{
+		var value:string = this.getChannelSetting(channel,setting);
+		Debug.log("Toggle "+channel.name+" "+setting+" from:"+value);
+		if(value === "true")
+		{
+			this.setChannelSetting(channel,setting,"false");
+		}
+		else
+		{
+			this.setChannelSetting(channel,setting,"true");
+		}
+		this.onChannelSettingsChanged.send(channel);
 	}
 }

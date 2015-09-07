@@ -6,6 +6,7 @@ class ChatChannel
 	messages:Array<ChatMessage>;
 	members:Array<ChatMember>;
 	id:number;
+	allowNotifications:boolean;
 	static nextID:number = 0;
 	constructor(name:string,topic:string)
 	{
@@ -14,6 +15,7 @@ class ChatChannel
 		this.topic=topic;
 		this.messages = new Array<ChatMessage>();
 		this.members = new Array<ChatMember>();
+		this.allowNotifications = false;
 	}
 	addMember(member:ChatMember)
 	{

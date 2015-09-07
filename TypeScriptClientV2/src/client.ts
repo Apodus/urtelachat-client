@@ -70,7 +70,7 @@ class Client
 		this.socket.on('your_channel', function(msg:string)
 		{
 			Debug.log('Your channel:' + msg);
-			client.sendData('chat message', "|/join " + msg);
+			client.joinChannel(msg);
 		});
 		//this.socket.on('server command', client.serverCommand);
 		this.socket.on("status", function(data:string) { client.userStatusUpdated(data); });
@@ -148,6 +148,11 @@ class Client
 		Debug.log("part_channel: "+channel);
 		this.sendData('part_channel', channel.name);
 	}
+	joinChannel(channelName:string)
+	{
+		Debug.log("part_channel: "+channelName);
+		this.sendData('chat message', "|/join " + channelName);
+	}
 	sendPrivateChat(target:ChatMember,msg:string)
 	{
 		msg = "@"+target.name + "|" + msg;
@@ -155,7 +160,9 @@ class Client
 	}
 	sendData(key:string,data:string)
 	{
-		if(data == "" || key == "")
+		Debug.debugLog("Socket emit: "+key+" = "+data);
+		
+		if(this.socket == null || data == "" || key == "")
 		{
 			return;
 		}
@@ -173,6 +180,12 @@ class Client
 		if(split[0] == "/part")
 		{
 			this.exitChannel(channel);
+			return;
+		}
+		
+		if(split[0] == "/join")
+		{
+			this.joinChannel(split[1]);
 			return;
 		}
 		
