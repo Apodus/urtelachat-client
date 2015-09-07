@@ -36,7 +36,7 @@ class Chat
 			this.data.localMember.userID
 		);
 		
-		//Debug["debugLevel"]=DebugLevel.DEBUG_FULL;
+		Debug["debugLevel"]=DebugLevel.DEBUG_FULL;
 		
 		this.ui.setLoading(null);
 	}
