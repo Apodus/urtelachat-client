@@ -103,6 +103,7 @@ var Userinterface = (function () {
     };
     Userinterface.prototype.setActiveChannel = function (channel) {
         Debug.log("Select Active Channel:" + channel.name);
+        TooltipManager.hideAll();
         var button = this.initChannelButton(channel);
         button.setActive();
         var chat = this.initChatPanel(channel);
@@ -216,19 +217,8 @@ var Userinterface = (function () {
             $(user).click(function () {
                 signal.send($(this).attr("user"));
             });
-            $(user).attr("title", member.status);
-            $(user)['tooltip']({
-                placement: "right",
-                container: "body"
-            });
             $(user).mouseenter(function () {
-                if ($(user).attr("data-toggle") != "tooltip") {
-                    $(user).attr("data-toggle", "tooltip");
-                    $(user)['tooltip']("show");
-                }
-                else {
-                    $(user).attr("data-original-title", member.status);
-                }
+                TooltipManager.show(this, member.status, "right");
             });
             $(HtmlID.USERS_LIST).append(user);
         }
@@ -416,29 +406,22 @@ var ChannelButton = (function () {
         var self = this;
         $(closeButton).click(function () {
             self.element.onclick = null;
-            $(self.element)['tooltip']("hide");
+            TooltipManager.hideAll();
             self.onCloseClick.send("close");
         });
         $(this.element).click(function () {
             self.onNameClick.send("open");
-            $(self.element)['tooltip']("hide");
+            TooltipManager.hideAll();
         });
         $(this.element).mouseleave(function () {
+            TooltipManager.hideAll();
             $(closeButton).fadeOut();
         });
-        $(this.element).attr("title", channel.topic);
         $(this.element).mouseenter(function () {
             if (channel.name != "lobby") {
                 $(closeButton).fadeIn();
             }
-            if ($(self.element).attr("data-toggle") != "tooltip") {
-                $(self.element).attr("data-toggle", "tooltip");
-                $(self.element).attr("data-placement", "bottom");
-                $(self.element)['tooltip']("show");
-            }
-            else {
-                $(self.element).attr("data-original-title", channel.topic);
-            }
+            TooltipManager.show(this, channel.topic, "bottom");
         });
         $(closeButton).hide();
     }
@@ -525,7 +508,7 @@ var Chat = (function () {
         this.ui.onPrivateChatStarted.add(function (username) {
             var channel = new ChatChannel("@" + username, "Private chat with " + username);
             self.data.addChannel(channel);
-            self.ui.setActiveChannel(channel);
+            self.data.setActiveChannelByChannel(channel);
         });
         this.client.onUserStatusUpdated.add(function (userName, data) {
             self.data.setUserStatus(userName, data[0]);
@@ -1046,7 +1029,7 @@ var Client = (function () {
     };
     Client.prototype.sendData = function (key, data) {
         Debug.debugLog("Socket emit: " + key + " = " + data);
-        if (data == "" || key == "") {
+        if (this.socket == null || data == "" || key == "") {
             return;
         }
         Debug.log("SEND: " + key + ": " + data);
@@ -1426,7 +1409,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.390";
+        this.version = "V.2.0.407";
     }
     return ProjectConfig;
 })();
@@ -1575,6 +1558,36 @@ var TestSystem = (function () {
         data.addMessage(new ChatMessage("0:0", sender, channelName + " message", ChatMessageType.NORMAL), channelName);
     };
     return TestSystem;
+})();
+var TooltipManager = (function () {
+    function TooltipManager() {
+    }
+    TooltipManager.hideAll = function () {
+        $('.tooltip').each(function () {
+            $(this)['tooltip']('hide');
+        });
+    };
+    TooltipManager.hideAllExcept = function (active) {
+        $('.tooltip').each(function () {
+            if (this != active) {
+                $(this)['tooltip']('hide');
+            }
+        });
+    };
+    TooltipManager.show = function (element, msg, placement) {
+        TooltipManager.hideAllExcept(element);
+        $(element).attr("data-original-title", msg);
+        if ($(element).attr("data-toggle") != "tooltip") {
+            $(element).attr("title", msg);
+            $(element)['tooltip']({
+                placement: placement,
+                container: "body"
+            });
+            $(element).attr("data-toggle", "tooltip");
+            $(element)['tooltip']("show");
+        }
+    };
+    return TooltipManager;
 })();
 var Utils = (function () {
     function Utils() {

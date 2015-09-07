@@ -157,7 +157,7 @@ class Client
 	{
 		Debug.debugLog("Socket emit: "+key+" = "+data);
 		
-		if(data == "" || key == "")
+		if(this.socket == null || data == "" || key == "")
 		{
 			return;
 		}

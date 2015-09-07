@@ -113,7 +113,8 @@ class Chat
 		{
 			var channel:ChatChannel = new ChatChannel("@"+username,"Private chat with "+username);
 			self.data.addChannel(channel);
-			self.ui.setActiveChannel(channel);
+			self.data.setActiveChannelByChannel(channel);
+			//self.ui.setActiveChannel(channel);
 		});
 		
 		

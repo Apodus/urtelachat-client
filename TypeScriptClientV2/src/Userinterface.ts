@@ -159,6 +159,7 @@ class Userinterface
 	setActiveChannel(channel:ChatChannel)
 	{
 		Debug.log("Select Active Channel:"+channel.name);
+		TooltipManager.hideAll();
 		var button:ChannelButton = this.initChannelButton(channel);
 		button.setActive();
 		var chat:ChatPanel = this.initChatPanel(channel);
@@ -317,24 +318,9 @@ class Userinterface
 				signal.send($(this).attr("user"));
 			});
 			
-			$(user).attr("title", member.status);
-			$(user)['tooltip']({
-				placement:"right",
-				container:"body"
-			});
-			
 			$(user).mouseenter(function()
 			{
-				//$('.tooltip').each(function(){$(this)['tooltip']('hide');});
-				if($(user).attr("data-toggle")!="tooltip")
-				{
-					$(user).attr("data-toggle", "tooltip");
-					$(user)['tooltip']("show");
-				}
-				else
-				{
-					$(user).attr("data-original-title", member.status);
-				}
+				TooltipManager.show(this,member.status,"right");
 			});
 			
 			$(HtmlID.USERS_LIST).append(user);

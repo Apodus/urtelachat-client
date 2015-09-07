@@ -54,42 +54,29 @@ class ChannelButton
 		{
 			self.element.onclick = null;
 			
-			$(self.element)['tooltip']("hide");
+			TooltipManager.hideAll();
 			self.onCloseClick.send("close");
 		});
 		
 		$(this.element).click(function()
 		{
 			self.onNameClick.send("open");
-			
-			$(self.element)['tooltip']("hide");
+			TooltipManager.hideAll();
 		});
 		
 		$(this.element).mouseleave(function()
 		{
+			TooltipManager.hideAll();
 			$(closeButton).fadeOut();
 		});
-		
-		$(this.element).attr("title", channel.topic);
-		
+
 		$(this.element).mouseenter(function()
 		{
 			if(channel.name!="lobby")
 			{
 				$(closeButton).fadeIn();
 			}
-
-			//Tooltips
-			if($(self.element).attr("data-toggle")!="tooltip")
-			{
-				$(self.element).attr("data-toggle", "tooltip");
-				$(self.element).attr("data-placement", "bottom");
-				$(self.element)['tooltip']("show");
-			}
-			else
-			{
-				$(self.element).attr("data-original-title", channel.topic);
-			}
+			TooltipManager.show(this,channel.topic,"bottom");
 		});
 		$(closeButton).hide();
 	}
