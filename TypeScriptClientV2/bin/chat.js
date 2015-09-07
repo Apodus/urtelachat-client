@@ -425,7 +425,9 @@ var ChannelButton = (function () {
         };
         var settings = document.createElement("div");
         settings.className = "well channel-settings dropshadow-5";
-        settings.innerHTML = 'Channel Settings';
+        var channelTopic = document.createElement("div");
+        channelTopic.innerHTML = channel.topic;
+        $(settings).append(channelTopic);
         addButton("Close Channel", closeButton);
         var notificationsButton = document.createElement("button");
         notificationsButton.className = "btn btn-warning btn-xs";
@@ -463,6 +465,7 @@ var ChannelButton = (function () {
             //}
             $(settings).css({ position: "fixed", top: "40px", left: $(this).offset().left + "px" });
             $(settings).stop(true, true).fadeIn();
+            channelTopic.innerHTML = channel.topic;
         });
         $(settings).hide();
     }
@@ -546,6 +549,9 @@ var Chat = (function () {
         this.data.onMemberStatusChanged.add(function (member) {
             Debug.log(member.name + " Status Changed to: " + member.status);
         });
+        this.data.onChannelLost.add(function (channelName) {
+            self.client.joinChannel(channelName);
+        });
         this.ui.onActiveChannelChanged.add(function (channel) {
             self.data.setActiveChannelByChannel(channel);
         });
@@ -606,7 +612,7 @@ var Chat = (function () {
             self.data.addMessage(new ChatMessage("", "SYSTEM", "Channel topic is " + data[0], ChatMessageType.SYSTEM), channelName);
         });
         this.client.onDisconnected.add(function () {
-            self.data.addMessage(new ChatMessage("", "SYSTEM", "<div class='user-disconnected'>Disconnected</div>", ChatMessageType.SYSTEM), self.data.getActiveChannel().name);
+            NotificationSystem.get().showPopover("Oh noes!", "You are disconnected!");
         });
         this.client.onConnected.add(function () {
             self.data.restoreActiveChannel();
@@ -704,6 +710,7 @@ var ChatData = (function () {
         this.onChannelMessageAdded = new Signal();
         this.onServerStatusChanged = new Signal();
         this.onMemberStatusChanged = new Signal();
+        this.onChannelLost = new Signal();
         this.localMember = new ChatMember(name, id, "Disconnected");
         this.serverStatus = "Connecting...";
         this.channels = new Array();
@@ -826,7 +833,14 @@ var ChatData = (function () {
             this.activeChannel = 0;
             return;
         }
-        this.setActiveChannelByName(stored);
+        for (var i = 0; this.channels.length; i++) {
+            if (this.channels[i].name === stored) {
+                this.setActiveChannelByName(stored);
+                return;
+            }
+        }
+        Debug.log("Can't restore active channel, try to join.");
+        this.onChannelLost.send(stored);
     };
     ChatData.prototype.setCookie = function (cname, cvalue, exdays) {
         Debug.log("Set cookie:" + cname + ": " + cvalue);
@@ -1113,7 +1127,7 @@ var Client = (function () {
         this.sendData('part_channel', channel.name);
     };
     Client.prototype.joinChannel = function (channelName) {
-        Debug.log("part_channel: " + channelName);
+        Debug.log("join channel: " + channelName);
         this.sendData('chat message', "|/join " + channelName);
     };
     Client.prototype.sendPrivateChat = function (target, msg) {
@@ -1506,7 +1520,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.472";
+        this.version = "V.2.0.480";
     }
     return ProjectConfig;
 })();

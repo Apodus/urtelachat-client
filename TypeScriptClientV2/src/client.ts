@@ -150,7 +150,7 @@ class Client
 	}
 	joinChannel(channelName:string)
 	{
-		Debug.log("part_channel: "+channelName);
+		Debug.log("join channel: "+channelName);
 		this.sendData('chat message', "|/join " + channelName);
 	}
 	sendPrivateChat(target:ChatMember,msg:string)

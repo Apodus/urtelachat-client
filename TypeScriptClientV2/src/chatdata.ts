@@ -24,6 +24,7 @@ class ChatData
 	onServerStatusChanged:Signal;
 	onMemberStatusChanged:Signal;
 	onChannelSettingsChanged:Signal;
+	onChannelLost:Signal;
 	
 	constructor()
 	{
@@ -52,6 +53,7 @@ class ChatData
 		this.onServerStatusChanged = new Signal();
 		
 		this.onMemberStatusChanged = new Signal();
+		this.onChannelLost = new Signal();
 		
 		this.localMember = new ChatMember(name,id,"Disconnected");
 		this.serverStatus = "Connecting...";
@@ -214,7 +216,18 @@ class ChatData
 			//this.setActiveChannelByName("lobby");
 			return;
 		}
-		this.setActiveChannelByName(stored);
+		
+		for(var i:number =0; this.channels.length; i++)
+		{
+			if(this.channels[i].name === stored)
+			{
+				this.setActiveChannelByName(stored);
+				return;
+			}
+		}
+		
+		Debug.log("Can't restore active channel, try to join.");
+		this.onChannelLost.send(stored);
 	}
 	
 	setCookie(cname:string, cvalue:string, exdays:number)

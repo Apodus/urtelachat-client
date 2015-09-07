@@ -63,7 +63,11 @@ class ChannelButton
 		
 		var settings:HTMLElement = document.createElement("div");
 		settings.className = "well channel-settings dropshadow-5";
-		settings.innerHTML = 'Channel Settings';
+		
+		var channelTopic:HTMLElement = document.createElement("div");
+		channelTopic.innerHTML = channel.topic;
+		$(settings).append(channelTopic);
+		
 		addButton("Close Channel",closeButton);
 		
 		var notificationsButton:HTMLElement = document.createElement("button");
@@ -123,6 +127,7 @@ class ChannelButton
 			//$(settings).slideDown();
 			
 			//TooltipManager.show(this,channel.topic,"bottom");
+			channelTopic.innerHTML = channel.topic;
 		});
 		//$(closeButton).hide();
 		$(settings).hide();

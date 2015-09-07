@@ -92,6 +92,11 @@ class Chat
 			//self.ui.setServerStatus(status);
 		});
 		
+		this.data.onChannelLost.add(function(channelName:string)
+		{
+			self.client.joinChannel(channelName);
+		});
+		
 		//onActiveChannelDataAdded:Signal; // Use For plugins
 		
 		// UI Bindings to update Data
@@ -186,7 +191,8 @@ class Chat
 		
 		this.client.onDisconnected.add(function()
 		{
-			self.data.addMessage(new ChatMessage("","SYSTEM","<div class='user-disconnected'>Disconnected</div>",ChatMessageType.SYSTEM),self.data.getActiveChannel().name);
+			NotificationSystem.get().showPopover("Oh noes!","You are disconnected!");
+			//self.data.addMessage(new ChatMessage("","SYSTEM","<div class='user-disconnected'>Disconnected</div>",ChatMessageType.SYSTEM),self.data.getActiveChannel().name);
 		});
 		
 		this.client.onConnected.add(function()
