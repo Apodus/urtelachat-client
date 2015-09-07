@@ -20,6 +20,7 @@ var Userinterface = (function () {
         this.onMessageSend = new Signal();
         this.onStatusChange = new Signal();
         this.onPrivateChatStarted = new Signal();
+        this.onChannelNotificationToggled = new Signal();
         this.channelButtons = new Array();
         this.chatPanels = new Array();
         this.settings = new SettingsPanel();
@@ -50,6 +51,9 @@ var Userinterface = (function () {
         button.onCloseClick.add(function () {
             self.onCloseChannelButtonClick(button);
         });
+        button.onNotificationsToggled.add(function () {
+            self.onChannelNotificationToggled.send(button.channel);
+        });
         return button;
     };
     Userinterface.prototype.initChatPanel = function (channel) {
@@ -73,7 +77,9 @@ var Userinterface = (function () {
         else {
             this.messagesScrollToBottom(false);
         }
-        NotificationSystem.get().notify("New Message in " + channel.name, message.sender + ":" + '"' + message.message + '"');
+        if (message.type == ChatMessageType.NORMAL) {
+            NotificationSystem.get().notify("New Message in " + channel.name, message.sender + ":" + '"' + message.message + '"');
+        }
     };
     Userinterface.prototype.removeChannel = function (channel) {
         this.removeChannelButton(channel);
@@ -376,6 +382,15 @@ var Userinterface = (function () {
             this.history.add(msg);
         }
     };
+    Userinterface.prototype.updateChannelSettings = function (channel) {
+        for (var i = 0; i < this.channelButtons.length; i++) {
+            if (this.channelButtons[i].id == channel.id) {
+                var button = this.channelButtons[i];
+                button.updateChannelSettings();
+                return;
+            }
+        }
+    };
     return Userinterface;
 })();
 var ChannelButton = (function () {
@@ -385,11 +400,13 @@ var ChannelButton = (function () {
         this.channel = channel;
         this.onCloseClick = new Signal();
         this.onNameClick = new Signal();
+        this.onNotificationsToggled = new Signal();
         this.element = document.createElement("button");
         this.element.id = "CHANNEL_" + this.id;
         this.element.className = "btn channel-button";
         var closeButton = document.createElement("button");
         closeButton.className = "btn btn-warning btn-xs btn-close-channel";
+        closeButton.innerHTML = "Close Channel";
         var channelName = document.createElement("span");
         channelName.className = "name";
         channelName.innerHTML = channel.name;
@@ -400,30 +417,54 @@ var ChannelButton = (function () {
         closeIcon.className = "glyphicon glyphicon-remove";
         $(closeIcon).attr("aria-hidden", "true");
         $(closeButton).append(closeIcon);
+        var addButton = function (text, button) {
+            var wrapper = document.createElement("div");
+            wrapper.className = "bg-info row well";
+            $(wrapper).append(button);
+            $(settings).append(wrapper);
+        };
+        var settings = document.createElement("div");
+        settings.className = "well channel-settings dropshadow-5";
+        settings.innerHTML = 'Channel Settings';
+        addButton("Close Channel", closeButton);
+        var notificationsButton = document.createElement("button");
+        notificationsButton.className = "btn btn-warning btn-xs";
+        notificationsButton.innerHTML = "Notifications Disabled";
+        addButton("Notifications:", notificationsButton);
+        this.notificationsButton = notificationsButton;
         $(this.element).append(messages);
         $(this.element).append(channelName);
-        $(this.element).append(closeButton);
+        $(this.element).append(settings);
         var self = this;
-        $(closeButton).click(function () {
+        $(closeButton).click(function (e) {
             self.element.onclick = null;
             TooltipManager.hideAll();
             self.onCloseClick.send("close");
+            $(settings).stop(true, true).fadeOut();
+            e.stopPropagation();
         });
-        $(this.element).click(function () {
+        $(this.element).click(function (e) {
             self.onNameClick.send("open");
             TooltipManager.hideAll();
+            e.stopPropagation();
         });
         $(this.element).mouseleave(function () {
             TooltipManager.hideAll();
-            $(closeButton).fadeOut();
+            $(settings).stop(true, true).fadeOut();
+        });
+        $(this.notificationsButton).click(function (e) {
+            self.onNotificationsToggled.send("");
+            e.stopPropagation();
         });
         $(this.element).mouseenter(function () {
-            if (channel.name != "lobby") {
-                $(closeButton).fadeIn();
-            }
-            TooltipManager.show(this, channel.topic, "bottom");
+            //if(channel.name!="lobby")
+            //{
+            //$(closeButton).fadeIn();
+            //}
+            $(settings).css({ position: "fixed", top: "40px", left: $(this).offset().left + "px" });
+            $(settings).stop(true, true).fadeIn();
         });
-        $(closeButton).hide();
+        $(settings).hide();
     }
     ChannelButton.prototype.setActive = function () {
         if (ChannelButton.activeChannelButton != null) {
@@ -442,6 +483,18 @@ var ChannelButton = (function () {
     };
     ChannelButton.prototype.isActive = function () {
         return ChannelButton.activeChannelButton == this;
+    };
+    ChannelButton.prototype.updateChannelSettings = function () {
+        if (this.channel.allowNotifications) {
+            this.notificationsButton.innerHTML = "Notifications Enabled";
+            $(this.notificationsButton).addClass("btn-success");
+            $(this.notificationsButton).removeClass("btn-warning");
+        }
+        else {
+            this.notificationsButton.innerHTML = "Notifications Disabled";
+            $(this.notificationsButton).addClass("btn-warning");
+            $(this.notificationsButton).removeClass("btn-success");
+        }
     };
     return ChannelButton;
 })();
@@ -483,6 +536,9 @@ var Chat = (function () {
         this.data.onChannelTopicChanged.add(function (channel) {
             self.ui.setChannelTopic(channel);
         });
+        this.data.onChannelSettingsChanged.add(function (channel) {
+            self.ui.updateChannelSettings(channel);
+        });
         this.data.onServerStatusChanged.add(function (status) {
             self.ui.setServerStatus(status);
         });
@@ -493,8 +549,9 @@ var Chat = (function () {
             self.data.setActiveChannelByChannel(channel);
         });
         this.ui.onChannelClosed.add(function (channel) {
-            self.client.exitChannel(channel);
-            self.data.removeChannelByName(channel.name);
+            if (self.data.removeChannelByName(channel.name)) {
+                self.client.exitChannel(channel);
+            }
         });
         this.ui.settings.onFileDrop.add(function (file) {
             self.client.uploadFile(file, self.data.getActiveChannel());
@@ -509,6 +566,9 @@ var Chat = (function () {
             var channel = new ChatChannel("@" + username, "Private chat with " + username);
             self.data.addChannel(channel);
             self.data.setActiveChannelByChannel(channel);
+        });
+        this.ui.onChannelNotificationToggled.add(function (channel) {
+            self.data.toggleChannelSetting(channel, "notification");
         });
         this.client.onUserStatusUpdated.add(function (userName, data) {
             self.data.setUserStatus(userName, data[0]);
@@ -573,6 +633,7 @@ var ChatChannel = (function () {
         this.topic = topic;
         this.messages = new Array();
         this.members = new Array();
+        this.allowNotifications = false;
     }
     ChatChannel.prototype.addMember = function (member) {
         this.members.push(member);
@@ -638,6 +699,7 @@ var ChatData = (function () {
         this.onActiveChannelMessageAdded = new Signal();
         this.onActiveChannelDataAdded = new Signal();
         this.onChannelTopicChanged = new Signal();
+        this.onChannelSettingsChanged = new Signal();
         this.onChannelMessageAdded = new Signal();
         this.onServerStatusChanged = new Signal();
         this.onMemberStatusChanged = new Signal();
@@ -654,6 +716,7 @@ var ChatData = (function () {
         return this.channels[id];
     };
     ChatData.prototype.addChannel = function (channel) {
+        this.checkChannelSettings(channel);
         for (var i = 0; i < this.channels.length; i++) {
             if (this.channels[i].name === channel.name) {
                 Debug.assert(false, "Adding already Existing channel!");
@@ -670,17 +733,18 @@ var ChatData = (function () {
     ChatData.prototype.removeChannelByName = function (channelName) {
         if (this.channels.length <= 1) {
             Debug.log("Can't remove last channel");
-            return;
+            return false;
         }
         for (var i = 0; this.channels.length; i++) {
             if (this.channels[i].name === channelName) {
                 this.onChannelRemoved.send(this.channels[i]);
                 this.channels.splice(i, 1);
                 this.setActiveChannel(Math.max(0, i - 1));
-                return;
+                return true;
             }
         }
         Debug.warning("Can't remove channel: " + channelName);
+        return true;
     };
     ChatData.prototype.setActiveChannel = function (id) {
         this.activeChannel = id;
@@ -815,6 +879,30 @@ var ChatData = (function () {
         }
         var channel = this.getActiveChannel();
         this.onActiveChannelMembersChanged.send(channel);
+    };
+    ChatData.prototype.checkChannelSettings = function (channel) {
+        var cookie = this.getChannelSetting(channel, "notification");
+        channel.allowNotifications = cookie === "true";
+        this.onChannelSettingsChanged.send(channel);
+    };
+    ChatData.prototype.setChannelSetting = function (channel, setting, value) {
+        this.setCookie(channel.name + "_" + setting, value, 365);
+        this.checkChannelSettings(channel);
+    };
+    ChatData.prototype.getChannelSetting = function (channel, setting) {
+        var cookie = this.getCookie(channel.name + "_" + setting);
+        return cookie;
+    };
+    ChatData.prototype.toggleChannelSetting = function (channel, setting) {
+        var value = this.getChannelSetting(channel, setting);
+        Debug.log("Toggle " + channel.name + " " + setting + " from:" + value);
+        if (value === "true") {
+            this.setChannelSetting(channel, setting, "false");
+        }
+        else {
+            this.setChannelSetting(channel, setting, "true");
+        }
+        this.onChannelSettingsChanged.send(channel);
     };
     return ChatData;
 })();
@@ -969,7 +1057,7 @@ var Client = (function () {
         var client = this;
         this.socket.on('your_channel', function (msg) {
             Debug.log('Your channel:' + msg);
-            client.sendData('chat message', "|/join " + msg);
+            client.joinChannel(msg);
         });
         this.socket.on("status", function (data) { client.userStatusUpdated(data); });
         this.socket.on("chat message", function (data) { client.receiveChatMessage(data); });
@@ -1023,6 +1111,10 @@ var Client = (function () {
         Debug.log("part_channel: " + channel);
         this.sendData('part_channel', channel.name);
     };
+    Client.prototype.joinChannel = function (channelName) {
+        Debug.log("part_channel: " + channelName);
+        this.sendData('chat message', "|/join " + channelName);
+    };
     Client.prototype.sendPrivateChat = function (target, msg) {
         msg = "@" + target.name + "|" + msg;
         this.sendData("chat message", msg);
@@ -1042,6 +1134,10 @@ var Client = (function () {
         var split = msg.split(" ");
         if (split[0] == "/part") {
             this.exitChannel(channel);
+            return;
+        }
+        if (split[0] == "/join") {
+            this.joinChannel(split[1]);
             return;
         }
         if (split[0] == "/status") {
@@ -1409,7 +1505,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.407";
+        this.version = "V.2.0.470";
     }
     return ProjectConfig;
 })();

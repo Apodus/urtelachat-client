@@ -5,11 +5,15 @@ class ChannelButton
 	id:number;
 	channel:ChatChannel;
 	element:HTMLElement;
+	
 	onCloseClick:Signal;
 	onNameClick:Signal;
+	onNotificationsToggled:Signal;
 	
 	newMessages:number;
 	newMessagesLabel:HTMLElement;
+	
+	notificationsButton:HTMLElement;
 	
 	constructor(channel:ChatChannel)
 	{
@@ -18,6 +22,7 @@ class ChannelButton
 		this.channel = channel;
 		this.onCloseClick = new Signal();
 		this.onNameClick = new Signal();
+		this.onNotificationsToggled = new Signal();
 		
 		this.element = document.createElement("button");
 		
@@ -27,6 +32,7 @@ class ChannelButton
 			
 		var closeButton:HTMLElement = document.createElement("button");
 		closeButton.className = "btn btn-warning btn-xs btn-close-channel";
+		closeButton.innerHTML = "Close Channel";
 		//closeButton.type = "button";
 		//closeButton.id = "close_channel_" + channelID.substring(1);
 		//$(closeButton).hide();
@@ -45,40 +51,81 @@ class ChannelButton
 		$(closeIcon).attr("aria-hidden", "true");
 		$(closeButton).append(closeIcon);
 		
+		var addButton:Function = function(text:string,button:HTMLElement)
+		{
+			var wrapper:HTMLElement = document.createElement("div");
+			wrapper.className = "bg-info row well";
+			//wrapper.innerHTML = '<div class="bg-info well">'+text+'</div>';
+			//$(button).addClass("pull-right");
+			$(wrapper).append(button);
+			$(settings).append(wrapper);
+		}
+		
+		var settings:HTMLElement = document.createElement("div");
+		settings.className = "well channel-settings dropshadow-5";
+		settings.innerHTML = 'Channel Settings';
+		addButton("Close Channel",closeButton);
+		
+		var notificationsButton:HTMLElement = document.createElement("button");
+		notificationsButton.className = "btn btn-warning btn-xs";
+		notificationsButton.innerHTML = "Notifications Disabled";
+		addButton("Notifications:",notificationsButton);
+		this.notificationsButton = notificationsButton;
+		
+		
 		$(this.element).append(messages);
 		$(this.element).append(channelName);
-		$(this.element).append(closeButton);
+		
+		$(this.element).append(settings);
 		
 		var self:ChannelButton = this;
-		$(closeButton).click(function()
+		$(closeButton).click(function(e:any)
 		{
 			self.element.onclick = null;
 			
 			TooltipManager.hideAll();
 			self.onCloseClick.send("close");
+			//$(settings).slideUp();
+			$(settings).stop(true,true).fadeOut();
+			e.stopPropagation();
 		});
 		
-		$(this.element).click(function()
+		$(this.element).click(function(e:any)
 		{
 			self.onNameClick.send("open");
 			TooltipManager.hideAll();
+			e.stopPropagation();
 		});
 		
 		$(this.element).mouseleave(function()
 		{
 			TooltipManager.hideAll();
-			$(closeButton).fadeOut();
+			//$(closeButton).fadeOut();
+			$(settings).stop(true,true).fadeOut();
+			//$(settings).slideUp();
+		});
+		
+		$(this.notificationsButton).click(function(e:any)
+		{
+			self.onNotificationsToggled.send("");
+			e.stopPropagation();
 		});
 
 		$(this.element).mouseenter(function()
 		{
-			if(channel.name!="lobby")
-			{
-				$(closeButton).fadeIn();
-			}
-			TooltipManager.show(this,channel.topic,"bottom");
+			//if(channel.name!="lobby")
+			//{
+				//$(closeButton).fadeIn();
+			//}
+			
+			$(settings).css({position:"fixed",top:"40px",left:$(this).offset().left+"px"});
+			$(settings).stop(true,true).fadeIn();
+			//$(settings).slideDown();
+			
+			//TooltipManager.show(this,channel.topic,"bottom");
 		});
-		$(closeButton).hide();
+		//$(closeButton).hide();
+		$(settings).hide();
 	}
 	setActive()
 	{
@@ -104,5 +151,20 @@ class ChannelButton
 	isActive():boolean
 	{
 		return ChannelButton.activeChannelButton == this;
+	}
+	updateChannelSettings()
+	{
+		if(this.channel.allowNotifications)
+		{
+			this.notificationsButton.innerHTML = "Notifications Enabled";
+			$(this.notificationsButton).addClass("btn-success");
+			$(this.notificationsButton).removeClass("btn-warning");
+		}
+		else
+		{
+			this.notificationsButton.innerHTML = "Notifications Disabled";
+			$(this.notificationsButton).addClass("btn-warning");
+			$(this.notificationsButton).removeClass("btn-success");
+		}
 	}
 }

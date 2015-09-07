@@ -7,8 +7,6 @@ enum DebugLevel
 
 class Debug
 {
-	//private static debugLevel:number = DebugLevel.DEBUG_FULL;
-	//private static debugLevel:number = DebugLevel.DEBUG_NORMAL;
 	private static debugLevel:number = DebugLevel.DEBUG_OFF;
 	
 	private static onError:Signal;

@@ -36,6 +36,8 @@ class Chat
 			this.data.localMember.userID
 		);
 		
+		//Debug["debugLevel"]=DebugLevel.DEBUG_FULL;
+		
 		this.ui.setLoading(null);
 	}
 	bindDataCallbacks()
@@ -74,6 +76,11 @@ class Chat
 			self.ui.setChannelTopic(channel);
 		});
 		
+		this.data.onChannelSettingsChanged.add(function(channel:ChatChannel)
+		{
+			self.ui.updateChannelSettings(channel);
+		});
+		
 		this.data.onServerStatusChanged.add(function(status:string)
 		{
 			self.ui.setServerStatus(status);
@@ -94,8 +101,10 @@ class Chat
 		});
 		this.ui.onChannelClosed.add(function(channel:ChatChannel)
 		{
-			self.client.exitChannel(channel);
-			self.data.removeChannelByName(channel.name);
+			if(self.data.removeChannelByName(channel.name))
+			{
+				self.client.exitChannel(channel);	
+			}
 		});
 		this.ui.settings.onFileDrop.add(function(file:any)
 		{
@@ -115,6 +124,10 @@ class Chat
 			self.data.addChannel(channel);
 			self.data.setActiveChannelByChannel(channel);
 			//self.ui.setActiveChannel(channel);
+		});
+		this.ui.onChannelNotificationToggled.add(function(channel:ChatChannel)
+		{
+			self.data.toggleChannelSetting(channel,"notification");
 		});
 		
 		

@@ -7,6 +7,7 @@ class Userinterface
 {
 	onActiveChannelChanged:Signal;
 	onChannelClosed:Signal;
+	onChannelNotificationToggled:Signal;
 	onMessageSend:Signal;
 	onStatusChange:Signal;
 	onPrivateChatStarted:Signal;
@@ -42,6 +43,7 @@ class Userinterface
 		this.onMessageSend = new Signal();
 		this.onStatusChange = new Signal();
 		this.onPrivateChatStarted = new Signal();
+		this.onChannelNotificationToggled = new Signal();
 		
 		this.channelButtons = new Array<ChannelButton>();
 		this.chatPanels = new Array<ChatPanel>();
@@ -87,6 +89,10 @@ class Userinterface
 		{
 			self.onCloseChannelButtonClick(button);
 		});
+		button.onNotificationsToggled.add(function()
+		{
+			self.onChannelNotificationToggled.send(button.channel);
+		});
 		
 		return button;
 	}
@@ -121,7 +127,10 @@ class Userinterface
 			this.messagesScrollToBottom(false);
 		}
 		
-		NotificationSystem.get().notify("New Message in "+channel.name,message.sender+":"+'"'+message.message+'"');
+		if(message.type == ChatMessageType.NORMAL)
+		{
+			NotificationSystem.get().notify("New Message in "+channel.name,message.sender+":"+'"'+message.message+'"');
+		}
 	}
 	removeChannel(channel:ChatChannel)
 	{
@@ -554,5 +563,17 @@ class Userinterface
 			this.onMessageSend.send(msg);
 			this.history.add(msg);
 		}
+	}
+	updateChannelSettings(channel:ChatChannel)
+	{
+		for(var i:number = 0; i< this.channelButtons.length; i++)
+		{
+			if(this.channelButtons[i].id == channel.id)
+			{
+				var button:ChannelButton = this.channelButtons[i];
+				button.updateChannelSettings();
+				return;
+			}
+		}	
 	}
 }
