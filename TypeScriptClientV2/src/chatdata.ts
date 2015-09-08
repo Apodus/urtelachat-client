@@ -21,9 +21,10 @@ class ChatData
 	onActiveChannelDataAdded:Signal;
 	onChannelTopicChanged:Signal;
 	onChannelMessageAdded:Signal;
-	onServerStatusChanged:Signal;
+	
 	onMemberStatusChanged:Signal;
 	onChannelSettingsChanged:Signal;
+	onChannelLost:Signal;
 	
 	constructor()
 	{
@@ -49,9 +50,8 @@ class ChatData
 		
 		this.onChannelMessageAdded = new Signal();
 		
-		this.onServerStatusChanged = new Signal();
-		
 		this.onMemberStatusChanged = new Signal();
+		this.onChannelLost = new Signal();
 		
 		this.localMember = new ChatMember(name,id,"Disconnected");
 		this.serverStatus = "Connecting...";
@@ -66,6 +66,23 @@ class ChatData
 	{
 		Debug.assert(this.channels[id]!=null,"Channel "+id+" is null!");
 		return this.channels[id];
+	}
+	initChannel(name:string):ChatChannel
+	{
+		for(var i:number =0; i < this.channels.length; i++)
+		{
+			if(this.channels[i].name === name)
+			{
+				return this.channels[i];
+			}
+		}
+		var channel:ChatChannel = new ChatChannel(name,"Welcome to "+name);
+		if(name[0]=="@")
+		{
+			channel.topic = "Private chat with "+name.substring(1);
+		}
+		this.addChannel(channel);
+		return channel;
 	}
 	addChannel(channel:ChatChannel)
 	{
@@ -131,7 +148,7 @@ class ChatData
 			}
 		}
 		
-		Debug.assert(false,"Can't setActiveChannelByName! "+name);
+		Debug.warning("Can't setActiveChannelByName! "+name);
 		this.setActiveChannel(0);
 	}
 	
@@ -150,7 +167,7 @@ class ChatData
 	}
 	addMessage(message:ChatMessage,channelName:string)
 	{
-		var channel:ChatChannel = this.getChannelByName(channelName);
+		var channel:ChatChannel = this.initChannel(channelName);
 		channel.addMessage(message);
 		if(channel==this.getActiveChannel())
 		{
@@ -214,7 +231,18 @@ class ChatData
 			//this.setActiveChannelByName("lobby");
 			return;
 		}
-		this.setActiveChannelByName(stored);
+		
+		for(var i:number =0; this.channels.length; i++)
+		{
+			if(this.channels[i].name === stored)
+			{
+				this.setActiveChannelByName(stored);
+				return;
+			}
+		}
+		
+		Debug.log("Can't restore active channel, try to join.");
+		this.onChannelLost.send(stored);
 	}
 	
 	setCookie(cname:string, cvalue:string, exdays:number)

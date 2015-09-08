@@ -11,4 +11,5 @@ class HtmlID
 	static AUTO_SCROLL_ICON_ON:string = "#auto-scroll-icon-on";
 	static AUTO_SCROLL_ICON_OFF:string = "#auto-scroll-icon-off";
 	static SERVER_STATUS:string = "#server-status";
+	static LOG_WINDOW:string = "#log";
 }

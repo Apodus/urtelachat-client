@@ -21,13 +21,16 @@ class Chat
 		
 		this.client = new Client();
 		this.ui = new Userinterface();
+		this.ui.addLog(Project.name+" "+Project.version+" CodeName:"+Project.codeName);
 		
 		this.bindDataCallbacks();
 	}
 	init()
 	{
 		Debug.log("init");
-
+		
+		Debug["debugLevel"]=DebugLevel.DEBUG_FULL;
+		
 		//var test:TestSystem = new TestSystem(this.data, this.ui, this.client); return;
 		
 		this.client.connect(
@@ -36,15 +39,13 @@ class Chat
 			this.data.localMember.userID
 		);
 		
-		Debug["debugLevel"]=DebugLevel.DEBUG_FULL;
-		
 		this.ui.setLoading(null);
 	}
 	bindDataCallbacks()
 	{
 		var self:Chat = this;
 		
-		// Data Bindings to update UI
+		// #### Data Bindings to update UI #### 
 		this.data.onActiveChannelChanged.add(function(channel:ChatChannel)
 		{
 			self.ui.setActiveChannel(channel);
@@ -65,7 +66,6 @@ class Chat
 			self.ui.updateChannelMembers(channel);
 		});
 		
-		//this.data.onActiveChannelMessageAdded.add(function(message:ChatMessage)
 		this.data.onChannelMessageAdded.add(function(channel:ChatChannel,message:Array<any>)
 		{
 			self.ui.addMessage(channel,message[0]);
@@ -81,20 +81,21 @@ class Chat
 			self.ui.updateChannelSettings(channel);
 		});
 		
-		this.data.onServerStatusChanged.add(function(status:string)
-		{
-			self.ui.setServerStatus(status);
-		});
-		
 		this.data.onMemberStatusChanged.add(function(member:ChatMember)
 		{
 			Debug.log(member.name+" Status Changed to: "+member.status);
-			//self.ui.setServerStatus(status);
 		});
 		
-		//onActiveChannelDataAdded:Signal; // Use For plugins
+		this.data.onChannelLost.add(function(channelName:string)
+		{
+			self.client.joinChannel(channelName);
+		});
 		
-		// UI Bindings to update Data
+		
+		
+		
+		
+		// #### UI Bindings to update Data #### 
 		this.ui.onActiveChannelChanged.add(function(channel:ChatChannel)
 		{
 			self.data.setActiveChannelByChannel(channel);
@@ -123,7 +124,6 @@ class Chat
 			var channel:ChatChannel = new ChatChannel("@"+username,"Private chat with "+username);
 			self.data.addChannel(channel);
 			self.data.setActiveChannelByChannel(channel);
-			//self.ui.setActiveChannel(channel);
 		});
 		this.ui.onChannelNotificationToggled.add(function(channel:ChatChannel)
 		{
@@ -131,7 +131,10 @@ class Chat
 		});
 		
 		
-		// Socket bindings to update data
+		
+		
+		
+		// #### Socket bindings to update data #### 
 		this.client.onUserStatusUpdated.add(function(userName:string,data:Array<string>)
 		{
 			self.data.setUserStatus(userName,data[0]);
@@ -186,12 +189,27 @@ class Chat
 		
 		this.client.onDisconnected.add(function()
 		{
-			self.data.addMessage(new ChatMessage("","SYSTEM","<div class='user-disconnected'>Disconnected</div>",ChatMessageType.SYSTEM),self.data.getActiveChannel().name);
+			NotificationSystem.get().showPopover("Oh noes!","You are disconnected!");
 		});
 		
 		this.client.onConnected.add(function()
 		{
 			self.data.restoreActiveChannel();
+		});
+		
+		this.client.onLogMessage.add(function(msg:string)
+		{
+			self.ui.addLog(msg);
+		});
+		
+		this.client.onServerStatusChanged.add(function(status:string)
+		{
+			self.ui.setServerStatus(status);
+		});
+		
+		this.client.onServerCommand.add(function(command:string)
+		{
+			self.ui.reload();
 		});
 	}
 	static create()

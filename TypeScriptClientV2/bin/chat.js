@@ -243,6 +243,7 @@ var Userinterface = (function () {
     Userinterface.prototype.setServerStatus = function (status) {
         Debug.log("Server Status: " + status);
         $(HtmlID.SERVER_STATUS).html(status);
+        this.addLog("Server Status:" + status);
     };
     Userinterface.prototype.clearIdleTimer = function () {
         if (this.idleTimeout != null) {
@@ -391,6 +392,14 @@ var Userinterface = (function () {
             }
         }
     };
+    Userinterface.prototype.addLog = function (msg) {
+        if ($(HtmlID.LOG_WINDOW).val() == "") {
+            $(HtmlID.LOG_WINDOW).val(msg);
+        }
+        else {
+            $(HtmlID.LOG_WINDOW).val($(HtmlID.LOG_WINDOW).val() + "\n" + msg);
+        }
+    };
     return Userinterface;
 })();
 var ChannelButton = (function () {
@@ -405,31 +414,30 @@ var ChannelButton = (function () {
         this.element.id = "CHANNEL_" + this.id;
         this.element.className = "btn channel-button";
         var closeButton = document.createElement("button");
-        closeButton.className = "btn btn-warning btn-xs btn-close-channel";
-        closeButton.innerHTML = "Close Channel";
+        closeButton.className = "btn btn-warning btn-xs btn-block btn-close-channel";
+        closeButton.innerHTML = '<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Close Channel';
         var channelName = document.createElement("span");
         channelName.className = "name";
         channelName.innerHTML = channel.name;
         var messages = document.createElement("span");
         messages.className = "message-count badge";
         this.newMessagesLabel = messages;
-        var closeIcon = document.createElement("span");
-        closeIcon.className = "glyphicon glyphicon-remove";
-        $(closeIcon).attr("aria-hidden", "true");
-        $(closeButton).append(closeIcon);
+        var settings = document.createElement("div");
+        settings.className = "well channel-settings dropshadow-5";
         var addButton = function (text, button) {
             var wrapper = document.createElement("div");
-            wrapper.className = "bg-info row well";
+            wrapper.className = "";
             $(wrapper).append(button);
             $(settings).append(wrapper);
         };
-        var settings = document.createElement("div");
-        settings.className = "well channel-settings dropshadow-5";
-        settings.innerHTML = 'Channel Settings';
+        var channelTopic = document.createElement("div");
+        channelTopic.className = "topic";
+        channelTopic.innerHTML = Utils.linkify(channel.topic);
+        $(settings).append(channelTopic);
         addButton("Close Channel", closeButton);
         var notificationsButton = document.createElement("button");
-        notificationsButton.className = "btn btn-warning btn-xs";
-        notificationsButton.innerHTML = "Notifications Disabled";
+        notificationsButton.className = "btn btn-warning btn-block btn-xs";
+        notificationsButton.innerHTML = '<span class="glyphicon glyphicon-flag" aria-hidden="true"></span> Notifications Disabled';
         addButton("Notifications:", notificationsButton);
         this.notificationsButton = notificationsButton;
         $(this.element).append(messages);
@@ -461,8 +469,12 @@ var ChannelButton = (function () {
             //{
             //$(closeButton).fadeIn();
             //}
-            $(settings).css({ position: "fixed", top: "40px", left: $(this).offset().left + "px" });
+            $(settings).css({ position: "fixed", top: "40px", left: ($(this).offset().left - 50) + "px" });
             $(settings).stop(true, true).fadeIn();
+            channelTopic.innerHTML = Utils.linkify(channel.topic);
+            if (self.newMessages > 0) {
+                channelTopic.innerHTML += "<br/>" + self.newMessages + " new Messages.";
+            }
         });
         $(settings).hide();
     }
@@ -509,12 +521,13 @@ var Chat = (function () {
         this.data = new ChatData();
         this.client = new Client();
         this.ui = new Userinterface();
+        this.ui.addLog(Project.name + " " + Project.version + " CodeName:" + Project.codeName);
         this.bindDataCallbacks();
     }
     Chat.prototype.init = function () {
         Debug.log("init");
-        this.client.connect("http://urtela.redlynx.com:3002", this.data.localMember.userID);
         Debug["debugLevel"] = DebugLevel.DEBUG_FULL;
+        this.client.connect("http://urtela.redlynx.com:3002", this.data.localMember.userID);
         this.ui.setLoading(null);
     };
     Chat.prototype.bindDataCallbacks = function () {
@@ -540,11 +553,11 @@ var Chat = (function () {
         this.data.onChannelSettingsChanged.add(function (channel) {
             self.ui.updateChannelSettings(channel);
         });
-        this.data.onServerStatusChanged.add(function (status) {
-            self.ui.setServerStatus(status);
-        });
         this.data.onMemberStatusChanged.add(function (member) {
             Debug.log(member.name + " Status Changed to: " + member.status);
+        });
+        this.data.onChannelLost.add(function (channelName) {
+            self.client.joinChannel(channelName);
         });
         this.ui.onActiveChannelChanged.add(function (channel) {
             self.data.setActiveChannelByChannel(channel);
@@ -606,10 +619,19 @@ var Chat = (function () {
             self.data.addMessage(new ChatMessage("", "SYSTEM", "Channel topic is " + data[0], ChatMessageType.SYSTEM), channelName);
         });
         this.client.onDisconnected.add(function () {
-            self.data.addMessage(new ChatMessage("", "SYSTEM", "<div class='user-disconnected'>Disconnected</div>", ChatMessageType.SYSTEM), self.data.getActiveChannel().name);
+            NotificationSystem.get().showPopover("Oh noes!", "You are disconnected!");
         });
         this.client.onConnected.add(function () {
             self.data.restoreActiveChannel();
+        });
+        this.client.onLogMessage.add(function (msg) {
+            self.ui.addLog(msg);
+        });
+        this.client.onServerStatusChanged.add(function (status) {
+            self.ui.setServerStatus(status);
+        });
+        this.client.onServerCommand.add(function (command) {
+            self.ui.reload();
         });
     };
     Chat.create = function () {
@@ -635,6 +657,7 @@ var ChatChannel = (function () {
         this.messages = new Array();
         this.members = new Array();
         this.allowNotifications = false;
+        this.isPrivate = name[0] === "@";
     }
     ChatChannel.prototype.addMember = function (member) {
         this.members.push(member);
@@ -702,8 +725,8 @@ var ChatData = (function () {
         this.onChannelTopicChanged = new Signal();
         this.onChannelSettingsChanged = new Signal();
         this.onChannelMessageAdded = new Signal();
-        this.onServerStatusChanged = new Signal();
         this.onMemberStatusChanged = new Signal();
+        this.onChannelLost = new Signal();
         this.localMember = new ChatMember(name, id, "Disconnected");
         this.serverStatus = "Connecting...";
         this.channels = new Array();
@@ -715,6 +738,19 @@ var ChatData = (function () {
     ChatData.prototype.getChannel = function (id) {
         Debug.assert(this.channels[id] != null, "Channel " + id + " is null!");
         return this.channels[id];
+    };
+    ChatData.prototype.initChannel = function (name) {
+        for (var i = 0; i < this.channels.length; i++) {
+            if (this.channels[i].name === name) {
+                return this.channels[i];
+            }
+        }
+        var channel = new ChatChannel(name, "Welcome to " + name);
+        if (name[0] == "@") {
+            channel.topic = "Private chat with " + name.substring(1);
+        }
+        this.addChannel(channel);
+        return channel;
     };
     ChatData.prototype.addChannel = function (channel) {
         this.checkChannelSettings(channel);
@@ -762,7 +798,7 @@ var ChatData = (function () {
                 return;
             }
         }
-        Debug.assert(false, "Can't setActiveChannelByName! " + name);
+        Debug.warning("Can't setActiveChannelByName! " + name);
         this.setActiveChannel(0);
     };
     ChatData.prototype.setActiveChannelByChannel = function (channel) {
@@ -776,7 +812,7 @@ var ChatData = (function () {
         this.setActiveChannel(0);
     };
     ChatData.prototype.addMessage = function (message, channelName) {
-        var channel = this.getChannelByName(channelName);
+        var channel = this.initChannel(channelName);
         channel.addMessage(message);
         if (channel == this.getActiveChannel()) {
             this.onActiveChannelMessageAdded.send(message);
@@ -826,7 +862,14 @@ var ChatData = (function () {
             this.activeChannel = 0;
             return;
         }
-        this.setActiveChannelByName(stored);
+        for (var i = 0; this.channels.length; i++) {
+            if (this.channels[i].name === stored) {
+                this.setActiveChannelByName(stored);
+                return;
+            }
+        }
+        Debug.log("Can't restore active channel, try to join.");
+        this.onChannelLost.send(stored);
     };
     ChatData.prototype.setCookie = function (cname, cvalue, exdays) {
         Debug.log("Set cookie:" + cname + ": " + cvalue);
@@ -919,6 +962,7 @@ var ChatMessageType;
 (function (ChatMessageType) {
     ChatMessageType[ChatMessageType["NORMAL"] = 0] = "NORMAL";
     ChatMessageType[ChatMessageType["SYSTEM"] = 1] = "SYSTEM";
+    ChatMessageType[ChatMessageType["DATA"] = 2] = "DATA";
 })(ChatMessageType || (ChatMessageType = {}));
 var ChatMessage = (function () {
     function ChatMessage(time, sender, message, type) {
@@ -982,7 +1026,9 @@ var ChatPanel = (function () {
         this.id = channel.id;
         this.element = document.createElement("div");
         this.element.id = "CHAT_" + this.id;
-        this.setActive();
+        if (!this.channel.isPrivate) {
+            this.setActive();
+        }
     }
     ChatPanel.prototype.addMessage = function (message) {
         if (this.lastMessage != null && this.lastMessage.message.sender == message.sender) {
@@ -1034,6 +1080,8 @@ var Client = (function () {
         this.onTopicChanged = new Signal();
         this.onDisconnected = new Signal();
         this.onConnected = new Signal();
+        this.onLogMessage = new Signal();
+        this.onServerCommand = new Signal();
     }
     Client.prototype.changeServerStatus = function (status) {
         this.onServerStatusChanged.send(status);
@@ -1053,16 +1101,19 @@ var Client = (function () {
         this.sendData('login', user);
         this.isConnected = true;
     };
+    Client.prototype.log = function (msg) {
+        Debug.log(msg);
+        this.onLogMessage.send(msg);
+    };
     Client.prototype.bindSocket = function () {
-        Debug.log("Binding socket");
+        this.log("Binding socket...");
         var client = this;
-        this.socket.on('your_channel', function (msg) {
-            Debug.log('Your channel:' + msg);
-            client.joinChannel(msg);
-        });
+        this.socket.on('server command', function (msg) { client.serverCommand(msg); });
+        this.socket.on('your_channel', function (msg) { client.joinChannel(msg); });
         this.socket.on("status", function (data) { client.userStatusUpdated(data); });
         this.socket.on("chat message", function (data) { client.receiveChatMessage(data); });
         this.socket.on("system message", function (data) { client.receiveSystemMessage(data); });
+        this.socket.on('data message', function (msg) { client.receiveDataMessage(msg); });
         this.socket.on('join_channel', function (channelName) { client.joinedChannel(channelName); });
         this.socket.on('user_list', function (data) { client.userListUpdated(data); });
         this.socket.on('user_disconnected', function (data) { client.userDisconnected(data); });
@@ -1072,6 +1123,9 @@ var Client = (function () {
         this.socket.on('topic', function (data) { client.topicChanged(data); });
         this.socket.on('disconnect', function (data) { client.disconnected(data); });
         this.socket.on('login_complete', function (data) { client.connected(data); });
+    };
+    Client.prototype.serverCommand = function (data) {
+        this.onServerCommand.send(data);
     };
     Client.prototype.receiveChatMessage = function (data) {
         var splitMsg = data.split("|");
@@ -1087,9 +1141,19 @@ var Client = (function () {
         var time = splitMsg.shift();
         var textLine = splitMsg.join("|");
         this.onChatMessage.send(new ChatMessage(time, "SYSTEM", textLine, ChatMessageType.SYSTEM), channel);
+        this.log(time + ": " + textLine);
+    };
+    Client.prototype.receiveDataMessage = function (data) {
+        var splitMsg = data.split("|");
+        var channel = splitMsg.shift();
+        var time = splitMsg.shift();
+        var textLine = splitMsg.join("|");
+        this.onChatMessage.send(new ChatMessage(time, "SYSTEM", textLine, ChatMessageType.DATA), channel);
+        this.log(time + ":" + textLine);
     };
     Client.prototype.joinedChannel = function (channelName) {
         this.onJoinedChannel.send(channelName);
+        this.log("Joined channel:" + channelName);
     };
     Client.prototype.userStatusUpdated = function (msg) {
         var data = msg.split("|");
@@ -1100,7 +1164,7 @@ var Client = (function () {
         this.onUserStatusUpdated.send(sender, status, channel);
     };
     Client.prototype.uploadFile = function (file, channel) {
-        Debug.log("Uploading File Type:" + file.type);
+        this.log("Attempt uploading File Type:" + file.type);
         if (file.type.search("image") != -1) {
             this.sendData('upload img', channel.name + '|' + file.name);
         }
@@ -1109,11 +1173,11 @@ var Client = (function () {
         }
     };
     Client.prototype.exitChannel = function (channel) {
-        Debug.log("part_channel: " + channel);
+        this.log("Exit channel:" + channel.name);
         this.sendData('part_channel', channel.name);
     };
     Client.prototype.joinChannel = function (channelName) {
-        Debug.log("part_channel: " + channelName);
+        this.log("Joining channel:" + channelName);
         this.sendData('chat message', "|/join " + channelName);
     };
     Client.prototype.sendPrivateChat = function (target, msg) {
@@ -1225,12 +1289,15 @@ var Client = (function () {
             var what = split[2];
             this.onTopicChanged.send(channel, what);
         }
+        this.log(channel + " topic changed");
     };
     Client.prototype.disconnected = function (data) {
         this.onDisconnected.send("null");
+        this.changeServerStatus("Disconnected");
     };
     Client.prototype.connected = function (data) {
         this.onConnected.send(data);
+        this.changeServerStatus("Connected");
     };
     return Client;
 })();
@@ -1318,6 +1385,7 @@ var HtmlID = (function () {
     HtmlID.AUTO_SCROLL_ICON_ON = "#auto-scroll-icon-on";
     HtmlID.AUTO_SCROLL_ICON_OFF = "#auto-scroll-icon-off";
     HtmlID.SERVER_STATUS = "#server-status";
+    HtmlID.LOG_WINDOW = "#log";
     return HtmlID;
 })();
 var MessageInputHistory = (function () {
@@ -1506,7 +1574,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.472";
+        this.version = "V.2.0.524";
     }
     return ProjectConfig;
 })();
@@ -1645,6 +1713,10 @@ var TestSystem = (function () {
         this.addMessage("Kakkamaster4", data, "User1");
         ui.setLoading(null);
         data.addMember(new ChatMember("LAterJoin", "000", "idle"), "lobby");
+        data.setActiveChannelByName("paskanmanrja");
+        ui.addLog("TestLog1");
+        ui.addLog("TestLog2");
+        ui.addLog("TestLog3");
     }
     TestSystem.prototype.addUsers = function (channel, count) {
         for (var i = 0; i < count; i++) {

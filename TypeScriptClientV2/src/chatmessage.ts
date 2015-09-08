@@ -1,7 +1,8 @@
 enum ChatMessageType
 {
 	NORMAL,
-	SYSTEM
+	SYSTEM,
+	DATA
 }
 class ChatMessage
 {

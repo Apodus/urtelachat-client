@@ -31,8 +31,8 @@ class ChannelButton
 		//this.element.type = "button";
 			
 		var closeButton:HTMLElement = document.createElement("button");
-		closeButton.className = "btn btn-warning btn-xs btn-close-channel";
-		closeButton.innerHTML = "Close Channel";
+		closeButton.className = "btn btn-warning btn-xs btn-block btn-close-channel";
+		closeButton.innerHTML = '<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Close Channel';
 		//closeButton.type = "button";
 		//closeButton.id = "close_channel_" + channelID.substring(1);
 		//$(closeButton).hide();
@@ -41,34 +41,33 @@ class ChannelButton
 		channelName.className = "name";
 		channelName.innerHTML = channel.name;
 		
-			
 		var messages:HTMLElement = document.createElement("span");
 		messages.className = "message-count badge";
 		this.newMessagesLabel = messages;
-			
-		var closeIcon:HTMLElement = document.createElement("span");
-		closeIcon.className = "glyphicon glyphicon-remove";
-		$(closeIcon).attr("aria-hidden", "true");
-		$(closeButton).append(closeIcon);
+		
+		var settings:HTMLElement = document.createElement("div");
+		settings.className = "well channel-settings dropshadow-5";
 		
 		var addButton:Function = function(text:string,button:HTMLElement)
 		{
 			var wrapper:HTMLElement = document.createElement("div");
-			wrapper.className = "bg-info row well";
+			wrapper.className = "";
 			//wrapper.innerHTML = '<div class="bg-info well">'+text+'</div>';
 			//$(button).addClass("pull-right");
 			$(wrapper).append(button);
 			$(settings).append(wrapper);
 		}
 		
-		var settings:HTMLElement = document.createElement("div");
-		settings.className = "well channel-settings dropshadow-5";
-		settings.innerHTML = 'Channel Settings';
+		var channelTopic:HTMLElement = document.createElement("div");
+		channelTopic.className = "topic";
+		channelTopic.innerHTML = Utils.linkify(channel.topic);
+		$(settings).append(channelTopic);
+		
 		addButton("Close Channel",closeButton);
 		
 		var notificationsButton:HTMLElement = document.createElement("button");
-		notificationsButton.className = "btn btn-warning btn-xs";
-		notificationsButton.innerHTML = "Notifications Disabled";
+		notificationsButton.className = "btn btn-warning btn-block btn-xs";
+		notificationsButton.innerHTML = '<span class="glyphicon glyphicon-flag" aria-hidden="true"></span> Notifications Disabled';
 		addButton("Notifications:",notificationsButton);
 		this.notificationsButton = notificationsButton;
 		
@@ -118,11 +117,16 @@ class ChannelButton
 				//$(closeButton).fadeIn();
 			//}
 			
-			$(settings).css({position:"fixed",top:"40px",left:$(this).offset().left+"px"});
+			$(settings).css({position:"fixed",top:"40px",left:($(this).offset().left-50)+"px"});
 			$(settings).stop(true,true).fadeIn();
 			//$(settings).slideDown();
 			
 			//TooltipManager.show(this,channel.topic,"bottom");
+			channelTopic.innerHTML = Utils.linkify(channel.topic);
+			if(self.newMessages>0)
+			{
+				channelTopic.innerHTML += "<br/>"+self.newMessages+" new Messages.";
+			}
 		});
 		//$(closeButton).hide();
 		$(settings).hide();

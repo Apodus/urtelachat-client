@@ -59,6 +59,12 @@
 		ui.setLoading(null);
 		
 		data.addMember(new ChatMember("LAterJoin","000","idle"),"lobby");
+		
+		data.setActiveChannelByName("paskanmanrja");
+		
+		ui.addLog("TestLog1");
+		ui.addLog("TestLog2");
+		ui.addLog("TestLog3");
 	}
 	
 	addUsers(channel:ChatChannel,count:number)
