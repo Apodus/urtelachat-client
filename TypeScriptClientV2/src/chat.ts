@@ -206,6 +206,11 @@ class Chat
 		{
 			self.ui.setServerStatus(status);
 		});
+		
+		this.client.onServerCommand.add(function(command:string)
+		{
+			self.ui.reload();
+		});
 	}
 	static create()
 	{

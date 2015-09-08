@@ -629,6 +629,9 @@ var Chat = (function () {
         this.client.onServerStatusChanged.add(function (status) {
             self.ui.setServerStatus(status);
         });
+        this.client.onServerCommand.add(function (command) {
+            self.ui.reload();
+        });
     };
     Chat.create = function () {
         var chat = new Chat();
@@ -653,6 +656,7 @@ var ChatChannel = (function () {
         this.messages = new Array();
         this.members = new Array();
         this.allowNotifications = false;
+        this.isPrivate = name[0] === "@";
     }
     ChatChannel.prototype.addMember = function (member) {
         this.members.push(member);
@@ -734,6 +738,19 @@ var ChatData = (function () {
         Debug.assert(this.channels[id] != null, "Channel " + id + " is null!");
         return this.channels[id];
     };
+    ChatData.prototype.initChannel = function (name) {
+        for (var i = 0; i < this.channels.length; i++) {
+            if (this.channels[i].name === name) {
+                return this.channels[i];
+            }
+        }
+        var channel = new ChatChannel(name, "Welcome to " + name);
+        if (name[0] == "@") {
+            channel.topic = "Private chat with " + name.substring(1);
+        }
+        this.addChannel(channel);
+        return channel;
+    };
     ChatData.prototype.addChannel = function (channel) {
         this.checkChannelSettings(channel);
         for (var i = 0; i < this.channels.length; i++) {
@@ -794,7 +811,7 @@ var ChatData = (function () {
         this.setActiveChannel(0);
     };
     ChatData.prototype.addMessage = function (message, channelName) {
-        var channel = this.getChannelByName(channelName);
+        var channel = this.initChannel(channelName);
         channel.addMessage(message);
         if (channel == this.getActiveChannel()) {
             this.onActiveChannelMessageAdded.send(message);
@@ -1008,7 +1025,9 @@ var ChatPanel = (function () {
         this.id = channel.id;
         this.element = document.createElement("div");
         this.element.id = "CHAT_" + this.id;
-        this.setActive();
+        if (!this.channel.isPrivate) {
+            this.setActive();
+        }
     }
     ChatPanel.prototype.addMessage = function (message) {
         if (this.lastMessage != null && this.lastMessage.message.sender == message.sender) {
@@ -1153,7 +1172,7 @@ var Client = (function () {
         }
     };
     Client.prototype.exitChannel = function (channel) {
-        this.log("Exit channel:" + channel);
+        this.log("Exit channel:" + channel.name);
         this.sendData('part_channel', channel.name);
     };
     Client.prototype.joinChannel = function (channelName) {
@@ -1554,7 +1573,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.505";
+        this.version = "V.2.0.511";
     }
     return ProjectConfig;
 })();

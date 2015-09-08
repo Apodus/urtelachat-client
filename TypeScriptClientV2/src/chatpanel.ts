@@ -16,7 +16,10 @@ class ChatPanel
 		this.id = channel.id;
 		this.element = document.createElement("div");
 		this.element.id = "CHAT_"+this.id;
-		this.setActive();
+		if(!this.channel.isPrivate)
+		{
+			this.setActive();
+		}
 	}
 	
 	addMessage(message:ChatMessage)

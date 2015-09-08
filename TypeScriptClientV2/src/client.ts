@@ -174,7 +174,7 @@ class Client
 	}
 	exitChannel(channel:ChatChannel)
 	{
-		this.log("Exit channel:"+channel);
+		this.log("Exit channel:"+channel.name);
 		this.sendData('part_channel', channel.name);
 	}
 	joinChannel(channelName:string)

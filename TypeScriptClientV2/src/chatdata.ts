@@ -67,6 +67,23 @@ class ChatData
 		Debug.assert(this.channels[id]!=null,"Channel "+id+" is null!");
 		return this.channels[id];
 	}
+	initChannel(name:string):ChatChannel
+	{
+		for(var i:number =0; i < this.channels.length; i++)
+		{
+			if(this.channels[i].name === name)
+			{
+				return this.channels[i];
+			}
+		}
+		var channel:ChatChannel = new ChatChannel(name,"Welcome to "+name);
+		if(name[0]=="@")
+		{
+			channel.topic = "Private chat with "+name.substring(1);
+		}
+		this.addChannel(channel);
+		return channel;
+	}
 	addChannel(channel:ChatChannel)
 	{
 		this.checkChannelSettings(channel);
@@ -150,7 +167,7 @@ class ChatData
 	}
 	addMessage(message:ChatMessage,channelName:string)
 	{
-		var channel:ChatChannel = this.getChannelByName(channelName);
+		var channel:ChatChannel = this.initChannel(channelName);
 		channel.addMessage(message);
 		if(channel==this.getActiveChannel())
 		{
