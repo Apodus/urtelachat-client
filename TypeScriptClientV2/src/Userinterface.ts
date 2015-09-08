@@ -365,6 +365,7 @@ class Userinterface
 	{
 		Debug.log("Server Status: " + status);
 		$(HtmlID.SERVER_STATUS).html(status);
+		this.addLog("Server Status:"+status);
 	}
 	clearIdleTimer()
 	{
@@ -575,5 +576,16 @@ class Userinterface
 				return;
 			}
 		}	
+	}
+	addLog(msg:string)
+	{
+		if($(HtmlID.LOG_WINDOW).val()=="")
+		{
+			$(HtmlID.LOG_WINDOW).val(msg);
+		}
+		else
+		{
+			$(HtmlID.LOG_WINDOW).val($(HtmlID.LOG_WINDOW).val()+"\n"+msg);
+		}
 	}
 }

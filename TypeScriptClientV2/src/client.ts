@@ -18,6 +18,8 @@ class Client
 	onTopicChanged:Signal;
 	onDisconnected:Signal;
 	onConnected:Signal;
+	onLogMessage:Signal;
+	onServerCommand:Signal;
 	
 	constructor()
 	{
@@ -34,6 +36,8 @@ class Client
 		this.onTopicChanged = new Signal();
 		this.onDisconnected = new Signal();
 		this.onConnected = new Signal();
+		this.onLogMessage = new Signal();
+		this.onServerCommand = new Signal();
 	}
 	changeServerStatus(status:string)
 	{
@@ -62,20 +66,22 @@ class Client
 		
 		this.isConnected = true;
 	}
+	log(msg:string)
+	{
+		Debug.log(msg);
+		this.onLogMessage.send(msg);
+	}
 	bindSocket()
 	{
-		Debug.log("Binding socket");
+		this.log("Binding socket...");
 		var client:Client = this;
 		
-		this.socket.on('your_channel', function(msg:string)
-		{
-			Debug.log('Your channel:' + msg);
-			client.joinChannel(msg);
-		});
-		//this.socket.on('server command', client.serverCommand);
+		this.socket.on('server command', function(msg:string) { client.serverCommand(msg); });
+		this.socket.on('your_channel', function(msg:string) { client.joinChannel(msg); });
 		this.socket.on("status", function(data:string) { client.userStatusUpdated(data); });
 		this.socket.on("chat message", function(data:string) { client.receiveChatMessage(data); });
 		this.socket.on("system message", function(data:string) { client.receiveSystemMessage(data); });
+		this.socket.on('data message', function(msg:string) { client.receiveDataMessage(msg); });
 		this.socket.on('join_channel', function(channelName:string) { client.joinedChannel(channelName); });
 		this.socket.on('user_list', function(data:string) { client.userListUpdated(data); });
 		this.socket.on('user_disconnected', function(data:string) { client.userDisconnected(data); });
@@ -85,6 +91,10 @@ class Client
 		this.socket.on('topic', function(data:string) { client.topicChanged(data); });
 		this.socket.on('disconnect', function(data:string) { client.disconnected(data); });
 		this.socket.on('login_complete', function(data:string) { client.connected(data); });
+	}
+	serverCommand(data:string)
+	{
+		this.onServerCommand.send(data);
 	}
 	receiveChatMessage(data:string)
 	{
@@ -116,10 +126,29 @@ class Client
 			textLine,
 			ChatMessageType.SYSTEM
 		),channel);
+		
+		this.log(time+": "+textLine);
+	}
+	receiveDataMessage(data:string)
+	{
+		var splitMsg:Array<string> = data.split("|");
+	
+		var channel:string = splitMsg.shift();
+		var time:string = splitMsg.shift();
+		var textLine:string = splitMsg.join("|");
+		
+		this.onChatMessage.send(new ChatMessage(
+			time,
+			"SYSTEM",
+			textLine,
+			ChatMessageType.DATA
+		),channel);
+		this.log(time+":"+textLine);
 	}
 	joinedChannel(channelName:string)
 	{
 		this.onJoinedChannel.send(channelName);
+		this.log("Joined channel:"+channelName);
 	}
 	userStatusUpdated(msg:string)
 	{
@@ -133,7 +162,7 @@ class Client
 	}
 	uploadFile(file:any,channel:ChatChannel)
 	{
-		Debug.log("Uploading File Type:"+file.type);
+		this.log("Attempt uploading File Type:"+file.type);
 		if(file.type.search("image") != -1)
 		{
 			this.sendData('upload img', channel.name + '|' + file.name);
@@ -145,12 +174,12 @@ class Client
 	}
 	exitChannel(channel:ChatChannel)
 	{
-		Debug.log("part_channel: "+channel);
+		this.log("Exit channel:"+channel);
 		this.sendData('part_channel', channel.name);
 	}
 	joinChannel(channelName:string)
 	{
-		Debug.log("join channel: "+channelName);
+		this.log("Joining channel:"+channelName);
 		this.sendData('chat message', "|/join " + channelName);
 	}
 	sendPrivateChat(target:ChatMember,msg:string)
@@ -299,13 +328,16 @@ class Client
 			
 			this.onTopicChanged.send(channel,what);
 		}
+		this.log(channel+" topic changed");
 	}
 	disconnected(data:any)
 	{
 		this.onDisconnected.send("null");
+		this.changeServerStatus("Disconnected");
 	}
 	connected(data:string)
 	{
 		this.onConnected.send(data);
+		this.changeServerStatus("Connected");
 	}
 }

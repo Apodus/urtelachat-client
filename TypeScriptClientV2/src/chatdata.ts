@@ -21,7 +21,7 @@ class ChatData
 	onActiveChannelDataAdded:Signal;
 	onChannelTopicChanged:Signal;
 	onChannelMessageAdded:Signal;
-	onServerStatusChanged:Signal;
+	
 	onMemberStatusChanged:Signal;
 	onChannelSettingsChanged:Signal;
 	onChannelLost:Signal;
@@ -49,8 +49,6 @@ class ChatData
 		this.onChannelSettingsChanged = new Signal();
 		
 		this.onChannelMessageAdded = new Signal();
-		
-		this.onServerStatusChanged = new Signal();
 		
 		this.onMemberStatusChanged = new Signal();
 		this.onChannelLost = new Signal();
@@ -133,7 +131,7 @@ class ChatData
 			}
 		}
 		
-		Debug.assert(false,"Can't setActiveChannelByName! "+name);
+		Debug.warning("Can't setActiveChannelByName! "+name);
 		this.setActiveChannel(0);
 	}
 	

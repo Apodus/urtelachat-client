@@ -32,7 +32,7 @@ class ChannelButton
 			
 		var closeButton:HTMLElement = document.createElement("button");
 		closeButton.className = "btn btn-warning btn-xs btn-close-channel";
-		closeButton.innerHTML = "Close Channel";
+		closeButton.innerHTML = '<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Close Channel';
 		//closeButton.type = "button";
 		//closeButton.id = "close_channel_" + channelID.substring(1);
 		//$(closeButton).hide();
@@ -41,15 +41,9 @@ class ChannelButton
 		channelName.className = "name";
 		channelName.innerHTML = channel.name;
 		
-			
 		var messages:HTMLElement = document.createElement("span");
 		messages.className = "message-count badge";
 		this.newMessagesLabel = messages;
-			
-		var closeIcon:HTMLElement = document.createElement("span");
-		closeIcon.className = "glyphicon glyphicon-remove";
-		$(closeIcon).attr("aria-hidden", "true");
-		$(closeButton).append(closeIcon);
 		
 		var addButton:Function = function(text:string,button:HTMLElement)
 		{
@@ -72,7 +66,7 @@ class ChannelButton
 		
 		var notificationsButton:HTMLElement = document.createElement("button");
 		notificationsButton.className = "btn btn-warning btn-xs";
-		notificationsButton.innerHTML = "Notifications Disabled";
+		notificationsButton.innerHTML = '<span class="glyphicon glyphicon-flag" aria-hidden="true"></span> Notifications Disabled';
 		addButton("Notifications:",notificationsButton);
 		this.notificationsButton = notificationsButton;
 		
@@ -128,6 +122,10 @@ class ChannelButton
 			
 			//TooltipManager.show(this,channel.topic,"bottom");
 			channelTopic.innerHTML = channel.topic;
+			if(self.newMessages>0)
+			{
+				channelTopic.innerHTML += "<br/>"+self.newMessages+" new Messages.";
+			}
 		});
 		//$(closeButton).hide();
 		$(settings).hide();

@@ -57,3 +57,4 @@ footer{margin:0px;position:fixed;display:block;bottom:0px;width:100%;height:10%;
 .message-count{margin-right:5px;}
 .p4bridge{padding:2px;margin:2px;justify-content:flex-start;font-size:0.85em;}
 .channel-settings{color:#444;}
+#log{width:100%;height:200px;overflow:scroll;overflow-x:hidden;user-select:none;resize:none;font-size:0.85em;}
