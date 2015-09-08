@@ -516,7 +516,7 @@ var Chat = (function () {
         var chat = this;
         Debug.setErrorHandler(function (msg) {
             console.log(msg);
-            chat.ui.reload();
+            chat.ui.addLog("Error: " + msg);
         });
         this.data = new ChatData();
         this.client = new Client();
@@ -526,7 +526,6 @@ var Chat = (function () {
     }
     Chat.prototype.init = function () {
         Debug.log("init");
-        Debug["debugLevel"] = DebugLevel.DEBUG_FULL;
         this.client.connect("http://urtela.redlynx.com:3002", this.data.localMember.userID);
         this.ui.setLoading(null);
     };
@@ -756,7 +755,7 @@ var ChatData = (function () {
         this.checkChannelSettings(channel);
         for (var i = 0; i < this.channels.length; i++) {
             if (this.channels[i].name === channel.name) {
-                Debug.assert(false, "Adding already Existing channel!");
+                Debug.warning("Adding already Existing channel!");
                 return;
             }
         }
@@ -769,7 +768,7 @@ var ChatData = (function () {
     };
     ChatData.prototype.removeChannelByName = function (channelName) {
         if (this.channels.length <= 1) {
-            Debug.log("Can't remove last channel");
+            Debug.warning("Can't remove last channel");
             return false;
         }
         for (var i = 0; this.channels.length; i++) {
@@ -786,7 +785,6 @@ var ChatData = (function () {
     ChatData.prototype.setActiveChannel = function (id) {
         this.activeChannel = id;
         var channel = this.getActiveChannel();
-        Debug.assert(channel != null, "Active channel is lost!");
         Debug.log("Set Active channel: " + channel.name);
         this.onActiveChannelChanged.send(this.getActiveChannel());
         this.setCookie(CookieNames.ACTIVE_CHANNEL, channel.name, 365);
@@ -808,7 +806,7 @@ var ChatData = (function () {
                 return;
             }
         }
-        Debug.assert(false, "Can't setActiveChannelByChannel! " + channel.name);
+        Debug.warning("Can't setActiveChannelByChannel! " + channel.name);
         this.setActiveChannel(0);
     };
     ChatData.prototype.addMessage = function (message, channelName) {
@@ -1574,7 +1572,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.524";
+        this.version = "V.2.0.525";
     }
     return ProjectConfig;
 })();

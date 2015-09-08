@@ -92,7 +92,7 @@ class ChatData
 		{
 			if(this.channels[i].name === channel.name)
 			{
-				Debug.assert(false,"Adding already Existing channel!");
+				Debug.warning("Adding already Existing channel!");
 				return;
 			}
 		}
@@ -111,7 +111,7 @@ class ChatData
 	{
 		if(this.channels.length<=1)
 		{
-			Debug.log("Can't remove last channel");
+			Debug.warning("Can't remove last channel");
 			return false;
 		}
 		
@@ -132,7 +132,6 @@ class ChatData
 	{
 		this.activeChannel = id;
 		var channel:ChatChannel = this.getActiveChannel();
-		Debug.assert(channel!=null,"Active channel is lost!");
 		Debug.log("Set Active channel: "+channel.name);
 		this.onActiveChannelChanged.send(this.getActiveChannel());
 		this.setCookie(CookieNames.ACTIVE_CHANNEL,channel.name,365);
@@ -162,7 +161,7 @@ class ChatData
 				return;
 			}
 		}
-		Debug.assert(false, "Can't setActiveChannelByChannel! "+channel.name);
+		Debug.warning("Can't setActiveChannelByChannel! "+channel.name);
 		this.setActiveChannel(0);
 	}
 	addMessage(message:ChatMessage,channelName:string)
