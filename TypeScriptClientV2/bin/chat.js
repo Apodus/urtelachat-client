@@ -414,7 +414,7 @@ var ChannelButton = (function () {
         this.element.id = "CHANNEL_" + this.id;
         this.element.className = "btn channel-button";
         var closeButton = document.createElement("button");
-        closeButton.className = "btn btn-warning btn-xs btn-close-channel";
+        closeButton.className = "btn btn-warning btn-xs btn-block btn-close-channel";
         closeButton.innerHTML = '<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Close Channel';
         var channelName = document.createElement("span");
         channelName.className = "name";
@@ -422,20 +422,21 @@ var ChannelButton = (function () {
         var messages = document.createElement("span");
         messages.className = "message-count badge";
         this.newMessagesLabel = messages;
+        var settings = document.createElement("div");
+        settings.className = "well channel-settings dropshadow-5";
         var addButton = function (text, button) {
             var wrapper = document.createElement("div");
-            wrapper.className = "bg-info row well";
+            wrapper.className = "";
             $(wrapper).append(button);
             $(settings).append(wrapper);
         };
-        var settings = document.createElement("div");
-        settings.className = "well channel-settings dropshadow-5";
         var channelTopic = document.createElement("div");
-        channelTopic.innerHTML = channel.topic;
+        channelTopic.className = "topic";
+        channelTopic.innerHTML = Utils.linkify(channel.topic);
         $(settings).append(channelTopic);
         addButton("Close Channel", closeButton);
         var notificationsButton = document.createElement("button");
-        notificationsButton.className = "btn btn-warning btn-xs";
+        notificationsButton.className = "btn btn-warning btn-block btn-xs";
         notificationsButton.innerHTML = '<span class="glyphicon glyphicon-flag" aria-hidden="true"></span> Notifications Disabled';
         addButton("Notifications:", notificationsButton);
         this.notificationsButton = notificationsButton;
@@ -468,9 +469,9 @@ var ChannelButton = (function () {
             //{
             //$(closeButton).fadeIn();
             //}
-            $(settings).css({ position: "fixed", top: "40px", left: $(this).offset().left + "px" });
+            $(settings).css({ position: "fixed", top: "40px", left: ($(this).offset().left - 50) + "px" });
             $(settings).stop(true, true).fadeIn();
-            channelTopic.innerHTML = channel.topic;
+            channelTopic.innerHTML = Utils.linkify(channel.topic);
             if (self.newMessages > 0) {
                 channelTopic.innerHTML += "<br/>" + self.newMessages + " new Messages.";
             }
@@ -526,7 +527,7 @@ var Chat = (function () {
     Chat.prototype.init = function () {
         Debug.log("init");
         Debug["debugLevel"] = DebugLevel.DEBUG_FULL;
-        this.client.connect("http://urtela.redlynx.com:3002", this.data.localMember.userID);
+        this.client.connect("http://urtela.redlynx.com:3002", "testiperse2000");
         this.ui.setLoading(null);
     };
     Chat.prototype.bindDataCallbacks = function () {
@@ -1573,7 +1574,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.511";
+        this.version = "V.2.0.520";
     }
     return ProjectConfig;
 })();

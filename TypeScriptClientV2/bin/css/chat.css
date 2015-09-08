@@ -455,6 +455,18 @@ footer
 .channel-settings
 {
 	color:#444;
+	max-width: 300px;
+	overflow:hidden;
+	padding:5px;
+}
+.channel-settings .topic
+{
+	margin-bottom:25px;
+	border-bottom:1px solid #ddd;
+}
+.channel-settings button
+{
+	margin-bottom:2px;
 }
 
 #log
