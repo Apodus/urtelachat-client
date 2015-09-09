@@ -160,13 +160,13 @@ class ChannelButton
 	{
 		if(this.channel.allowNotifications)
 		{
-			this.notificationsButton.innerHTML = "Notifications Enabled";
+			this.notificationsButton.innerHTML = '<span class="glyphicon glyphicon-flag" aria-hidden="true"></span> Notifications Enabled';
 			$(this.notificationsButton).addClass("btn-success");
 			$(this.notificationsButton).removeClass("btn-warning");
 		}
 		else
 		{
-			this.notificationsButton.innerHTML = "Notifications Disabled";
+			this.notificationsButton.innerHTML = '<span class="glyphicon glyphicon-flag" aria-hidden="true"></span> Notifications Disabled';
 			$(this.notificationsButton).addClass("btn-warning");
 			$(this.notificationsButton).removeClass("btn-success");
 		}

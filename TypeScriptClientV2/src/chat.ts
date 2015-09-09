@@ -14,7 +14,8 @@ class Chat
 			//alert("Chat Error! (Probably user)\n"+msg);
 			//chat.ui.fatalError("Chat Error! (Probably user) <br/>"+msg);
 			console.log(msg);
-			chat.ui.reload();
+			chat.ui.addLog("Error: "+msg);
+			//chat.ui.reload();
 		});
 		
 		this.data = new ChatData();
@@ -29,7 +30,7 @@ class Chat
 	{
 		Debug.log("init");
 		
-		Debug["debugLevel"]=DebugLevel.DEBUG_FULL;
+		//Debug["debugLevel"]=DebugLevel.DEBUG_FULL;
 		
 		//var test:TestSystem = new TestSystem(this.data, this.ui, this.client); return;
 		

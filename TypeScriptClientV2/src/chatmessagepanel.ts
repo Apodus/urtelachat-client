@@ -15,10 +15,6 @@ class ChatMessagePanel
 		
 		this.body = document.createElement("div");
 		this.body.className = "message-body row";
-		if(alt)
-		{
-			$(this.body).addClass("alt-bg");
-		}
 		
 		this.element.appendChild(this.body);
 		
@@ -34,7 +30,7 @@ class ChatMessagePanel
 		this.what.innerHTML = Utils.linkify(message.message);
 		this.when.innerHTML = message.time;
 		
-		this.who.className = "label col-md-1 who user-label";
+		this.who.className = "label col-md-1 user-label";
 		this.what.className = "chat-message col-md-10";
 		this.when.className = "time col-md-1 text-right";
 		
@@ -42,10 +38,20 @@ class ChatMessagePanel
 		{
 			case ChatMessageType.SYSTEM:
 				$(this.who).addClass("label-info");
+				$(this.who).removeClass("user-label");
+				$(this.body).addClass("side-bg");
 				break;
 			case ChatMessageType.NORMAL:
 			default:
 				$(this.who).addClass("label-success");
+				if(alt)
+				{
+					$(this.body).addClass("alt-bg");
+				}
+				else
+				{
+					$(this.body).addClass("main-bg");
+				}
 			break;
 		}
 		

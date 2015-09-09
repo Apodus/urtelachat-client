@@ -13,6 +13,8 @@ html {
 }
 body {
   margin: 0;
+  background:#333;
+  color:#aaa;
 }
 article,
 aside,
@@ -7211,4 +7213,65 @@ a.list-group-item-danger.active:focus {
 .panel-warning .panel-heading,
 .panel-info .panel-heading {
   border-color: #000;
+}
+
+
+
+/* CUSTOM STUFF */
+
+#users
+{
+	border:1px solid #000;
+}
+
+.alt-bg
+{
+	color:#aaa;
+	background-color:#222;
+}
+
+.main-bg
+{
+	color:#ccc;
+	background-color:#111;
+}
+
+.side-bg
+{
+	color:#aaa;
+	background-color:#333;
+}
+.user-label
+{
+	text-align:left;
+}
+.message-block .label
+{
+	border-right:5px double #fff;
+}
+.message-block
+{
+	border:none;
+	border-bottom:1px solid #000;
+}
+footer
+{
+	background:#333;
+	border:1px solid #000;
+	border-bottom:5px double #888;
+}
+#message-input
+{
+	color:#ccc;
+	background-color:#111;
+}
+#message-input:focus,
+#message-input.focus
+{
+	background:#222;
+	color:#fff;
+}
+#messages
+{
+	padding-left:195px;
 }

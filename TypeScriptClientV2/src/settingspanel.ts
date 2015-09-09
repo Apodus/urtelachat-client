@@ -21,7 +21,12 @@ class SettingsPanel
 		
 		$("#debug").hide();
 		
-		this.addButton("#themes","Theme1",function()
+		this.addButton("#themes","Default Theme",function()
+		{
+			CustomTheme.unload();
+		});
+		
+		this.addButton("#themes","Dark Theme",function()
 		{
 			new CustomTheme("css/themes/theme1.min.css");
 		});

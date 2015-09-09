@@ -498,12 +498,12 @@ var ChannelButton = (function () {
     };
     ChannelButton.prototype.updateChannelSettings = function () {
         if (this.channel.allowNotifications) {
-            this.notificationsButton.innerHTML = "Notifications Enabled";
+            this.notificationsButton.innerHTML = '<span class="glyphicon glyphicon-flag" aria-hidden="true"></span> Notifications Enabled';
             $(this.notificationsButton).addClass("btn-success");
             $(this.notificationsButton).removeClass("btn-warning");
         }
         else {
-            this.notificationsButton.innerHTML = "Notifications Disabled";
+            this.notificationsButton.innerHTML = '<span class="glyphicon glyphicon-flag" aria-hidden="true"></span> Notifications Disabled';
             $(this.notificationsButton).addClass("btn-warning");
             $(this.notificationsButton).removeClass("btn-success");
         }
@@ -516,7 +516,7 @@ var Chat = (function () {
         var chat = this;
         Debug.setErrorHandler(function (msg) {
             console.log(msg);
-            chat.ui.reload();
+            chat.ui.addLog("Error: " + msg);
         });
         this.data = new ChatData();
         this.client = new Client();
@@ -526,7 +526,6 @@ var Chat = (function () {
     }
     Chat.prototype.init = function () {
         Debug.log("init");
-        Debug["debugLevel"] = DebugLevel.DEBUG_FULL;
         this.client.connect("http://urtela.redlynx.com:3002", this.data.localMember.userID);
         this.ui.setLoading(null);
     };
@@ -756,7 +755,7 @@ var ChatData = (function () {
         this.checkChannelSettings(channel);
         for (var i = 0; i < this.channels.length; i++) {
             if (this.channels[i].name === channel.name) {
-                Debug.assert(false, "Adding already Existing channel!");
+                Debug.warning("Adding already Existing channel!");
                 return;
             }
         }
@@ -769,7 +768,7 @@ var ChatData = (function () {
     };
     ChatData.prototype.removeChannelByName = function (channelName) {
         if (this.channels.length <= 1) {
-            Debug.log("Can't remove last channel");
+            Debug.warning("Can't remove last channel");
             return false;
         }
         for (var i = 0; this.channels.length; i++) {
@@ -786,7 +785,6 @@ var ChatData = (function () {
     ChatData.prototype.setActiveChannel = function (id) {
         this.activeChannel = id;
         var channel = this.getActiveChannel();
-        Debug.assert(channel != null, "Active channel is lost!");
         Debug.log("Set Active channel: " + channel.name);
         this.onActiveChannelChanged.send(this.getActiveChannel());
         this.setCookie(CookieNames.ACTIVE_CHANNEL, channel.name, 365);
@@ -808,7 +806,7 @@ var ChatData = (function () {
                 return;
             }
         }
-        Debug.assert(false, "Can't setActiveChannelByChannel! " + channel.name);
+        Debug.warning("Can't setActiveChannelByChannel! " + channel.name);
         this.setActiveChannel(0);
     };
     ChatData.prototype.addMessage = function (message, channelName) {
@@ -980,9 +978,6 @@ var ChatMessagePanel = (function () {
         this.element.className = "message-block";
         this.body = document.createElement("div");
         this.body.className = "message-body row";
-        if (alt) {
-            $(this.body).addClass("alt-bg");
-        }
         this.element.appendChild(this.body);
         this.who = document.createElement("span");
         this.what = document.createElement("div");
@@ -993,16 +988,24 @@ var ChatMessagePanel = (function () {
         this.who.innerHTML = message.sender;
         this.what.innerHTML = Utils.linkify(message.message);
         this.when.innerHTML = message.time;
-        this.who.className = "label col-md-1 who user-label";
+        this.who.className = "label col-md-1 user-label";
         this.what.className = "chat-message col-md-10";
         this.when.className = "time col-md-1 text-right";
         switch (message.type) {
             case ChatMessageType.SYSTEM:
                 $(this.who).addClass("label-info");
+                $(this.who).removeClass("user-label");
+                $(this.body).addClass("side-bg");
                 break;
             case ChatMessageType.NORMAL:
             default:
                 $(this.who).addClass("label-success");
+                if (alt) {
+                    $(this.body).addClass("alt-bg");
+                }
+                else {
+                    $(this.body).addClass("main-bg");
+                }
                 break;
         }
         $(this.element).hide();
@@ -1574,7 +1577,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.524";
+        this.version = "V.2.0.532";
     }
     return ProjectConfig;
 })();
@@ -1590,7 +1593,10 @@ var SettingsPanel = (function () {
         });
         var ui = this;
         $("#debug").hide();
-        this.addButton("#themes", "Theme1", function () {
+        this.addButton("#themes", "Default Theme", function () {
+            CustomTheme.unload();
+        });
+        this.addButton("#themes", "Dark Theme", function () {
             new CustomTheme("css/themes/theme1.min.css");
         });
         if (this.myDropzone == null) {
