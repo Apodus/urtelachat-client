@@ -212,6 +212,17 @@ class Chat
 		{
 			self.ui.reload();
 		});
+		
+		this.client.onReceiveLocalUsername.add(function(name:string)
+		{
+			//TODO
+			NotificationSystem.get().showPopover("Welcome to urtela chat",name);
+		});
+		
+		this.client.onReceiveUserData.add(function(data:string)
+		{
+			Debug.log("Got Userdata:\n"+data);
+		});
 	}
 	static create()
 	{

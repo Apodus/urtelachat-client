@@ -20,6 +20,8 @@ class Client
 	onConnected:Signal;
 	onLogMessage:Signal;
 	onServerCommand:Signal;
+	onReceiveLocalUsername:Signal;
+	onReceiveUserData:Signal;
 	
 	constructor()
 	{
@@ -38,6 +40,8 @@ class Client
 		this.onConnected = new Signal();
 		this.onLogMessage = new Signal();
 		this.onServerCommand = new Signal();
+		this.onReceiveLocalUsername = new Signal();
+		this.onReceiveUserData = new Signal();
 	}
 	changeServerStatus(status:string)
 	{
@@ -91,6 +95,16 @@ class Client
 		this.socket.on('topic', function(data:string) { client.topicChanged(data); });
 		this.socket.on('disconnect', function(data:string) { client.disconnected(data); });
 		this.socket.on('login_complete', function(data:string) { client.connected(data); });
+		this.socket.on('your_nick', function(data:string) { client.receiveLocalUser(data); });
+		this.socket.on('op', function(data:string) { client.receiveUserData(data); });
+	}
+	receiveUserData(data:string)
+	{
+		this.onReceiveUserData.send(data);
+	}
+	receiveLocalUser(localUserName:string)
+	{
+		this.onReceiveLocalUsername.send(localUserName);
 	}
 	serverCommand(data:string)
 	{

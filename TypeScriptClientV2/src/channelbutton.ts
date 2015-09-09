@@ -46,7 +46,7 @@ class ChannelButton
 		this.newMessagesLabel = messages;
 		
 		var settings:HTMLElement = document.createElement("div");
-		settings.className = "well channel-settings dropshadow-5";
+		settings.className = "well channel-settings dropshadow-5 text-primary";
 		
 		var addButton:Function = function(text:string,button:HTMLElement)
 		{

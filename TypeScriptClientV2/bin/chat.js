@@ -423,7 +423,7 @@ var ChannelButton = (function () {
         messages.className = "message-count badge";
         this.newMessagesLabel = messages;
         var settings = document.createElement("div");
-        settings.className = "well channel-settings dropshadow-5";
+        settings.className = "well channel-settings dropshadow-5 text-primary";
         var addButton = function (text, button) {
             var wrapper = document.createElement("div");
             wrapper.className = "";
@@ -631,6 +631,12 @@ var Chat = (function () {
         });
         this.client.onServerCommand.add(function (command) {
             self.ui.reload();
+        });
+        this.client.onReceiveLocalUsername.add(function (name) {
+            NotificationSystem.get().showPopover("Welcome to urtela chat", name);
+        });
+        this.client.onReceiveUserData.add(function (data) {
+            Debug.log("Got Userdata:\n" + data);
         });
     };
     Chat.create = function () {
@@ -1085,6 +1091,8 @@ var Client = (function () {
         this.onConnected = new Signal();
         this.onLogMessage = new Signal();
         this.onServerCommand = new Signal();
+        this.onReceiveLocalUsername = new Signal();
+        this.onReceiveUserData = new Signal();
     }
     Client.prototype.changeServerStatus = function (status) {
         this.onServerStatusChanged.send(status);
@@ -1126,6 +1134,14 @@ var Client = (function () {
         this.socket.on('topic', function (data) { client.topicChanged(data); });
         this.socket.on('disconnect', function (data) { client.disconnected(data); });
         this.socket.on('login_complete', function (data) { client.connected(data); });
+        this.socket.on('your_nick', function (data) { client.receiveLocalUser(data); });
+        this.socket.on('op', function (data) { client.receiveUserData(data); });
+    };
+    Client.prototype.receiveUserData = function (data) {
+        this.onReceiveUserData.send(data);
+    };
+    Client.prototype.receiveLocalUser = function (localUserName) {
+        this.onReceiveLocalUsername.send(localUserName);
     };
     Client.prototype.serverCommand = function (data) {
         this.onServerCommand.send(data);
@@ -1577,7 +1593,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.532";
+        this.version = "V.2.0.538";
     }
     return ProjectConfig;
 })();
