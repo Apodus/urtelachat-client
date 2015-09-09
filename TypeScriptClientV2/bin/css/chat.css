@@ -162,11 +162,6 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#959595', end
 {
 	opacity:0;
 }
-
-.user-label
-{
-	text-align:left;
-}
 	
 #logo
 {
@@ -184,6 +179,9 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#959595', end
 	left:5px;
 	padding:2px;
 	overflow:hidden;
+	border:1px solid #aaa;
+	border-top:1px solid #fff;
+	border-bottom:1px solid #888;
 	/*overflow-y:scroll;*/
 }
 	
@@ -418,48 +416,9 @@ footer
 {
 	margin:0px;
 	padding:2px;
-	background-color:#Fefefe;
-	color:#555;
 }
 
-.alt-bg
-{
-	color:#333;
-	background-color:#EBF5E9
-}
 
-.who
-{
-	font-size:1.0em;
-	font-weight:normal;
-	padding-left:5px;
-	margin-left:-15px;
-	margin-right:-10px;
-	border-right:5px double #fff;
-	
-}
-.user-join
-{
-	font-weight:bold;
-	color:green;
-}
-
-.user-left
-{
-	font-weight:bold;
-	color:orange;
-}
-
-.user-disconnected
-{
-	font-weight:bold;
-	color:red;
-}
-
-.channel-button
-{
-	
-}
 
 .btn-close-channel
 {
@@ -507,4 +466,58 @@ footer
 	user-select:none;
 	resize:none;
 	font-size:0.85em;
+}
+.alt-bg
+{
+	color:#333;
+	background-color:#EBF5E9
+}
+
+.main-bg
+{
+	color:#666;
+	background-color:#fff;
+}
+
+.side-bg
+{
+	background-color:#E6E6E6;
+}
+
+.user-label
+{
+	text-align:left;
+	background-color:#009507;
+}
+.message-block .label
+{
+	font-size:1.0em;
+	font-weight:normal;
+	padding-left:5px;
+	margin-left:-15px;
+	margin-right:-10px;
+	margin-top:2px;
+	border-right:5px double #fff;
+}
+.user-join
+{
+	font-weight:bold;
+	color:green;
+}
+
+.user-left
+{
+	font-weight:bold;
+	color:orange;
+}
+
+.user-disconnected
+{
+	font-weight:bold;
+	color:red;
+}
+
+.channel-button
+{
+	
 }
