@@ -485,7 +485,16 @@ footer
 .user-label
 {
 	text-align:left;
+}
+
+#users .btn-success,
+#messages .label-success
+{
 	background-color:#009507;
+}
+#users .btn-success:hover
+{
+	background-color:#00aa09;
 }
 .message-block .label
 {
