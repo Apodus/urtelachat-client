@@ -265,7 +265,31 @@ class ChatData
 		}
 		return null;
 	}
+	setUserData(userName:string,data:any)
+	{
+		//channel: "roi"
+		//is_op: false
+		//user: "fazias"
+
+		var channel:ChatChannel = this.getChannelByName(data.channel);
 	
+		for(var j:number = 0 ; j < channel.members.length; j++)
+		{
+			var member:ChatMember = channel.members[j];
+			if(member.name == userName)
+			{
+				member.setOpStatus(data.channel,data.is_op);
+				this.onMemberStatusChanged.send(member);
+				
+				if(channel == this.getActiveChannel())
+				{
+					this.onActiveChannelMembersChanged.send(channel);
+				}
+				
+				return;
+			}
+		}
+	}
 	setUserStatus(userName:string,status:string)
 	{
 		for(var i:number = 0 ; i < this.channels.length; i++)

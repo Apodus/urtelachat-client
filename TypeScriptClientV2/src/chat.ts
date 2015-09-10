@@ -219,9 +219,15 @@ class Chat
 			NotificationSystem.get().showPopover("Welcome to urtela chat",name);
 		});
 		
-		this.client.onReceiveUserData.add(function(data:string)
+		this.client.onReceiveUserData.add(function(data:any)
 		{
-			Debug.log("Got Userdata:\n"+data);
+			Debug.log("User "+data.user+" in "+data.channel+ " is op:"+data.is_op);
+			self.data.setUserData(data.user,data);
+		});
+		
+		this.client.onReceiveChannelData.add(function(data:string)
+		{
+			Debug.log("Got Channel data:\n"+data);
 		});
 	}
 	static create()

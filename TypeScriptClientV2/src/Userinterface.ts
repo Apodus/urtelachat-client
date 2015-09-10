@@ -319,7 +319,17 @@ class Userinterface
 					break;
 			}
 			
-			user.innerHTML = '<span class="glyphicon glyphicon-user" aria-hidden="true"></span> '+member.name;
+			if(member.isOp(channel.name))
+			{
+				$(user).addClass("channel-op");
+				user.innerHTML = '<span class="glyphicon glyphicon-education" aria-hidden="true"></span> '+member.name;
+			}
+			else
+			{
+				$(user).removeClass("channel-op");
+				user.innerHTML = '<span class="glyphicon glyphicon-user" aria-hidden="true"></span> '+member.name;
+			}
+			
 			$(user).attr("user",member.name);
 			var signal:Signal = this.onPrivateChatStarted;
 			$(user).click(function()

@@ -217,7 +217,14 @@ var Userinterface = (function () {
                     user.className += " btn-success";
                     break;
             }
-            user.innerHTML = '<span class="glyphicon glyphicon-user" aria-hidden="true"></span> ' + member.name;
+            if (member.isOp(channel.name)) {
+                $(user).addClass("channel-op");
+                user.innerHTML = '<span class="glyphicon glyphicon-education" aria-hidden="true"></span> ' + member.name;
+            }
+            else {
+                $(user).removeClass("channel-op");
+                user.innerHTML = '<span class="glyphicon glyphicon-user" aria-hidden="true"></span> ' + member.name;
+            }
             $(user).attr("user", member.name);
             var signal = this.onPrivateChatStarted;
             $(user).click(function () {
@@ -636,7 +643,11 @@ var Chat = (function () {
             NotificationSystem.get().showPopover("Welcome to urtela chat", name);
         });
         this.client.onReceiveUserData.add(function (data) {
-            Debug.log("Got Userdata:\n" + data);
+            Debug.log("User " + data.user + " in " + data.channel + " is op:" + data.is_op);
+            self.data.setUserData(data.user, data);
+        });
+        this.client.onReceiveChannelData.add(function (data) {
+            Debug.log("Got Channel data:\n" + data);
         });
     };
     Chat.create = function () {
@@ -894,6 +905,23 @@ var ChatData = (function () {
         }
         return null;
     };
+    ChatData.prototype.setUserData = function (userName, data) {
+        //channel: "roi"
+        //is_op: false
+        //user: "fazias"
+        var channel = this.getChannelByName(data.channel);
+        for (var j = 0; j < channel.members.length; j++) {
+            var member = channel.members[j];
+            if (member.name == userName) {
+                member.setOpStatus(data.channel, data.is_op);
+                this.onMemberStatusChanged.send(member);
+                if (channel == this.getActiveChannel()) {
+                    this.onActiveChannelMembersChanged.send(channel);
+                }
+                return;
+            }
+        }
+    };
     ChatData.prototype.setUserStatus = function (userName, status) {
         for (var i = 0; i < this.channels.length; i++) {
             var channel = this.channels[i];
@@ -959,7 +987,14 @@ var ChatMember = (function () {
         this.name = name;
         this.userID = id;
         this.status = status;
+        this.opChannels = {};
     }
+    ChatMember.prototype.setOpStatus = function (channel, op) {
+        this.opChannels[channel] = op;
+    };
+    ChatMember.prototype.isOp = function (channel) {
+        return this.opChannels[channel] == true;
+    };
     return ChatMember;
 })();
 var ChatMessageType;
@@ -1093,6 +1128,7 @@ var Client = (function () {
         this.onServerCommand = new Signal();
         this.onReceiveLocalUsername = new Signal();
         this.onReceiveUserData = new Signal();
+        this.onReceiveChannelData = new Signal();
     }
     Client.prototype.changeServerStatus = function (status) {
         this.onServerStatusChanged.send(status);
@@ -1136,6 +1172,10 @@ var Client = (function () {
         this.socket.on('login_complete', function (data) { client.connected(data); });
         this.socket.on('your_nick', function (data) { client.receiveLocalUser(data); });
         this.socket.on('op', function (data) { client.receiveUserData(data); });
+        this.socket.on('channelmod', function (data) { client.receiveChannelData(data); });
+    };
+    Client.prototype.receiveChannelData = function (data) {
+        this.onReceiveChannelData.send(data);
     };
     Client.prototype.receiveUserData = function (data) {
         this.onReceiveUserData.send(data);
@@ -1593,7 +1633,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.538";
+        this.version = "V.2.0.547";
     }
     return ProjectConfig;
 })();

@@ -178,11 +178,10 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#959595', end
 	bottom:10%;
 	left:5px;
 	padding:2px;
-	overflow:hidden;
 	border:1px solid #aaa;
 	border-top:1px solid #fff;
 	border-bottom:1px solid #888;
-	/*overflow-y:scroll;*/
+/*	overflow-y:scroll;*/
 }
 	
 #messages
@@ -519,4 +518,12 @@ footer
 .channel-button
 {
 	
+}
+
+.channel-op
+{
+	font-weight:bolder;
+	margin:-2px;
+	font-size:1.0em;
+	margin-left:-5px;
 }

@@ -22,6 +22,7 @@ class Client
 	onServerCommand:Signal;
 	onReceiveLocalUsername:Signal;
 	onReceiveUserData:Signal;
+	onReceiveChannelData:Signal;
 	
 	constructor()
 	{
@@ -42,6 +43,7 @@ class Client
 		this.onServerCommand = new Signal();
 		this.onReceiveLocalUsername = new Signal();
 		this.onReceiveUserData = new Signal();
+		this.onReceiveChannelData = new Signal();
 	}
 	changeServerStatus(status:string)
 	{
@@ -97,8 +99,13 @@ class Client
 		this.socket.on('login_complete', function(data:string) { client.connected(data); });
 		this.socket.on('your_nick', function(data:string) { client.receiveLocalUser(data); });
 		this.socket.on('op', function(data:string) { client.receiveUserData(data); });
+		this.socket.on('channelmod', function(data:string) { client.receiveChannelData(data); });
 	}
-	receiveUserData(data:string)
+	receiveChannelData(data:string)
+	{
+		this.onReceiveChannelData.send(data);
+	}
+	receiveUserData(data:Object)
 	{
 		this.onReceiveUserData.send(data);
 	}
