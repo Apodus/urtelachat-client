@@ -1643,7 +1643,7 @@ var NotificationSystem = (function () {
         }
         this.hide();
         this.active = true;
-        this.notification = new Notification(Utils.unwindHtml(this.title), { "body": Utils.unwindHtml(this.text), "icon": "http://urtela.redlynx.com/img/chaticon.jpg" });
+        this.notification = new Notification(Utils.unwindHtml(Utils.stripXml(this.title)), { "body": Utils.unwindHtml(Utils.stripXml(this.text)), "icon": "http://urtela.redlynx.com/img/chaticon.jpg" });
         setTimeout(function () {
             NotificationSystem.get().hide();
         }, 5000);
@@ -1708,7 +1708,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.614";
+        this.version = "V.2.0.617";
     }
     return ProjectConfig;
 })();
@@ -1960,6 +1960,9 @@ var Utils = (function () {
             .replace(/\&gt\;/g, ">")
             .replace(/\&quot\;/g, "\"")
             .replace(/\&\#039\;/g, "'");
+    };
+    Utils.stripXml = function (str) {
+        return str.replace(/(<([^>]+)>)/ig, "");
     };
     return Utils;
 })();

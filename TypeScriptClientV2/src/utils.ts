@@ -76,4 +76,8 @@ class Utils
 			.replace(/\&quot\;/g, "\"")
 			.replace(/\&\#039\;/g, "'");
 	}
+	static stripXml(str:string):string
+	{
+		return str.replace(/(<([^>]+)>)/ig,"");
+	}	
 }
