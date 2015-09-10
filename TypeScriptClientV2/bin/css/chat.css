@@ -442,7 +442,6 @@ footer
 .channel-settings
 {
 	max-width: 300px;
-	overflow:hidden;
 	padding:5px;
 }
 .channel-settings .topic

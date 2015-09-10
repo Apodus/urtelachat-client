@@ -808,7 +808,7 @@ var ChatData = (function () {
         }
         this.channels.push(channel);
         this.onChannelAdded.send(channel);
-        if (!this.firstChannelSet) {
+        if (!this.firstChannelSet || channel.name == this.getStoredChannel()) {
             this.firstChannelSet = true;
             this.setActiveChannel(this.channels.length - 1);
         }
@@ -900,8 +900,11 @@ var ChatData = (function () {
         channel.topic = topic;
         this.onChannelTopicChanged.send(channel);
     };
+    ChatData.prototype.getStoredChannel = function () {
+        return this.getCookie(CookieNames.ACTIVE_CHANNEL);
+    };
     ChatData.prototype.restoreActiveChannel = function () {
-        var stored = this.getCookie(CookieNames.ACTIVE_CHANNEL);
+        var stored = this.getStoredChannel();
         Debug.log("restoreActiveChannel:" + stored);
         if (stored == null || stored == "" || stored == "null") {
             this.activeChannel = 0;
@@ -913,8 +916,7 @@ var ChatData = (function () {
                 return;
             }
         }
-        Debug.log("Can't restore active channel, try to join.");
-        this.onChannelLost.send(stored);
+        Debug.log("Can't restore active channel, try to join later.");
     };
     ChatData.prototype.setCookie = function (cname, cvalue, exdays) {
         Debug.log("Set cookie:" + cname + ": " + cvalue);
@@ -1512,7 +1514,7 @@ var MessageInputHistory = (function () {
         if (this.notification != null) {
             this.notification.clearTimeout();
         }
-        this.notification = new PopoverNotification(HtmlID.MESSAGE_INPUT, "Sent Message History " + (this.index + 1) + "/" + (this.history.length + 1));
+        this.notification = new PopoverNotification(HtmlID.MESSAGE_INPUT, "Sent Message History " + (this.index + 1) + "/" + (this.history.length));
         this.notification.getOptions().placement = "top";
         this.notification.show();
         return this.history[this.index];
@@ -1679,7 +1681,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.593";
+        this.version = "V.2.0.599";
     }
     return ProjectConfig;
 })();
