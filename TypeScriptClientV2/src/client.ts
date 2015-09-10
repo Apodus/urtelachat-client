@@ -193,6 +193,11 @@ class Client
 			this.sendData('upload file', channel.name + '|' + file.name);
 		}
 	}
+	uploadImageData(data:string,channel:ChatChannel)
+	{
+		Debug.log("Uploading image data: "+data);
+		this.sendData('data message', {type:"imagePaste",channel:channel.name,image:data});
+	}
 	exitChannel(channel:ChatChannel)
 	{
 		this.log("Exit channel:"+channel.name);
