@@ -101,7 +101,7 @@ class ChatData
 		this.onChannelAdded.send(channel);
 		
 		//Check if no channel is active
-		if(!this.firstChannelSet)
+		if(!this.firstChannelSet || channel.name == this.getStoredChannel())
 		{
 			this.firstChannelSet=true;
 			this.setActiveChannel(this.channels.length-1);
@@ -220,9 +220,13 @@ class ChatData
 		channel.topic = topic;
 		this.onChannelTopicChanged.send(channel);
 	}
+	getStoredChannel():string
+	{
+		return this.getCookie(CookieNames.ACTIVE_CHANNEL);
+	}
 	restoreActiveChannel()
 	{
-		var stored:string = this.getCookie(CookieNames.ACTIVE_CHANNEL);
+		var stored:string = this.getStoredChannel();
 		Debug.log("restoreActiveChannel:"+stored);
 		if(stored == null || stored == "" || stored == "null")
 		{
@@ -231,7 +235,7 @@ class ChatData
 			return;
 		}
 		
-		for(var i:number =0; this.channels.length; i++)
+		for(var i:number = 0; this.channels.length; i++)
 		{
 			if(this.channels[i].name === stored)
 			{
@@ -240,8 +244,8 @@ class ChatData
 			}
 		}
 		
-		Debug.log("Can't restore active channel, try to join.");
-		this.onChannelLost.send(stored);
+		Debug.log("Can't restore active channel, try to join later.");
+		//this.onChannelLost.send(stored);
 	}
 	
 	setCookie(cname:string, cvalue:string, exdays:number)

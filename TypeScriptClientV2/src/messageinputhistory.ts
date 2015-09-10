@@ -27,7 +27,7 @@ class MessageInputHistory
 		{
 			this.notification.clearTimeout();
 		}
-		this.notification = new PopoverNotification(HtmlID.MESSAGE_INPUT,"Sent Message History "+(this.index+1)+"/"+(this.history.length+1));
+		this.notification = new PopoverNotification(HtmlID.MESSAGE_INPUT,"Sent Message History "+(this.index+1)+"/"+(this.history.length));
 		this.notification.getOptions().placement = "top";
 		this.notification.show();
 		
