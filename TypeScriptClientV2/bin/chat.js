@@ -463,6 +463,9 @@ var ChannelButton = (function () {
         $(this.element).append(messages);
         $(this.element).append(channelName);
         $(this.element).append(settings);
+        this.dataDisplay = document.createElement("div");
+        this.dataDisplay.className = "channel-data well";
+        $(settings).append(this.dataDisplay);
         var self = this;
         $(closeButton).click(function (e) {
             self.element.onclick = null;
@@ -527,6 +530,10 @@ var ChannelButton = (function () {
             $(this.notificationsButton).addClass("btn-warning");
             $(this.notificationsButton).removeClass("btn-success");
         }
+        this.dataDisplay.innerHTML = "Channel Settings:<br/>";
+        for (var item in this.channel.data) {
+            this.dataDisplay.innerHTML += '<span class="label label-default">' + item + ':' + this.channel.data[item] + '</span><br/>';
+        }
     };
     return ChannelButton;
 })();
@@ -546,6 +553,7 @@ var Chat = (function () {
     }
     Chat.prototype.init = function () {
         Debug.log("init");
+        this.ui.setLoading('Loading Chat...<br/><span class="version">' + Project.name + " " + Project.version + " CodeName:" + Project.codeName + '</span>');
         this.client.connect("http://urtela.redlynx.com:3002", this.data.localMember.userID);
         setTimeout(this.ui.setLoading.bind(this), 2000);
     };
@@ -578,6 +586,7 @@ var Chat = (function () {
         this.data.onChannelLost.add(function (channelName) {
             self.client.joinChannel(channelName);
         });
+        this.data.onChannelDataChanged.add(this.ui.updateChannelSettings.bind(this.ui));
         this.ui.onActiveChannelChanged.add(function (channel) {
             self.data.setActiveChannelByChannel(channel);
         });
@@ -660,7 +669,8 @@ var Chat = (function () {
             self.data.setUserData(data.user, data);
         });
         this.client.onReceiveChannelData.add(function (data) {
-            Debug.log("Got Channel data:\n" + data);
+            Debug.log("Got Channel data:\n" + data.channel + ": " + data.key + "=" + data.value);
+            self.data.setChannelData(data.channel, data.key, data.value);
         });
     };
     Chat.create = function () {
@@ -687,6 +697,7 @@ var ChatChannel = (function () {
         this.members = new Array();
         this.allowNotifications = false;
         this.isPrivate = name[0] === "@";
+        this.data = {};
     }
     ChatChannel.prototype.addMember = function (member) {
         this.members.push(member);
@@ -723,6 +734,12 @@ var ChatChannel = (function () {
         }
         this.addMember(new ChatMember(username, "null", "online"));
     };
+    ChatChannel.prototype.setData = function (key, value) {
+        this.data[key] = value;
+    };
+    ChatChannel.prototype.getData = function (key) {
+        return this.data[key];
+    };
     ChatChannel.nextID = 0;
     return ChatChannel;
 })();
@@ -750,7 +767,7 @@ var ChatData = (function () {
         this.onActiveChannelChanged = new Signal();
         this.onActiveChannelMembersChanged = new Signal();
         this.onActiveChannelMessageAdded = new Signal();
-        this.onActiveChannelDataAdded = new Signal();
+        this.onChannelDataChanged = new Signal();
         this.onChannelTopicChanged = new Signal();
         this.onChannelSettingsChanged = new Signal();
         this.onChannelMessageAdded = new Signal();
@@ -931,6 +948,16 @@ var ChatData = (function () {
                 if (channel == this.getActiveChannel()) {
                     this.onActiveChannelMembersChanged.send(channel);
                 }
+                return;
+            }
+        }
+    };
+    ChatData.prototype.setChannelData = function (channelName, key, value) {
+        for (var i = 0; i < this.channels.length; i++) {
+            var channel = this.channels[i];
+            if (channel.name == channelName) {
+                channel.setData(key, value);
+                this.onChannelDataChanged.send(channel);
                 return;
             }
         }
@@ -1283,6 +1310,12 @@ var Client = (function () {
             return;
         }
         if (split[0] == "/marker") {
+            return;
+        }
+        if (split[0] == "/mod") {
+            var key = split[1];
+            var val = split[2];
+            this.sendData("channelmod", { mod: key, value: val, channel: channel.name });
             return;
         }
         if (split[0] == "/imdb") {
@@ -1646,7 +1679,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.574";
+        this.version = "V.2.0.593";
     }
     return ProjectConfig;
 })();

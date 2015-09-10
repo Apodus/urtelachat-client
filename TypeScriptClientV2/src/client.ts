@@ -208,7 +208,7 @@ class Client
 		msg = "@"+target.name + "|" + msg;
 		this.sendData("chat message", msg);
 	}
-	sendData(key:string,data:string)
+	sendData(key:string,data:any)
 	{
 		Debug.debugLog("Socket emit: "+key+" = "+data);
 		
@@ -249,6 +249,15 @@ class Client
 		if(split[0] == "/marker")
 		{
 			//TODO
+			return;
+		}
+		
+		if(split[0] == "/mod")
+		{
+			var key:string = split[1];
+			var val:string = split[2];
+			
+			this.sendData("channelmod",{mod:key,value:val,channel:channel.name});
 			return;
 		}
 

@@ -8,6 +8,8 @@ class ChatChannel
 	id:number;
 	allowNotifications:boolean;
 	isPrivate:boolean;
+	data:any;
+	
 	static nextID:number = 0;
 	constructor(name:string,topic:string)
 	{
@@ -18,6 +20,7 @@ class ChatChannel
 		this.members = new Array<ChatMember>();
 		this.allowNotifications = false;
 		this.isPrivate = name[0] === "@";
+		this.data = {};
 	}
 	addMember(member:ChatMember)
 	{
@@ -66,5 +69,13 @@ class ChatChannel
 		}
 		
 		this.addMember(new ChatMember(username,"null","online"));
+	}
+	setData(key:string,value:string)
+	{
+		this.data[key]=value;
+	}
+	getData(key:string):any
+	{
+		return this.data[key];
 	}
 }

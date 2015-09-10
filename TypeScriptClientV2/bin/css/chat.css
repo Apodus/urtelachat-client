@@ -536,3 +536,9 @@ footer
 	font-size:1.0em;
 	margin-left:-5px;
 }
+
+.version
+{
+	font-weight:lighter;
+	font-size:0.4em;
+}

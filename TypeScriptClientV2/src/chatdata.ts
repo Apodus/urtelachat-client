@@ -18,7 +18,7 @@ class ChatData
 	onActiveChannelChanged:Signal;
 	onActiveChannelMembersChanged:Signal;
 	onActiveChannelMessageAdded:Signal;
-	onActiveChannelDataAdded:Signal;
+	onChannelDataChanged:Signal;
 	onChannelTopicChanged:Signal;
 	onChannelMessageAdded:Signal;
 	
@@ -44,7 +44,7 @@ class ChatData
 		this.onActiveChannelChanged = new Signal();
 		this.onActiveChannelMembersChanged = new Signal();
 		this.onActiveChannelMessageAdded = new Signal();
-		this.onActiveChannelDataAdded = new Signal();
+		this.onChannelDataChanged = new Signal();
 		this.onChannelTopicChanged = new Signal();
 		this.onChannelSettingsChanged = new Signal();
 		
@@ -286,6 +286,19 @@ class ChatData
 					this.onActiveChannelMembersChanged.send(channel);
 				}
 				
+				return;
+			}
+		}
+	}
+	setChannelData(channelName:string,key:string,value:string)
+	{
+		for(var i:number = 0 ; i < this.channels.length; i++)
+		{
+			var channel:ChatChannel = this.channels[i];
+			if(channel.name == channelName)
+			{
+				channel.setData(key,value);
+				this.onChannelDataChanged.send(channel);
 				return;
 			}
 		}

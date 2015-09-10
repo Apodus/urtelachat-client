@@ -30,6 +30,7 @@ class Chat
 	{
 		Debug.log("init");
 		
+		this.ui.setLoading('Loading Chat...<br/><span class="version">'+Project.name+" "+Project.version+" CodeName:"+Project.codeName+'</span>');
 		//var test:TestSystem = new TestSystem(this.data, this.ui, this.client); return;
 		
 		//Debug["debugLevel"]=DebugLevel.DEBUG_FULL;this.client.connect("http://urtela.redlynx.com:3002","testiperse2000");
@@ -87,6 +88,7 @@ class Chat
 			self.client.joinChannel(channelName);
 		});
 		
+		this.data.onChannelDataChanged.add(this.ui.updateChannelSettings.bind(this.ui));
 		
 		
 		
@@ -220,9 +222,10 @@ class Chat
 			self.data.setUserData(data.user,data);
 		});
 		
-		this.client.onReceiveChannelData.add(function(data:string)
+		this.client.onReceiveChannelData.add(function(data:any)
 		{
-			Debug.log("Got Channel data:\n"+data);
+			Debug.log("Got Channel data:\n"+data.channel+": "+data.key+"="+data.value);
+			self.data.setChannelData(data.channel,data.key,data.value);
 		});
 	}
 	static create()

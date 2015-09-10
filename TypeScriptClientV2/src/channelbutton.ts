@@ -15,6 +15,8 @@ class ChannelButton
 	
 	notificationsButton:HTMLElement;
 	
+	dataDisplay:HTMLElement;
+	
 	constructor(channel:ChatChannel)
 	{
 		this.newMessages = 0;
@@ -64,7 +66,7 @@ class ChannelButton
 		$(settings).append(channelTopic);
 		
 		addButton("Close Channel",closeButton);
-		
+				
 		var notificationsButton:HTMLElement = document.createElement("button");
 		notificationsButton.className = "btn btn-warning btn-block btn-xs";
 		notificationsButton.innerHTML = '<span class="glyphicon glyphicon-flag" aria-hidden="true"></span> Notifications Disabled';
@@ -76,6 +78,10 @@ class ChannelButton
 		$(this.element).append(channelName);
 		
 		$(this.element).append(settings);
+		
+		this.dataDisplay = document.createElement("div");
+		this.dataDisplay.className = "channel-data well";
+		$(settings).append(this.dataDisplay);
 		
 		var self:ChannelButton = this;
 		$(closeButton).click(function(e:any)
@@ -169,6 +175,12 @@ class ChannelButton
 			this.notificationsButton.innerHTML = '<span class="glyphicon glyphicon-flag" aria-hidden="true"></span> Notifications Disabled';
 			$(this.notificationsButton).addClass("btn-warning");
 			$(this.notificationsButton).removeClass("btn-success");
+		}
+		
+		this.dataDisplay.innerHTML = "Channel Settings:<br/>";
+		for(var item in this.channel.data)
+		{
+			this.dataDisplay.innerHTML += '<span class="label label-default">'+item+':'+this.channel.data[item]+'</span><br/>';
 		}
 	}
 }
