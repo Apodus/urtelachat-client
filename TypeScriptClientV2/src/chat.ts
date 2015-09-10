@@ -35,7 +35,7 @@ class Chat
 		
 		//Debug["debugLevel"]=DebugLevel.DEBUG_FULL;this.client.connect("http://urtela.redlynx.com:3002","testiperse2000");
 		this.client.connect("http://urtela.redlynx.com:3002",this.data.localMember.userID);
-		
+
 		setTimeout(this.ui.setLoading.bind(this),2000);
 	}
 	bindDataCallbacks()

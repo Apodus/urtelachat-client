@@ -769,7 +769,7 @@ var ChatChannel = (function () {
 var CookieNames = (function () {
     function CookieNames() {
     }
-    CookieNames.USER_ID = "userID";
+    CookieNames.USER_ID = "username";
     CookieNames.USER_NAME = "userName";
     CookieNames.ACTIVE_CHANNEL = "activeChannel";
     return CookieNames;
@@ -1708,7 +1708,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.617";
+        this.version = "V.2.0.619";
     }
     return ProjectConfig;
 })();
