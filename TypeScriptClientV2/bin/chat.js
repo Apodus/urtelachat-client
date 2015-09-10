@@ -23,7 +23,13 @@ var Userinterface = (function () {
         this.onChannelNotificationToggled = new Signal();
         this.channelButtons = new Array();
         this.chatPanels = new Array();
+        var ui = this;
         this.settings = new SettingsPanel();
+        this.settings.onAutoScrollChanged.add(function (autoScroll) {
+            if (autoScroll) {
+                ui.messagesScrollToBottom(false);
+            }
+        });
         this.initKeyboard();
         this.initGlobalEvents();
     }
@@ -33,6 +39,13 @@ var Userinterface = (function () {
                 'You are about to leave the chat.\nPlease don\'t.';
             (e || window.event).returnValue = confirmationMessage;
             return confirmationMessage;
+        });
+        var ui = this;
+        $(HtmlID.MESSAGES).scroll(function () {
+            var h1 = $(HtmlID.MESSAGES)[0].scrollHeight;
+            var h2 = $(HtmlID.MESSAGES)[0].scrollTop;
+            var h3 = $(HtmlID.MESSAGES).outerHeight();
+            ui.settings.setAutoScroll(h1 - h2 - h3 <= 10);
         });
     };
     Userinterface.prototype.initChannelButton = function (channel) {
@@ -217,7 +230,14 @@ var Userinterface = (function () {
                     user.className += " btn-success";
                     break;
             }
-            user.innerHTML = '<span class="glyphicon glyphicon-user" aria-hidden="true"></span> ' + member.name;
+            if (member.isOp(channel.name)) {
+                $(user).addClass("channel-op");
+                user.innerHTML = '<span class="glyphicon glyphicon-education" aria-hidden="true"></span> ' + member.name;
+            }
+            else {
+                $(user).removeClass("channel-op");
+                user.innerHTML = '<span class="glyphicon glyphicon-user" aria-hidden="true"></span> ' + member.name;
+            }
             $(user).attr("user", member.name);
             var signal = this.onPrivateChatStarted;
             $(user).click(function () {
@@ -423,7 +443,7 @@ var ChannelButton = (function () {
         messages.className = "message-count badge";
         this.newMessagesLabel = messages;
         var settings = document.createElement("div");
-        settings.className = "well channel-settings dropshadow-5";
+        settings.className = "well channel-settings dropshadow-5 text-primary";
         var addButton = function (text, button) {
             var wrapper = document.createElement("div");
             wrapper.className = "";
@@ -443,6 +463,9 @@ var ChannelButton = (function () {
         $(this.element).append(messages);
         $(this.element).append(channelName);
         $(this.element).append(settings);
+        this.dataDisplay = document.createElement("div");
+        this.dataDisplay.className = "channel-data well";
+        $(settings).append(this.dataDisplay);
         var self = this;
         $(closeButton).click(function (e) {
             self.element.onclick = null;
@@ -507,6 +530,10 @@ var ChannelButton = (function () {
             $(this.notificationsButton).addClass("btn-warning");
             $(this.notificationsButton).removeClass("btn-success");
         }
+        this.dataDisplay.innerHTML = "Channel Settings:<br/>";
+        for (var item in this.channel.data) {
+            this.dataDisplay.innerHTML += '<span class="label label-default">' + item + ':' + this.channel.data[item] + '</span><br/>';
+        }
     };
     return ChannelButton;
 })();
@@ -526,8 +553,9 @@ var Chat = (function () {
     }
     Chat.prototype.init = function () {
         Debug.log("init");
+        this.ui.setLoading('Loading Chat...<br/><span class="version">' + Project.name + " " + Project.version + " CodeName:" + Project.codeName + '</span>');
         this.client.connect("http://urtela.redlynx.com:3002", this.data.localMember.userID);
-        this.ui.setLoading(null);
+        setTimeout(this.ui.setLoading.bind(this), 2000);
     };
     Chat.prototype.bindDataCallbacks = function () {
         var self = this;
@@ -558,6 +586,7 @@ var Chat = (function () {
         this.data.onChannelLost.add(function (channelName) {
             self.client.joinChannel(channelName);
         });
+        this.data.onChannelDataChanged.add(this.ui.updateChannelSettings.bind(this.ui));
         this.ui.onActiveChannelChanged.add(function (channel) {
             self.data.setActiveChannelByChannel(channel);
         });
@@ -632,6 +661,17 @@ var Chat = (function () {
         this.client.onServerCommand.add(function (command) {
             self.ui.reload();
         });
+        this.client.onReceiveLocalUsername.add(function (name) {
+            NotificationSystem.get().showPopover("Welcome to urtela chat", name);
+        });
+        this.client.onReceiveUserData.add(function (data) {
+            Debug.log("User " + data.user + " in " + data.channel + " is op:" + data.is_op);
+            self.data.setUserData(data.user, data);
+        });
+        this.client.onReceiveChannelData.add(function (data) {
+            Debug.log("Got Channel data:\n" + data.channel + ": " + data.key + "=" + data.value);
+            self.data.setChannelData(data.channel, data.key, data.value);
+        });
     };
     Chat.create = function () {
         var chat = new Chat();
@@ -657,6 +697,7 @@ var ChatChannel = (function () {
         this.members = new Array();
         this.allowNotifications = false;
         this.isPrivate = name[0] === "@";
+        this.data = {};
     }
     ChatChannel.prototype.addMember = function (member) {
         this.members.push(member);
@@ -693,6 +734,12 @@ var ChatChannel = (function () {
         }
         this.addMember(new ChatMember(username, "null", "online"));
     };
+    ChatChannel.prototype.setData = function (key, value) {
+        this.data[key] = value;
+    };
+    ChatChannel.prototype.getData = function (key) {
+        return this.data[key];
+    };
     ChatChannel.nextID = 0;
     return ChatChannel;
 })();
@@ -720,7 +767,7 @@ var ChatData = (function () {
         this.onActiveChannelChanged = new Signal();
         this.onActiveChannelMembersChanged = new Signal();
         this.onActiveChannelMessageAdded = new Signal();
-        this.onActiveChannelDataAdded = new Signal();
+        this.onChannelDataChanged = new Signal();
         this.onChannelTopicChanged = new Signal();
         this.onChannelSettingsChanged = new Signal();
         this.onChannelMessageAdded = new Signal();
@@ -888,6 +935,33 @@ var ChatData = (function () {
         }
         return null;
     };
+    ChatData.prototype.setUserData = function (userName, data) {
+        //channel: "roi"
+        //is_op: false
+        //user: "fazias"
+        var channel = this.getChannelByName(data.channel);
+        for (var j = 0; j < channel.members.length; j++) {
+            var member = channel.members[j];
+            if (member.name == userName) {
+                member.setOpStatus(data.channel, data.is_op);
+                this.onMemberStatusChanged.send(member);
+                if (channel == this.getActiveChannel()) {
+                    this.onActiveChannelMembersChanged.send(channel);
+                }
+                return;
+            }
+        }
+    };
+    ChatData.prototype.setChannelData = function (channelName, key, value) {
+        for (var i = 0; i < this.channels.length; i++) {
+            var channel = this.channels[i];
+            if (channel.name == channelName) {
+                channel.setData(key, value);
+                this.onChannelDataChanged.send(channel);
+                return;
+            }
+        }
+    };
     ChatData.prototype.setUserStatus = function (userName, status) {
         for (var i = 0; i < this.channels.length; i++) {
             var channel = this.channels[i];
@@ -953,7 +1027,14 @@ var ChatMember = (function () {
         this.name = name;
         this.userID = id;
         this.status = status;
+        this.opChannels = {};
     }
+    ChatMember.prototype.setOpStatus = function (channel, op) {
+        this.opChannels[channel] = op;
+    };
+    ChatMember.prototype.isOp = function (channel) {
+        return this.opChannels[channel] == true;
+    };
     return ChatMember;
 })();
 var ChatMessageType;
@@ -1085,6 +1166,9 @@ var Client = (function () {
         this.onConnected = new Signal();
         this.onLogMessage = new Signal();
         this.onServerCommand = new Signal();
+        this.onReceiveLocalUsername = new Signal();
+        this.onReceiveUserData = new Signal();
+        this.onReceiveChannelData = new Signal();
     }
     Client.prototype.changeServerStatus = function (status) {
         this.onServerStatusChanged.send(status);
@@ -1126,6 +1210,18 @@ var Client = (function () {
         this.socket.on('topic', function (data) { client.topicChanged(data); });
         this.socket.on('disconnect', function (data) { client.disconnected(data); });
         this.socket.on('login_complete', function (data) { client.connected(data); });
+        this.socket.on('your_nick', function (data) { client.receiveLocalUser(data); });
+        this.socket.on('op', function (data) { client.receiveUserData(data); });
+        this.socket.on('channelmod', function (data) { client.receiveChannelData(data); });
+    };
+    Client.prototype.receiveChannelData = function (data) {
+        this.onReceiveChannelData.send(data);
+    };
+    Client.prototype.receiveUserData = function (data) {
+        this.onReceiveUserData.send(data);
+    };
+    Client.prototype.receiveLocalUser = function (localUserName) {
+        this.onReceiveLocalUsername.send(localUserName);
     };
     Client.prototype.serverCommand = function (data) {
         this.onServerCommand.send(data);
@@ -1214,6 +1310,12 @@ var Client = (function () {
             return;
         }
         if (split[0] == "/marker") {
+            return;
+        }
+        if (split[0] == "/mod") {
+            var key = split[1];
+            var val = split[2];
+            this.sendData("channelmod", { mod: key, value: val, channel: channel.name });
             return;
         }
         if (split[0] == "/imdb") {
@@ -1577,7 +1679,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.532";
+        this.version = "V.2.0.593";
     }
     return ProjectConfig;
 })();
@@ -1586,6 +1688,7 @@ var SettingsPanel = (function () {
     function SettingsPanel() {
         this.useAutoScroll = true;
         this.onFileDrop = new Signal();
+        this.onAutoScrollChanged = new Signal();
         this.refreshAutoScrollToggleButton();
         var settings = this;
         $(HtmlID.AUTO_SCROLL_TOGGLE_BUTTON).click(function () {
@@ -1641,6 +1744,12 @@ var SettingsPanel = (function () {
             iconOff.show();
             iconOn.hide();
         }
+        this.onAutoScrollChanged.send(this.useAutoScroll);
+    };
+    SettingsPanel.prototype.setAutoScroll = function (enabled) {
+        this.useAutoScroll = enabled;
+        Debug.log("Autoscroll set: " + this.useAutoScroll);
+        this.refreshAutoScrollToggleButton();
     };
     SettingsPanel.prototype.toggleAutoScroll = function () {
         this.useAutoScroll = !this.useAutoScroll;

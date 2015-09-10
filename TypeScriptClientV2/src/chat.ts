@@ -30,17 +30,13 @@ class Chat
 	{
 		Debug.log("init");
 		
-		//Debug["debugLevel"]=DebugLevel.DEBUG_FULL;
-		
+		this.ui.setLoading('Loading Chat...<br/><span class="version">'+Project.name+" "+Project.version+" CodeName:"+Project.codeName+'</span>');
 		//var test:TestSystem = new TestSystem(this.data, this.ui, this.client); return;
 		
-		this.client.connect(
-			"http://urtela.redlynx.com:3002",
-			//"testiperse2000"
-			this.data.localMember.userID
-		);
+		//Debug["debugLevel"]=DebugLevel.DEBUG_FULL;this.client.connect("http://urtela.redlynx.com:3002","testiperse2000");
+		this.client.connect("http://urtela.redlynx.com:3002",this.data.localMember.userID);
 		
-		this.ui.setLoading(null);
+		setTimeout(this.ui.setLoading.bind(this),2000);
 	}
 	bindDataCallbacks()
 	{
@@ -92,6 +88,7 @@ class Chat
 			self.client.joinChannel(channelName);
 		});
 		
+		this.data.onChannelDataChanged.add(this.ui.updateChannelSettings.bind(this.ui));
 		
 		
 		
@@ -211,6 +208,24 @@ class Chat
 		this.client.onServerCommand.add(function(command:string)
 		{
 			self.ui.reload();
+		});
+		
+		this.client.onReceiveLocalUsername.add(function(name:string)
+		{
+			//TODO
+			NotificationSystem.get().showPopover("Welcome to urtela chat",name);
+		});
+		
+		this.client.onReceiveUserData.add(function(data:any)
+		{
+			Debug.log("User "+data.user+" in "+data.channel+ " is op:"+data.is_op);
+			self.data.setUserData(data.user,data);
+		});
+		
+		this.client.onReceiveChannelData.add(function(data:any)
+		{
+			Debug.log("Got Channel data:\n"+data.channel+": "+data.key+"="+data.value);
+			self.data.setChannelData(data.channel,data.key,data.value);
 		});
 	}
 	static create()

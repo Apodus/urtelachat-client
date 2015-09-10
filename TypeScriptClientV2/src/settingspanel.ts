@@ -3,11 +3,13 @@ class SettingsPanel
 	useAutoScroll:boolean;
 	myDropzone:Dropzone;
 	onFileDrop:Signal;
+	onAutoScrollChanged:Signal;
 	
 	constructor()
 	{
 		this.useAutoScroll = true;
 		this.onFileDrop = new Signal();
+		this.onAutoScrollChanged = new Signal();
 		
 		this.refreshAutoScrollToggleButton();
 		
@@ -87,8 +89,14 @@ class SettingsPanel
 			iconOff.show();
 			iconOn.hide();
 		}
+		this.onAutoScrollChanged.send(this.useAutoScroll);
 	}
-	
+	setAutoScroll(enabled:boolean)
+	{
+		this.useAutoScroll = enabled;
+		Debug.log("Autoscroll set: "+this.useAutoScroll);
+		this.refreshAutoScrollToggleButton();
+	}
 	toggleAutoScroll()
 	{
 		this.useAutoScroll = !this.useAutoScroll;

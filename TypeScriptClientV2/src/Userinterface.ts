@@ -47,7 +47,15 @@ class Userinterface
 		
 		this.channelButtons = new Array<ChannelButton>();
 		this.chatPanels = new Array<ChatPanel>();
+		var ui:Userinterface = this;
 		this.settings = new SettingsPanel();
+		this.settings.onAutoScrollChanged.add(function(autoScroll:boolean)
+		{
+			if(autoScroll)
+			{
+				ui.messagesScrollToBottom(false);
+			}
+		});
 	
 		this.initKeyboard();
 		
@@ -63,6 +71,18 @@ class Userinterface
 
 			(e || window.event).returnValue = confirmationMessage; //Gecko + IE
 			return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
+		});
+		
+		var ui:Userinterface = this;
+		$(HtmlID.MESSAGES).scroll(function()
+		{
+			var h1:number = $(HtmlID.MESSAGES)[0].scrollHeight;
+			var h2:number = $(HtmlID.MESSAGES)[0].scrollTop;
+			var h3:number = $(HtmlID.MESSAGES).outerHeight();
+			
+			//Debug.log(h1+"-"+h2+"-"+h3+"="+(h1-h2-h3));
+			
+			ui.settings.setAutoScroll(h1-h2-h3<=10);
 		});
 	}
 	initChannelButton(channel:ChatChannel):ChannelButton
@@ -319,7 +339,17 @@ class Userinterface
 					break;
 			}
 			
-			user.innerHTML = '<span class="glyphicon glyphicon-user" aria-hidden="true"></span> '+member.name;
+			if(member.isOp(channel.name))
+			{
+				$(user).addClass("channel-op");
+				user.innerHTML = '<span class="glyphicon glyphicon-education" aria-hidden="true"></span> '+member.name;
+			}
+			else
+			{
+				$(user).removeClass("channel-op");
+				user.innerHTML = '<span class="glyphicon glyphicon-user" aria-hidden="true"></span> '+member.name;
+			}
+			
 			$(user).attr("user",member.name);
 			var signal:Signal = this.onPrivateChatStarted;
 			$(user).click(function()
