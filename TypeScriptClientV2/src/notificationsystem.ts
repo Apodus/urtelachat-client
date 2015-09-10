@@ -125,7 +125,7 @@ class NotificationSystem
 		this.hide();
 		this.active=true;
 		
-		this.notification = new Notification(Utils.unwindHtml(this.title), {"body": Utils.unwindHtml(this.text), "icon":"http://urtela.redlynx.com/img/chaticon.jpg"});
+		this.notification = new Notification(Utils.unwindHtml(Utils.stripXml(this.title)), {"body": Utils.unwindHtml(Utils.stripXml(this.text)), "icon":"http://urtela.redlynx.com/img/chaticon.jpg"});
 		
 		setTimeout(function()
 		{
