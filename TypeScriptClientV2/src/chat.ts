@@ -127,6 +127,10 @@ class Chat
 		{
 			self.data.toggleChannelSetting(channel,"notification");
 		});
+		this.ui.onPasteData.add(function(data:string)
+		{
+			self.client.uploadImageData(data,self.data.getActiveChannel());
+		});
 		
 		
 		

@@ -21,6 +21,7 @@ var Userinterface = (function () {
         this.onStatusChange = new Signal();
         this.onPrivateChatStarted = new Signal();
         this.onChannelNotificationToggled = new Signal();
+        this.onPasteData = new Signal();
         this.channelButtons = new Array();
         this.chatPanels = new Array();
         var ui = this;
@@ -47,6 +48,25 @@ var Userinterface = (function () {
             var h3 = $(HtmlID.MESSAGES).outerHeight();
             ui.settings.setAutoScroll(h1 - h2 - h3 <= 10);
         });
+        document.body.onpaste = this.onPaste.bind(this);
+    };
+    Userinterface.prototype.onPaste = function (event) {
+        var ui = this;
+        var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+        var load = function (idx) {
+            var blob = items[idx].getAsFile();
+            var reader = new FileReader();
+            reader.onload = function (event) {
+                ui.onPasteData.send(event.target.result);
+            };
+            reader.readAsDataURL(blob);
+        };
+        try {
+            load(0);
+        }
+        catch (error) {
+            load(1);
+        }
     };
     Userinterface.prototype.initChannelButton = function (channel) {
         for (var i = 0; i < this.channelButtons.length; i++) {
@@ -611,6 +631,9 @@ var Chat = (function () {
         });
         this.ui.onChannelNotificationToggled.add(function (channel) {
             self.data.toggleChannelSetting(channel, "notification");
+        });
+        this.ui.onPasteData.add(function (data) {
+            self.client.uploadImageData(data, self.data.getActiveChannel());
         });
         this.client.onUserStatusUpdated.add(function (userName, data) {
             self.data.setUserStatus(userName, data[0]);
@@ -1273,6 +1296,10 @@ var Client = (function () {
             this.sendData('upload file', channel.name + '|' + file.name);
         }
     };
+    Client.prototype.uploadImageData = function (data, channel) {
+        Debug.log("Uploading image data: " + data);
+        this.sendData('data message', { type: "imagePaste", channel: channel.name, image: data });
+    };
     Client.prototype.exitChannel = function (channel) {
         this.log("Exit channel:" + channel.name);
         this.sendData('part_channel', channel.name);
@@ -1681,7 +1708,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.599";
+        this.version = "V.2.0.614";
     }
     return ProjectConfig;
 })();

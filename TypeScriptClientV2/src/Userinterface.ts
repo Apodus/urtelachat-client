@@ -11,6 +11,7 @@ class Userinterface
 	onMessageSend:Signal;
 	onStatusChange:Signal;
 	onPrivateChatStarted:Signal;
+	onPasteData:Signal;
 	
 	channelButtons:Array<ChannelButton>;
 	chatPanels:Array<ChatPanel>;
@@ -44,6 +45,7 @@ class Userinterface
 		this.onStatusChange = new Signal();
 		this.onPrivateChatStarted = new Signal();
 		this.onChannelNotificationToggled = new Signal();
+		this.onPasteData = new Signal();
 		
 		this.channelButtons = new Array<ChannelButton>();
 		this.chatPanels = new Array<ChatPanel>();
@@ -84,6 +86,33 @@ class Userinterface
 			
 			ui.settings.setAutoScroll(h1-h2-h3<=10);
 		});
+		
+		document.body.onpaste = this.onPaste.bind(this);
+	}
+	onPaste(event:any)
+	{
+		var ui:Userinterface = this;
+		var items:any = (event.clipboardData || event.originalEvent.clipboardData).items;
+
+		var load:Function = function(idx:number)
+		{
+			var blob:any = items[idx].getAsFile();
+			var reader:any = new FileReader();
+			reader.onload = function(event:any)
+			{
+				ui.onPasteData.send(event.target.result);
+			};
+			reader.readAsDataURL(blob);
+		}
+		
+		try
+		{
+			load(0);
+		}
+		catch(error)
+		{
+			load(1);
+		}
 	}
 	initChannelButton(channel:ChatChannel):ChannelButton
 	{
