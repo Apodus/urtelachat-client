@@ -1,6 +1,7 @@
 class CookieNames
 {
-	static USER_ID:string = "userID";
+	//static USER_ID:string = "userID";
+	static USER_ID:string = "username";
 	static USER_NAME:string = "userName";
 	static ACTIVE_CHANNEL:string = "activeChannel";
 }
