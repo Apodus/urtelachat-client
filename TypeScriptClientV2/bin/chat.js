@@ -23,7 +23,13 @@ var Userinterface = (function () {
         this.onChannelNotificationToggled = new Signal();
         this.channelButtons = new Array();
         this.chatPanels = new Array();
+        var ui = this;
         this.settings = new SettingsPanel();
+        this.settings.onAutoScrollChanged.add(function (autoScroll) {
+            if (autoScroll) {
+                ui.messagesScrollToBottom(false);
+            }
+        });
         this.initKeyboard();
         this.initGlobalEvents();
     }
@@ -33,6 +39,13 @@ var Userinterface = (function () {
                 'You are about to leave the chat.\nPlease don\'t.';
             (e || window.event).returnValue = confirmationMessage;
             return confirmationMessage;
+        });
+        var ui = this;
+        $(HtmlID.MESSAGES).scroll(function () {
+            var h1 = $(HtmlID.MESSAGES)[0].scrollHeight;
+            var h2 = $(HtmlID.MESSAGES)[0].scrollTop;
+            var h3 = $(HtmlID.MESSAGES).outerHeight();
+            ui.settings.setAutoScroll(h1 - h2 - h3 <= 10);
         });
     };
     Userinterface.prototype.initChannelButton = function (channel) {
@@ -534,7 +547,7 @@ var Chat = (function () {
     Chat.prototype.init = function () {
         Debug.log("init");
         this.client.connect("http://urtela.redlynx.com:3002", this.data.localMember.userID);
-        this.ui.setLoading(null);
+        setTimeout(this.ui.setLoading.bind(this), 2000);
     };
     Chat.prototype.bindDataCallbacks = function () {
         var self = this;
@@ -1633,7 +1646,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.549";
+        this.version = "V.2.0.574";
     }
     return ProjectConfig;
 })();
@@ -1642,6 +1655,7 @@ var SettingsPanel = (function () {
     function SettingsPanel() {
         this.useAutoScroll = true;
         this.onFileDrop = new Signal();
+        this.onAutoScrollChanged = new Signal();
         this.refreshAutoScrollToggleButton();
         var settings = this;
         $(HtmlID.AUTO_SCROLL_TOGGLE_BUTTON).click(function () {
@@ -1697,6 +1711,12 @@ var SettingsPanel = (function () {
             iconOff.show();
             iconOn.hide();
         }
+        this.onAutoScrollChanged.send(this.useAutoScroll);
+    };
+    SettingsPanel.prototype.setAutoScroll = function (enabled) {
+        this.useAutoScroll = enabled;
+        Debug.log("Autoscroll set: " + this.useAutoScroll);
+        this.refreshAutoScrollToggleButton();
     };
     SettingsPanel.prototype.toggleAutoScroll = function () {
         this.useAutoScroll = !this.useAutoScroll;

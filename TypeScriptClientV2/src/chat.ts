@@ -30,17 +30,12 @@ class Chat
 	{
 		Debug.log("init");
 		
-		//Debug["debugLevel"]=DebugLevel.DEBUG_FULL;
-		
 		//var test:TestSystem = new TestSystem(this.data, this.ui, this.client); return;
 		
-		this.client.connect(
-			"http://urtela.redlynx.com:3002",
-			//"testiperse2000"
-			this.data.localMember.userID
-		);
+		//Debug["debugLevel"]=DebugLevel.DEBUG_FULL;this.client.connect("http://urtela.redlynx.com:3002","testiperse2000");
+		this.client.connect("http://urtela.redlynx.com:3002",this.data.localMember.userID);
 		
-		this.ui.setLoading(null);
+		setTimeout(this.ui.setLoading.bind(this),2000);
 	}
 	bindDataCallbacks()
 	{
