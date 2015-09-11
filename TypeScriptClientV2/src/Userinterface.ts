@@ -27,6 +27,7 @@ class Userinterface
 	
 	history:MessageInputHistory;
 	
+	updateAutoScrollOnScrollID:number;
 	
 	constructor()
 	{
@@ -51,6 +52,9 @@ class Userinterface
 		this.chatPanels = new Array<ChatPanel>();
 		var ui:Userinterface = this;
 		this.settings = new SettingsPanel();
+
+		this.messagesScrollToBottom(true);
+		this.updateAutoScrollOnScrollID=null;
 		this.settings.onAutoScrollChanged.add(function(autoScroll:boolean)
 		{
 			if(autoScroll)
@@ -82,9 +86,13 @@ class Userinterface
 			var h2:number = $(HtmlID.MESSAGES)[0].scrollTop;
 			var h3:number = $(HtmlID.MESSAGES).outerHeight();
 			
-			//Debug.log(h1+"-"+h2+"-"+h3+"="+(h1-h2-h3));
-			
-			ui.settings.setAutoScroll(h1-h2-h3<=10);
+			var enabled:boolean = (h1-h2-h3<=1);
+
+			if(ui.updateAutoScrollOnScrollID!=null)
+			{
+				clearTimeout(ui.updateAutoScrollOnScrollID);
+			}
+			ui.updateAutoScrollOnScrollID = setTimeout(ui.settings.setAutoScroll.bind(ui.settings,enabled),500);
 		});
 		
 		document.body.onpaste = this.onPaste.bind(this);
@@ -176,7 +184,7 @@ class Userinterface
 			this.messagesScrollToBottom(false);
 		}
 		
-		if(message.type == ChatMessageType.NORMAL)
+		if(message.type == ChatMessageType.NORMAL && channel.allowNotifications)
 		{
 			NotificationSystem.get().notify("New Message in "+channel.name,message.sender+":"+'"'+message.message+'"');
 		}
@@ -401,7 +409,8 @@ class Userinterface
 		if(fast==true)
 		{
 			//Can't set directly since stuff is still being loaded :/
-			$(HtmlID.MESSAGES).stop().animate({ scrollTop: h},{duration:10});
+			$(HtmlID.MESSAGES)[0].scrollTop = h;
+			//$(HtmlID.MESSAGES).stop().animate({ scrollTop: h},{duration:10});
 			return;
 		}
 		

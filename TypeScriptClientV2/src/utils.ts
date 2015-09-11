@@ -44,7 +44,7 @@ class Utils
 					jira = jira.trim();
 					front = " ";
 				}
-				return front + '<a target="_blank" href="https://mdc-tomcat-jira76.ubisoft.org/jira/browse/' + jira + '" class="btn btn-warning btn-xs">' + jira + '</a>';
+				return front + '<a target="_blank" href="https://mdc-tomcat-jira76.ubisoft.org/jira/browse/' + jira + '" class="jira-link btn btn-warning btn-xs">' + jira + '</a>';
 			});
 		}
 		
@@ -58,7 +58,7 @@ class Utils
 		var urlRegex =/(([ \t\n]|^)(https?:\/\/|ftp:\/\/|file:\/\/)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
 		text = text.replace(urlRegex, function(url)
 		{
-			return '<a target="_blank" href="' + url + '" class="btn btn-default btn-xs">' + url + '</a>';
+			return '<a target="_blank" href="' + url + '" class="linkified btn btn-default btn-xs">' + url + '</a>';
 		});
 		
 		text = Utils.universeJiraLinks(text);
