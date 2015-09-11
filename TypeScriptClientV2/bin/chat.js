@@ -1442,10 +1442,12 @@ var Client = (function () {
         this.log(channel + " topic changed");
     };
     Client.prototype.reconnected = function () {
+        this.isConnected = false;
         Debug.log("Reconnect!");
         this.onReconnect.send("null");
     };
     Client.prototype.disconnected = function (data) {
+        this.isConnected = false;
         this.onDisconnected.send("null");
         this.changeServerStatus("Disconnected");
     };
@@ -1728,7 +1730,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.653";
+        this.version = "V.2.0.654";
     }
     return ProjectConfig;
 })();
