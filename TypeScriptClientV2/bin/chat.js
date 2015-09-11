@@ -155,8 +155,8 @@ var Userinterface = (function () {
         chat.setActive();
         this.setTopic(channel.topic);
         this.updateChannelMembers(channel);
-        this.messagesScrollToBottom(true);
         this.activeChannel = channel;
+        this.messagesScrollToBottom(true);
     };
     Userinterface.prototype.onChannelButtonClick = function (button) {
         Debug.assert(button != null, "Button is null!");
@@ -279,6 +279,7 @@ var Userinterface = (function () {
         var h = $(HtmlID.MESSAGES)[0].scrollHeight;
         if (fast == true) {
             $(HtmlID.MESSAGES)[0].scrollTop = h;
+            $(HtmlID.MESSAGES).stop().animate({ scrollTop: h }, { duration: 10 });
             return;
         }
         if (!this.settings.useAutoScroll) {
@@ -514,10 +515,7 @@ var ChannelButton = (function () {
             e.stopPropagation();
         });
         $(this.element).mouseenter(function () {
-            //if(channel.name!="lobby")
-            //{
-            //$(closeButton).fadeIn();
-            //}
+            self.updateChannelSettings();
             $(settings).css({ position: "fixed", top: "40px", left: ($(this).offset().left - 50) + "px" });
             $(settings).stop(true, true).fadeIn();
             channelTopic.innerHTML = Utils.linkify(channel.topic);
@@ -535,6 +533,8 @@ var ChannelButton = (function () {
         $(this.element).addClass("btn-success");
         $(this.element).removeClass("btn-info");
         $(this.newMessagesLabel).empty();
+        this.newMessages = 0;
+        this.updateChannelSettings();
         ChannelButton.activeChannelButton = this;
     };
     ChannelButton.prototype.addNewMarker = function () {
@@ -677,6 +677,9 @@ var Chat = (function () {
         });
         this.client.onDisconnected.add(function () {
             NotificationSystem.get().showPopover("Oh noes!", "You are disconnected!");
+            self.client.connect("http://urtela.redlynx.com:3002", this.data.localMember.userID);
+        });
+        this.client.onReconnect.add(function () {
             self.client.connect("http://urtela.redlynx.com:3002", this.data.localMember.userID);
         });
         this.client.onConnected.add(function () {
@@ -888,6 +891,9 @@ var ChatData = (function () {
         this.setActiveChannel(0);
     };
     ChatData.prototype.addMessage = function (message, channelName) {
+        if (message.type == ChatMessageType.SYSTEM && channelName == "") {
+            channelName = this.getActiveChannel().name;
+        }
         var channel = this.initChannel(channelName);
         channel.addMessage(message);
         if (channel == this.getActiveChannel()) {
@@ -1196,6 +1202,7 @@ var Client = (function () {
         this.onUserNameChanged = new Signal();
         this.onTopicChanged = new Signal();
         this.onDisconnected = new Signal();
+        this.onReconnect = new Signal();
         this.onConnected = new Signal();
         this.onLogMessage = new Signal();
         this.onServerCommand = new Signal();
@@ -1242,6 +1249,7 @@ var Client = (function () {
         this.socket.on('nick_change', function (data) { client.userNameChanged(data); });
         this.socket.on('topic', function (data) { client.topicChanged(data); });
         this.socket.on('disconnect', function (data) { client.disconnected(data); });
+        this.socket.on('reconnect', function (data) { client.reconnected(); });
         this.socket.on('login_complete', function (data) { client.connected(data); });
         this.socket.on('your_nick', function (data) { client.receiveLocalUser(data); });
         this.socket.on('op', function (data) { client.receiveUserData(data); });
@@ -1432,6 +1440,10 @@ var Client = (function () {
             this.onTopicChanged.send(channel, what);
         }
         this.log(channel + " topic changed");
+    };
+    Client.prototype.reconnected = function () {
+        Debug.log("Reconnect!");
+        this.onReconnect.send("null");
     };
     Client.prototype.disconnected = function (data) {
         this.onDisconnected.send("null");
@@ -1716,7 +1728,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.637";
+        this.version = "V.2.0.653";
     }
     return ProjectConfig;
 })();

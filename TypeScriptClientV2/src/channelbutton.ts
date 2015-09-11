@@ -118,6 +118,7 @@ class ChannelButton
 
 		$(this.element).mouseenter(function()
 		{
+			self.updateChannelSettings();
 			//if(channel.name!="lobby")
 			//{
 				//$(closeButton).fadeIn();
@@ -149,6 +150,9 @@ class ChannelButton
 		$(this.element).removeClass("btn-info");
 		
 		$(this.newMessagesLabel).empty();
+		this.newMessages = 0;
+		
+		this.updateChannelSettings();
 		
 		ChannelButton.activeChannelButton = this;
 	}

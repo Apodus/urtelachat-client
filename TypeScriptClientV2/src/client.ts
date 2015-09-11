@@ -17,6 +17,7 @@ class Client
 	onUserNameChanged:Signal;
 	onTopicChanged:Signal;
 	onDisconnected:Signal;
+	onReconnect:Signal;
 	onConnected:Signal;
 	onLogMessage:Signal;
 	onServerCommand:Signal;
@@ -38,6 +39,7 @@ class Client
 		this.onUserNameChanged = new Signal();
 		this.onTopicChanged = new Signal();
 		this.onDisconnected = new Signal();
+		this.onReconnect = new Signal();
 		this.onConnected = new Signal();
 		this.onLogMessage = new Signal();
 		this.onServerCommand = new Signal();
@@ -96,6 +98,7 @@ class Client
 		this.socket.on('nick_change', function(data:string) { client.userNameChanged(data); });
 		this.socket.on('topic', function(data:string) { client.topicChanged(data); });
 		this.socket.on('disconnect', function(data:string) { client.disconnected(data); });
+		this.socket.on('reconnect', function(data:string) { client.reconnected(); });
 		this.socket.on('login_complete', function(data:string) { client.connected(data); });
 		this.socket.on('your_nick', function(data:string) { client.receiveLocalUser(data); });
 		this.socket.on('op', function(data:string) { client.receiveUserData(data); });
@@ -364,6 +367,11 @@ class Client
 			this.onTopicChanged.send(channel,what);
 		}
 		this.log(channel+" topic changed");
+	}
+	reconnected()
+	{
+		Debug.log("Reconnect!");
+		this.onReconnect.send("null");
 	}
 	disconnected(data:any)
 	{
