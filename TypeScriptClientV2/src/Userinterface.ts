@@ -233,7 +233,7 @@ class Userinterface
 		this.setTopic(channel.topic);
 		this.updateChannelMembers(channel);
 		this.activeChannel = channel;
-		this.messagesScrollToBottom(false);
+		this.messagesScrollToBottom(true);
 	}
 	onChannelButtonClick(button:ChannelButton)
 	{
@@ -410,7 +410,7 @@ class Userinterface
 		{
 			//Can't set directly since stuff is still being loaded :/
 			$(HtmlID.MESSAGES)[0].scrollTop = h;
-			//$(HtmlID.MESSAGES).stop().animate({ scrollTop: h},{duration:10});
+			$(HtmlID.MESSAGES).stop().animate({ scrollTop: h},{duration:10});
 			return;
 		}
 		

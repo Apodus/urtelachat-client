@@ -156,7 +156,7 @@ var Userinterface = (function () {
         this.setTopic(channel.topic);
         this.updateChannelMembers(channel);
         this.activeChannel = channel;
-        this.messagesScrollToBottom(false);
+        this.messagesScrollToBottom(true);
     };
     Userinterface.prototype.onChannelButtonClick = function (button) {
         Debug.assert(button != null, "Button is null!");
@@ -279,6 +279,7 @@ var Userinterface = (function () {
         var h = $(HtmlID.MESSAGES)[0].scrollHeight;
         if (fast == true) {
             $(HtmlID.MESSAGES)[0].scrollTop = h;
+            $(HtmlID.MESSAGES).stop().animate({ scrollTop: h }, { duration: 10 });
             return;
         }
         if (!this.settings.useAutoScroll) {
@@ -1727,7 +1728,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.651";
+        this.version = "V.2.0.653";
     }
     return ProjectConfig;
 })();
