@@ -195,6 +195,12 @@ class Chat
 			self.client.connect("http://urtela.redlynx.com:3002",this.data.localMember.userID);
 		});
 		
+		this.client.onReconnect.add(function()
+		{
+			//NotificationSystem.get().showPopover("Oh noes!","You are disconnected!");
+			self.client.connect("http://urtela.redlynx.com:3002",this.data.localMember.userID);
+		});
+		
 		this.client.onConnected.add(function()
 		{
 			self.data.restoreActiveChannel();

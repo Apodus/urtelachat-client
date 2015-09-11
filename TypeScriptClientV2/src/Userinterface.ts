@@ -232,8 +232,8 @@ class Userinterface
 		chat.setActive();
 		this.setTopic(channel.topic);
 		this.updateChannelMembers(channel);
-		this.messagesScrollToBottom(true);
 		this.activeChannel = channel;
+		this.messagesScrollToBottom(false);
 	}
 	onChannelButtonClick(button:ChannelButton)
 	{

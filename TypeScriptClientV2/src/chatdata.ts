@@ -167,6 +167,11 @@ class ChatData
 	}
 	addMessage(message:ChatMessage,channelName:string)
 	{
+		if(message.type == ChatMessageType.SYSTEM && channelName == "")
+		{
+			channelName = this.getActiveChannel().name;
+		}
+		
 		var channel:ChatChannel = this.initChannel(channelName);
 		channel.addMessage(message);
 		if(channel==this.getActiveChannel())
