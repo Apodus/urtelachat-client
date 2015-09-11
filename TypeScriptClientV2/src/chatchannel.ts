@@ -24,6 +24,15 @@ class ChatChannel
 	}
 	addMember(member:ChatMember)
 	{
+		for(var i: number = 0; i<this.members.length; i++)
+		{
+			if(this.members[i].name == member.name)
+			{
+				Debug.log("Member already in chat...");
+				return;
+			}
+		}
+		
 		this.members.push(member);
 		Debug.log("Added member: "+member.name+" to "+this.name);
 	}
@@ -60,14 +69,6 @@ class ChatChannel
 	}
 	setupUser(username:string)
 	{
-		for(var i: number = 0; i<this.members.length; i++)
-		{
-			if(this.members[i].name == username)
-			{
-				return;
-			}
-		}
-		
 		this.addMember(new ChatMember(username,"null","online"));
 	}
 	setData(key:string,value:string)

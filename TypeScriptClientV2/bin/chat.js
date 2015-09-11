@@ -26,6 +26,8 @@ var Userinterface = (function () {
         this.chatPanels = new Array();
         var ui = this;
         this.settings = new SettingsPanel();
+        this.messagesScrollToBottom(true);
+        this.updateAutoScrollOnScrollID = null;
         this.settings.onAutoScrollChanged.add(function (autoScroll) {
             if (autoScroll) {
                 ui.messagesScrollToBottom(false);
@@ -46,7 +48,11 @@ var Userinterface = (function () {
             var h1 = $(HtmlID.MESSAGES)[0].scrollHeight;
             var h2 = $(HtmlID.MESSAGES)[0].scrollTop;
             var h3 = $(HtmlID.MESSAGES).outerHeight();
-            ui.settings.setAutoScroll(h1 - h2 - h3 <= 10);
+            var enabled = (h1 - h2 - h3 <= 1);
+            if (ui.updateAutoScrollOnScrollID != null) {
+                clearTimeout(ui.updateAutoScrollOnScrollID);
+            }
+            ui.updateAutoScrollOnScrollID = setTimeout(ui.settings.setAutoScroll.bind(ui.settings, enabled), 500);
         });
         document.body.onpaste = this.onPaste.bind(this);
     };
@@ -110,7 +116,7 @@ var Userinterface = (function () {
         else {
             this.messagesScrollToBottom(false);
         }
-        if (message.type == ChatMessageType.NORMAL) {
+        if (message.type == ChatMessageType.NORMAL && channel.allowNotifications) {
             NotificationSystem.get().notify("New Message in " + channel.name, message.sender + ":" + '"' + message.message + '"');
         }
     };
@@ -272,7 +278,7 @@ var Userinterface = (function () {
     Userinterface.prototype.messagesScrollToBottom = function (fast) {
         var h = $(HtmlID.MESSAGES)[0].scrollHeight;
         if (fast == true) {
-            $(HtmlID.MESSAGES).stop().animate({ scrollTop: h }, { duration: 10 });
+            $(HtmlID.MESSAGES)[0].scrollTop = h;
             return;
         }
         if (!this.settings.useAutoScroll) {
@@ -671,6 +677,7 @@ var Chat = (function () {
         });
         this.client.onDisconnected.add(function () {
             NotificationSystem.get().showPopover("Oh noes!", "You are disconnected!");
+            self.client.connect("http://urtela.redlynx.com:3002", this.data.localMember.userID);
         });
         this.client.onConnected.add(function () {
             self.data.restoreActiveChannel();
@@ -723,6 +730,12 @@ var ChatChannel = (function () {
         this.data = {};
     }
     ChatChannel.prototype.addMember = function (member) {
+        for (var i = 0; i < this.members.length; i++) {
+            if (this.members[i].name == member.name) {
+                Debug.log("Member already in chat...");
+                return;
+            }
+        }
         this.members.push(member);
         Debug.log("Added member: " + member.name + " to " + this.name);
     };
@@ -750,11 +763,6 @@ var ChatChannel = (function () {
         this.messages.push(message);
     };
     ChatChannel.prototype.setupUser = function (username) {
-        for (var i = 0; i < this.members.length; i++) {
-            if (this.members[i].name == username) {
-                return;
-            }
-        }
         this.addMember(new ChatMember(username, "null", "online"));
     };
     ChatChannel.prototype.setData = function (key, value) {
@@ -1708,7 +1716,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.619";
+        this.version = "V.2.0.637";
     }
     return ProjectConfig;
 })();
@@ -1936,7 +1944,7 @@ var Utils = (function () {
                     jira = jira.trim();
                     front = " ";
                 }
-                return front + '<a target="_blank" href="https://mdc-tomcat-jira76.ubisoft.org/jira/browse/' + jira + '" class="btn btn-warning btn-xs">' + jira + '</a>';
+                return front + '<a target="_blank" href="https://mdc-tomcat-jira76.ubisoft.org/jira/browse/' + jira + '" class="jira-link btn btn-warning btn-xs">' + jira + '</a>';
             });
         }
         return str;
@@ -1946,7 +1954,7 @@ var Utils = (function () {
             return text;
         var urlRegex = /(([ \t\n]|^)(https?:\/\/|ftp:\/\/|file:\/\/)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
         text = text.replace(urlRegex, function (url) {
-            return '<a target="_blank" href="' + url + '" class="btn btn-default btn-xs">' + url + '</a>';
+            return '<a target="_blank" href="' + url + '" class="linkified btn btn-default btn-xs">' + url + '</a>';
         });
         text = Utils.universeJiraLinks(text);
         text = Utils.smallImages(text);

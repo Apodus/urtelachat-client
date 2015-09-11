@@ -192,6 +192,7 @@ class Chat
 		this.client.onDisconnected.add(function()
 		{
 			NotificationSystem.get().showPopover("Oh noes!","You are disconnected!");
+			self.client.connect("http://urtela.redlynx.com:3002",this.data.localMember.userID);
 		});
 		
 		this.client.onConnected.add(function()
