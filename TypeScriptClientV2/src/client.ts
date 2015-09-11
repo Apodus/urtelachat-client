@@ -370,11 +370,13 @@ class Client
 	}
 	reconnected()
 	{
+		this.isConnected = false;
 		Debug.log("Reconnect!");
 		this.onReconnect.send("null");
 	}
 	disconnected(data:any)
 	{
+		this.isConnected = false;
 		this.onDisconnected.send("null");
 		this.changeServerStatus("Disconnected");
 	}
