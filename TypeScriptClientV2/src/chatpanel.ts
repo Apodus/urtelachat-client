@@ -16,10 +16,7 @@ class ChatPanel
 		this.id = channel.id;
 		this.element = document.createElement("div");
 		this.element.id = "CHAT_"+this.id;
-		if(!this.channel.isPrivate)
-		{
-			this.setActive();
-		}
+		this.hide();
 	}
 	
 	addMessage(message:ChatMessage)
@@ -41,7 +38,7 @@ class ChatPanel
 		Debug.log("Set active chat panel:"+this.channel.name);
 		if(ChatPanel.activeChatPanel!=null)
 		{
-			this.hide();
+			ChatPanel.activeChatPanel.hide();
 		}
 		ChatPanel.activeChatPanel = this;
 		this.show();
@@ -49,14 +46,14 @@ class ChatPanel
 	hide()
 	{
 		Debug.log("Hide active chat panel:"+this.channel.name);
-		$(ChatPanel.activeChatPanel.element).stop();
-		$(ChatPanel.activeChatPanel.element).hide();
+		$(this.element).stop();
+		$(this.element).hide();
 	}
 	show()
 	{
 		Debug.log("Show active chat panel:"+this.channel.name);
-		$(ChatPanel.activeChatPanel.element).stop();
-		$(ChatPanel.activeChatPanel.element).fadeIn();
+		$(this.element).stop();
+		$(this.element).fadeIn();
 	}
 	isActive():boolean
 	{

@@ -1149,9 +1149,7 @@ var ChatPanel = (function () {
         this.id = channel.id;
         this.element = document.createElement("div");
         this.element.id = "CHAT_" + this.id;
-        if (!this.channel.isPrivate) {
-            this.setActive();
-        }
+        this.hide();
     }
     ChatPanel.prototype.addMessage = function (message) {
         if (this.lastMessage != null && this.lastMessage.message.sender == message.sender) {
@@ -1167,20 +1165,20 @@ var ChatPanel = (function () {
     ChatPanel.prototype.setActive = function () {
         Debug.log("Set active chat panel:" + this.channel.name);
         if (ChatPanel.activeChatPanel != null) {
-            this.hide();
+            ChatPanel.activeChatPanel.hide();
         }
         ChatPanel.activeChatPanel = this;
         this.show();
     };
     ChatPanel.prototype.hide = function () {
         Debug.log("Hide active chat panel:" + this.channel.name);
-        $(ChatPanel.activeChatPanel.element).stop();
-        $(ChatPanel.activeChatPanel.element).hide();
+        $(this.element).stop();
+        $(this.element).hide();
     };
     ChatPanel.prototype.show = function () {
         Debug.log("Show active chat panel:" + this.channel.name);
-        $(ChatPanel.activeChatPanel.element).stop();
-        $(ChatPanel.activeChatPanel.element).fadeIn();
+        $(this.element).stop();
+        $(this.element).fadeIn();
     };
     ChatPanel.prototype.isActive = function () {
         return ChatPanel.activeChatPanel == this;
@@ -1730,7 +1728,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.654";
+        this.version = "V.2.0.659";
     }
     return ProjectConfig;
 })();

@@ -541,3 +541,24 @@ footer
 	font-weight:lighter;
 	font-size:0.4em;
 }
+
+.thumbnail
+{
+	
+}
+
+.image-paste
+{
+	transition: all 0.35s ease-in-out;	
+	z-index:1;
+}
+
+.image-paste:hover
+{
+	transform: scale(2, 2);
+	-webkit-transform: scale(2, 2);
+	-moz-transform: scale(2, 2);
+	-o-transform: scale(2, 2);
+	-ms-transform: scale(2, 2);
+	z-index:10;
+}
