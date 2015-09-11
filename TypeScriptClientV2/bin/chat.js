@@ -730,6 +730,12 @@ var ChatChannel = (function () {
         this.data = {};
     }
     ChatChannel.prototype.addMember = function (member) {
+        for (var i = 0; i < this.members.length; i++) {
+            if (this.members[i].name == member.name) {
+                Debug.log("Member already in chat...");
+                return;
+            }
+        }
         this.members.push(member);
         Debug.log("Added member: " + member.name + " to " + this.name);
     };
@@ -757,11 +763,6 @@ var ChatChannel = (function () {
         this.messages.push(message);
     };
     ChatChannel.prototype.setupUser = function (username) {
-        for (var i = 0; i < this.members.length; i++) {
-            if (this.members[i].name == username) {
-                return;
-            }
-        }
         this.addMember(new ChatMember(username, "null", "online"));
     };
     ChatChannel.prototype.setData = function (key, value) {
@@ -1715,7 +1716,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.634";
+        this.version = "V.2.0.637";
     }
     return ProjectConfig;
 })();
