@@ -551,6 +551,7 @@ footer
 {
 	transition: all 0.35s ease-in-out;	
 	z-index:1;
+	position:relative;
 }
 
 .image-paste:hover
@@ -561,4 +562,10 @@ footer
 	-o-transform: scale(2, 2);
 	-ms-transform: scale(2, 2);
 	z-index:10;
+}
+
+.linkified
+{
+    background-color: #cef;
+    color: #15a;
 }
