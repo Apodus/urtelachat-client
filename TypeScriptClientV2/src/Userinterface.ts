@@ -455,7 +455,7 @@ class Userinterface
 			{
 				var d1:any = new Date();
 				var d2:any = this.autoIdleStartTime;
-				NotificationSystem.get().showPopover("You were idle for "+Math.floor((d1-d2)/1000)+" seconds.","");
+				// NotificationSystem.get().showPopover("You were idle for "+Math.floor((d1-d2)/1000)+" seconds.","");
 				this.autoIdleStartTime=null;
 			}
 			
@@ -471,7 +471,7 @@ class Userinterface
 			ui.clearIdleTimer();
 			ui.autoIdle = true;
 			ui.autoIdleStartTime = new Date();
-			NotificationSystem.get().showPopover("You have been marked as idle.","");
+			// NotificationSystem.get().showPopover("You have been marked as idle.","");
 		},this.autoIdleMinutes*60*1000);
 	}
 	
@@ -479,7 +479,7 @@ class Userinterface
 	{
 		this.idleTimer();
 		
-		if(e.altKey)
+		if((e.keyCode == '37' || e.keyCode == '39') && e.altKey)
 		{
 			e.preventDefault();
 		}
@@ -633,8 +633,10 @@ class Userinterface
 			var msg:string = $(HtmlID.MESSAGE_INPUT).val();
 			$(HtmlID.MESSAGE_INPUT).val('');
 			e.preventDefault();
-			this.onMessageSend.send(msg);
-			this.history.add(msg);
+			if(msg != '') {
+                        	this.onMessageSend.send(msg);
+				this.history.add(msg);
+			}
 		}
 	}
 	updateChannelSettings(channel:ChatChannel)

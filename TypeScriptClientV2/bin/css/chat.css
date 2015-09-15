@@ -556,11 +556,11 @@ footer
 
 .image-paste:hover
 {
-	transform: scale(2, 2);
-	-webkit-transform: scale(2, 2);
-	-moz-transform: scale(2, 2);
-	-o-transform: scale(2, 2);
-	-ms-transform: scale(2, 2);
+	transform: scale(3.5, 3.5) translate(40px, -40px);
+	-webkit-transform: scale(3.5, 3.5) translate(40px, -40px);
+	-moz-transform: scale(3.5, 3.5) translate(40px, -40px);
+	-o-transform: scale(3.5, 3.5) translate(40px, -40px);
+	-ms-transform: scale(3.5, 3.5) translate(40px, -40px);
 	z-index:10;
 }
 

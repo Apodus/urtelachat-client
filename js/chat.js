@@ -35,7 +35,7 @@ function init()
 	client.bindStatusMessage(ui.setServerStatus);
 	client.bindServerCommand(ui.serverCommand);
 	
-	client.connect("http://urtela.redlynx.com:3001");
+	client.connect("http://urtela.redlynx.com:3002");
 	//client.connect("http://soulaim.dy.fi:3001");
 	bindSocket();
 	
