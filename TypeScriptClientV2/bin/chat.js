@@ -37,12 +37,17 @@ var Userinterface = (function () {
         this.initGlobalEvents();
     }
     Userinterface.prototype.initGlobalEvents = function () {
-        window.addEventListener("beforeunload", function (e) {
-            var confirmationMessage = 'Plutonium brick in your pants?\n' +
-                'You are about to leave the chat.\nPlease don\'t.';
-            (e || window.event).returnValue = confirmationMessage;
-            return confirmationMessage;
+        /*
+        window.addEventListener("beforeunload", function (e)
+        {
+            var confirmationMessage =
+            'Plutonium brick in your pants?\n' +
+            'You are about to leave the chat.\nPlease don\'t.';
+
+            (e || window.event).returnValue = confirmationMessage; //Gecko + IE
+            return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
         });
+        */
         var ui = this;
         $(HtmlID.MESSAGES).scroll(function () {
             var h1 = $(HtmlID.MESSAGES)[0].scrollHeight;
@@ -110,14 +115,14 @@ var Userinterface = (function () {
         Debug.assert(message != null, "null Message!");
         var chat = this.initChatPanel(channel);
         chat.addMessage(message);
-        if (!chat.isActive()) {
-            this.initChannelButton(channel).addNewMarker();
-        }
-        else {
+        if (chat.isActive()) {
             this.messagesScrollToBottom(false);
         }
-        if (message.type == ChatMessageType.NORMAL && channel.allowNotifications) {
-            NotificationSystem.get().notify("New Message in " + channel.name, message.sender + ":" + '"' + message.message + '"');
+        else {
+            if (message.type == ChatMessageType.NORMAL && channel.allowNotifications) {
+                NotificationSystem.get().notify("New Message in " + channel.name, message.sender + ":" + '"' + message.message + '"');
+                this.initChannelButton(channel).addNewMarker();
+            }
         }
     };
     Userinterface.prototype.removeChannel = function (channel) {
@@ -189,12 +194,7 @@ var Userinterface = (function () {
     };
     Userinterface.prototype.reload = function () {
         Debug.log("Reloading page!");
-        this.closePopup();
-        this.setLoading("Reloading");
-        this.fatalError("Server Maintenance, please wait...");
-        var id = setTimeout(function () {
-            window.location.reload();
-        }, 5000);
+        window.location.reload();
     };
     Userinterface.prototype.showUserInfo = function (user) {
         Debug.log("Show user info:" + user.name);
@@ -677,10 +677,10 @@ var Chat = (function () {
         });
         this.client.onDisconnected.add(function () {
             NotificationSystem.get().showPopover("Oh noes!", "You are disconnected!");
-            self.client.connect("http://urtela.redlynx.com:3002", this.data.localMember.userID);
+            self.data.addMessage(new ChatMessage("", "SYSTEM", "<div class='user-disconnected'>You are disconnected!</div>", ChatMessageType.SYSTEM), "");
         });
         this.client.onReconnect.add(function () {
-            self.client.connect("http://urtela.redlynx.com:3002", this.data.localMember.userID);
+            self.ui.reload();
         });
         this.client.onConnected.add(function () {
             self.data.restoreActiveChannel();
@@ -1188,7 +1188,6 @@ var ChatPanel = (function () {
 /// <reference path="..\ref\socket.io-client\socket.io-client.d.ts" />
 var Client = (function () {
     function Client() {
-        this.isConnected = false;
         this.onServerStatusChanged = new Signal();
         this.onUserStatusUpdated = new Signal();
         this.onChatMessage = new Signal();
@@ -1213,10 +1212,6 @@ var Client = (function () {
         Debug.log("Server: " + status);
     };
     Client.prototype.connect = function (url, user) {
-        if (this.isConnected && this.url == url) {
-            Debug.log("Already connected to " + url);
-            return;
-        }
         this.url = url;
         this.changeServerStatus("Connecting to: " + url);
         this.socket = io.connect(url, { autoConnect: true });
@@ -1224,7 +1219,6 @@ var Client = (function () {
         this.changeServerStatus("Connected");
         this.changeServerStatus("Logging in as " + user);
         this.sendData('login', user);
-        this.isConnected = true;
     };
     Client.prototype.log = function (msg) {
         Debug.log(msg);
@@ -1440,18 +1434,18 @@ var Client = (function () {
         this.log(channel + " topic changed");
     };
     Client.prototype.reconnected = function () {
-        this.isConnected = false;
         Debug.log("Reconnect!");
+        this.changeServerStatus("Reconnecting...");
         this.onReconnect.send("null");
     };
     Client.prototype.disconnected = function (data) {
-        this.isConnected = false;
-        this.onDisconnected.send("null");
+        Debug.log("Disconnected!");
         this.changeServerStatus("Disconnected");
+        this.onDisconnected.send("null");
     };
     Client.prototype.connected = function (data) {
-        this.onConnected.send(data);
         this.changeServerStatus("Connected");
+        this.onConnected.send(data);
     };
     return Client;
 })();
@@ -1728,7 +1722,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.659";
+        this.version = "V.2.0.666";
     }
     return ProjectConfig;
 })();

@@ -33,7 +33,7 @@ class Chat
 		this.ui.setLoading('Loading Chat...<br/><span class="version">'+Project.name+" "+Project.version+" CodeName:"+Project.codeName+'</span>');
 		//var test:TestSystem = new TestSystem(this.data, this.ui, this.client); return;
 		
-		//Debug["debugLevel"]=DebugLevel.DEBUG_FULL;this.client.connect("http://urtela.redlynx.com:3002","testiperse2000");
+		//Debug["debugLevel"]=DebugLevel.DEBUG_FULL;this.client.connect("http://urtela.redlynx.com:3001","testiperse2000");
 		this.client.connect("http://urtela.redlynx.com:3002",this.data.localMember.userID);
 
 		setTimeout(this.ui.setLoading.bind(this),2000);
@@ -192,13 +192,12 @@ class Chat
 		this.client.onDisconnected.add(function()
 		{
 			NotificationSystem.get().showPopover("Oh noes!","You are disconnected!");
-			self.client.connect("http://urtela.redlynx.com:3002",this.data.localMember.userID);
+			self.data.addMessage(new ChatMessage("","SYSTEM","<div class='user-disconnected'>You are disconnected!</div>",ChatMessageType.SYSTEM),"");
 		});
 		
 		this.client.onReconnect.add(function()
 		{
-			//NotificationSystem.get().showPopover("Oh noes!","You are disconnected!");
-			self.client.connect("http://urtela.redlynx.com:3002",this.data.localMember.userID);
+			self.ui.reload();
 		});
 		
 		this.client.onConnected.add(function()

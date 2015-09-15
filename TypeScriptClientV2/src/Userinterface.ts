@@ -69,6 +69,7 @@ class Userinterface
 	}
 	initGlobalEvents()
 	{
+		/*
 		window.addEventListener("beforeunload", function (e)
 		{
 			var confirmationMessage =
@@ -78,6 +79,7 @@ class Userinterface
 			(e || window.event).returnValue = confirmationMessage; //Gecko + IE
 			return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
 		});
+		*/
 		
 		var ui:Userinterface = this;
 		$(HtmlID.MESSAGES).scroll(function()
@@ -175,18 +177,18 @@ class Userinterface
 		Debug.assert(message!=null,"null Message!");
 		var chat:ChatPanel = this.initChatPanel(channel);
 		chat.addMessage(message);
-		if(!chat.isActive())
-		{
-			this.initChannelButton(channel).addNewMarker();
-		}
-		else
+		
+		if(chat.isActive())
 		{
 			this.messagesScrollToBottom(false);
 		}
-		
-		if(message.type == ChatMessageType.NORMAL && channel.allowNotifications)
+		else
 		{
-			NotificationSystem.get().notify("New Message in "+channel.name,message.sender+":"+'"'+message.message+'"');
+			if(message.type == ChatMessageType.NORMAL && channel.allowNotifications)
+			{
+				NotificationSystem.get().notify("New Message in "+channel.name,message.sender+":"+'"'+message.message+'"');
+				this.initChannelButton(channel).addNewMarker();
+			}
 		}
 	}
 	removeChannel(channel:ChatChannel)
@@ -277,16 +279,18 @@ class Userinterface
 	reload():void
 	{
 		Debug.log("Reloading page!");
-		
+		window.location.reload();
+		/*
 		this.closePopup();
 		
 		this.setLoading("Reloading");
-		this.fatalError("Server Maintenance, please wait...");
+		this.fatalError("Reconnecting , please wait...");
 		
 		var id:number = setTimeout(function():void
 		{
 			window.location.reload();
 		},5000);
+		*/
 	}
 	
 	showUserInfo(user:ChatMember):void
