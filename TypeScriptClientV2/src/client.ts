@@ -4,7 +4,6 @@ class Client
 {
 	url:string;
 	socket:SocketIOClient.Socket;
-	isConnected:boolean;
 	
 	onServerStatusChanged:Signal;
 	onUserStatusUpdated:Signal;
@@ -27,7 +26,6 @@ class Client
 	
 	constructor()
 	{
-		this.isConnected = false;
 		this.onServerStatusChanged = new Signal();
 		this.onUserStatusUpdated = new Signal();
 		this.onChatMessage = new Signal();
@@ -54,12 +52,6 @@ class Client
 	}
 	connect(url:string,user:string)
 	{
-		if(this.isConnected && this.url == url)
-		{
-			Debug.log("Already connected to "+url);
-			return;
-		}
-		
 		this.url = url;
 		this.changeServerStatus("Connecting to: "+url);
 		
@@ -71,8 +63,6 @@ class Client
 		this.changeServerStatus("Logging in as "+user);
 		
 		this.sendData('login', user);
-		
-		this.isConnected = true;
 	}
 	log(msg:string)
 	{
@@ -370,19 +360,19 @@ class Client
 	}
 	reconnected()
 	{
-		this.isConnected = false;
 		Debug.log("Reconnect!");
+		this.changeServerStatus("Reconnecting...");
 		this.onReconnect.send("null");
 	}
 	disconnected(data:any)
 	{
-		this.isConnected = false;
-		this.onDisconnected.send("null");
+		Debug.log("Disconnected!");
 		this.changeServerStatus("Disconnected");
+		this.onDisconnected.send("null");
 	}
 	connected(data:string)
 	{
-		this.onConnected.send(data);
 		this.changeServerStatus("Connected");
+		this.onConnected.send(data);
 	}
 }
