@@ -1237,7 +1237,7 @@ var Client = (function () {
         this.socket.on('data message', function (msg) { client.receiveDataMessage(msg); });
         this.socket.on('join_channel', function (channelName) { client.joinedChannel(channelName); });
         this.socket.on('user_list', function (data) { client.userListUpdated(data); });
-        this.socket.on('user_disconnected', function (data) { client.userDisconnected(data); });
+        this.socket.on('user_disconnect', function (data) { client.userDisconnected(data); });
         this.socket.on('user_part', function (data) { client.userParted(data); });
         this.socket.on('user_join', function (data) { client.userJoined(data); });
         this.socket.on('nick_change', function (data) { client.userNameChanged(data); });
