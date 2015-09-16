@@ -1722,7 +1722,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.666";
+        this.version = "V.2.0.668";
     }
     return ProjectConfig;
 })();
