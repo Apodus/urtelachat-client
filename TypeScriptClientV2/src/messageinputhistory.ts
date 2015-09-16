@@ -23,6 +23,7 @@ class MessageInputHistory
 		
 		if(this.index < 0 || this.history.length == 0) return $(HtmlID.MESSAGE_INPUT).val();
 		
+                /*
 		if(this.notification!=null)
 		{
 			this.notification.clearTimeout();
@@ -30,7 +31,8 @@ class MessageInputHistory
 		this.notification = new PopoverNotification(HtmlID.MESSAGE_INPUT,"Sent Message History "+(this.index+1)+"/"+(this.history.length));
 		this.notification.getOptions().placement = "top";
 		this.notification.show();
-		
+		*/
+
 		return this.history[this.index];
 	}
 	add(msg:string):boolean

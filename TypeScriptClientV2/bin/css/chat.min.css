@@ -69,5 +69,5 @@ footer{margin:0px;position:fixed;display:block;bottom:0px;width:100%;height:10%;
 .version{font-weight:lighter;font-size:0.4em;}
 .thumbnail{}
 .image-paste{transition:all 0.35s ease-in-out;z-index:1;position:relative;}
-.image-paste:hover{transform:scale(2,2);-webkit-transform:scale(2,2);-moz-transform:scale(2,2);-o-transform:scale(2,2);-ms-transform:scale(2,2);z-index:10;}
+.image-paste:hover{transform:scale(3.5,3.5) translate(40px, -40px);-webkit-transform:scale(3.5,3.5) translate(40px, -40px);-moz-transform:scale(3.5,3.5) translate(40px, -40px);-o-transform:scale(3.5,3.5) translate(40px, -40px);-ms-transform:scale(3.5,3.5) translate(40px, -40px);z-index:10;}
 .linkified{background-color:#cef;color:#15a;}

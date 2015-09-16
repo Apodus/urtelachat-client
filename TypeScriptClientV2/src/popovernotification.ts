@@ -38,7 +38,7 @@ class PopoverNotification
 			this.timeoutID = setTimeout(function()
 			{
 				self.hide();
-			},5000);
+			},1500);
 		}
 	}
 	clearTimeout()
