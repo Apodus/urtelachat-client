@@ -82,7 +82,7 @@ class Client
 		this.socket.on('data message', function(msg:string) { client.receiveDataMessage(msg); });
 		this.socket.on('join_channel', function(channelName:string) { client.joinedChannel(channelName); });
 		this.socket.on('user_list', function(data:string) { client.userListUpdated(data); });
-		this.socket.on('user_disconnected', function(data:string) { client.userDisconnected(data); });
+		this.socket.on('user_disconnect', function(data:string) { client.userDisconnected(data); });
 		this.socket.on('user_part', function(data:string) { client.userParted(data); });
 		this.socket.on('user_join', function(data:string) { client.userJoined(data); });
 		this.socket.on('nick_change', function(data:string) { client.userNameChanged(data); });
