@@ -303,7 +303,6 @@ var Userinterface = (function () {
             if (this.autoIdleStartTime != null) {
                 var d1 = new Date();
                 var d2 = this.autoIdleStartTime;
-                // NotificationSystem.get().showPopover("You were idle for " + Math.floor((d1 - d2) / 1000) + " seconds.", "");
                 this.autoIdleStartTime = null;
             }
             this.onStatusChange.send("back");
@@ -316,7 +315,6 @@ var Userinterface = (function () {
             ui.clearIdleTimer();
             ui.autoIdle = true;
             ui.autoIdleStartTime = new Date();
-            // NotificationSystem.get().showPopover("You have been marked as idle.", "");
         }, this.autoIdleMinutes * 60 * 1000);
     };
     Userinterface.prototype.handleGlobalKeyDown = function (e) {
@@ -426,9 +424,9 @@ var Userinterface = (function () {
             var msg = $(HtmlID.MESSAGE_INPUT).val();
             $(HtmlID.MESSAGE_INPUT).val('');
             e.preventDefault();
-            if(msg != '') {
-              this.onMessageSend.send(msg);
-              this.history.add(msg);
+            if (msg != '') {
+                this.onMessageSend.send(msg);
+                this.history.add(msg);
             }
         }
     };
@@ -678,7 +676,7 @@ var Chat = (function () {
             self.data.addMessage(new ChatMessage("", "SYSTEM", "Channel topic is " + data[0], ChatMessageType.SYSTEM), channelName);
         });
         this.client.onDisconnected.add(function () {
-            // NotificationSystem.get().showPopover("Oh noes!", "You are disconnected!");
+            NotificationSystem.get().showPopover("Oh noes!", "You are disconnected!");
             self.data.addMessage(new ChatMessage("", "SYSTEM", "<div class='user-disconnected'>You are disconnected!</div>", ChatMessageType.SYSTEM), "");
         });
         this.client.onReconnect.add(function () {
@@ -1554,12 +1552,6 @@ var MessageInputHistory = (function () {
             this.index = 0;
         if (this.index < 0 || this.history.length == 0)
             return $(HtmlID.MESSAGE_INPUT).val();
-        if (this.notification != null) {
-            this.notification.clearTimeout();
-        }
-        // this.notification = new PopoverNotification(HtmlID.MESSAGE_INPUT, "Sent Message History " + (this.index + 1) + "/" + (this.history.length));
-        // this.notification.getOptions().placement = "top";
-        // this.notification.show();
         return this.history[this.index];
     };
     MessageInputHistory.prototype.add = function (msg) {
@@ -1642,13 +1634,11 @@ var NotificationSystem = (function () {
         this.clearTimeout();
     };
     NotificationSystem.prototype.showPopover = function (title, text) {
-        /*
         if (this.popover != null) {
             this.popover.clearTimeout();
         }
         this.popover = new PopoverNotification("#logo", title + "<br/>" + text);
         this.popover.show();
-        */
     };
     NotificationSystem.prototype.show = function () {
         if (document.hasFocus()) {
@@ -1707,7 +1697,7 @@ var PopoverNotification = (function () {
         if (document.hasFocus()) {
             this.timeoutID = setTimeout(function () {
                 self.hide();
-            }, 5000);
+            }, 1500);
         }
     };
     PopoverNotification.prototype.clearTimeout = function () {
@@ -1726,7 +1716,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.668";
+        this.version = "V.2.0.669";
     }
     return ProjectConfig;
 })();

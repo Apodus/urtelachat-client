@@ -2,6 +2,6 @@ class ProjectConfig
 {
 	name:string = "Urtela Chat";
 	codeName:string = "Nemesis";
-	version:string = "V.2.0.668";
+	version:string = "V.2.0.669";
 }
 var Project:ProjectConfig = new ProjectConfig();
