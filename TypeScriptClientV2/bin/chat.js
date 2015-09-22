@@ -665,7 +665,7 @@ var Chat = (function () {
             self.data.addMessage(new ChatMessage("", "SYSTEM", "<div class='user-join'>" + data[0] + " joined the channel</div>", ChatMessageType.SYSTEM), channelName);
         });
         this.client.onUserDisconnected.add(function (channelName, data) {
-            self.data.addMember(new ChatMember(data[0], "null", "online"), channelName);
+            self.data.removeMemberByName(data[0], channelName);
             self.data.addMessage(new ChatMessage("", "SYSTEM", "<div class='user-disconnected'>" + data[0] + " disconnected</div>", ChatMessageType.SYSTEM), channelName);
         });
         this.client.onUserNameChanged.add(function (oldName, data) {
@@ -1716,7 +1716,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.669";
+        this.version = "V.2.0.671";
     }
     return ProjectConfig;
 })();

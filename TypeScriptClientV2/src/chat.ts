@@ -174,7 +174,7 @@ class Chat
 		
 		this.client.onUserDisconnected.add(function(channelName:string,data:Array<string>)
 		{
-			self.data.addMember(new ChatMember(data[0],"null","online"),channelName);
+			self.data.removeMemberByName(data[0],channelName);
 			self.data.addMessage(new ChatMessage("","SYSTEM","<div class='user-disconnected'>" + data[0] + " disconnected</div>",ChatMessageType.SYSTEM),channelName);
 		});
 		
