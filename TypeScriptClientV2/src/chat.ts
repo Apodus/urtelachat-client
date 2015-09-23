@@ -34,6 +34,7 @@ class Chat
 		//var test:TestSystem = new TestSystem(this.data, this.ui, this.client); return;
 		
 		//Debug["debugLevel"]=DebugLevel.DEBUG_FULL;this.client.connect("http://urtela.redlynx.com:3001","testiperse2000");
+		//Debug["debugLevel"]=DebugLevel.DEBUG_FULL;this.client.connect("http://urtela.redlynx.com:3002","testiperse2000");
 		this.client.connect("http://urtela.redlynx.com:3002",this.data.localMember.userID);
 
 		setTimeout(this.ui.setLoading.bind(this),2000);

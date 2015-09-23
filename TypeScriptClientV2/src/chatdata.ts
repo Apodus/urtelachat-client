@@ -315,6 +315,7 @@ class ChatData
 	}
 	setUserStatus(userName:string,status:string)
 	{
+		Debug.log("Set User "+userName+" status: "+status);
 		for(var i:number = 0 ; i < this.channels.length; i++)
 		{
 			var channel:ChatChannel = this.channels[i];

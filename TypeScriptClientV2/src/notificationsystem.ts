@@ -124,7 +124,7 @@ class NotificationSystem
 		
 		this.hide();
 		this.active=true;
-		
+		document.title = "Urtela Chat "+this.title;
 		this.notification = new Notification(Utils.unwindHtml(Utils.stripXml(this.title)), {"body": Utils.unwindHtml(Utils.stripXml(this.text)), "icon":"http://urtela.redlynx.com/img/chaticon.jpg"});
 		
 		setTimeout(function()

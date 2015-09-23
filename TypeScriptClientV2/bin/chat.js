@@ -299,6 +299,7 @@ var Userinterface = (function () {
         this.idleTimeout = null;
     };
     Userinterface.prototype.idleTimer = function () {
+        document.title = "Urtela Chat";
         if (this.autoIdle) {
             if (this.autoIdleStartTime != null) {
                 var d1 = new Date();
@@ -1002,6 +1003,7 @@ var ChatData = (function () {
         }
     };
     ChatData.prototype.setUserStatus = function (userName, status) {
+        Debug.log("Set User " + userName + " status: " + status);
         for (var i = 0; i < this.channels.length; i++) {
             var channel = this.channels[i];
             for (var j = 0; j < channel.members.length; j++) {
@@ -1350,8 +1352,9 @@ var Client = (function () {
             return;
         }
         if (split[0] == "/mod") {
-            var key = split[1];
-            var val = split[2];
+            split.shift();
+            var key = split.shift();
+            var val = split.join(" ");
             this.sendData("channelmod", { mod: key, value: val, channel: channel.name });
             return;
         }
@@ -1651,6 +1654,7 @@ var NotificationSystem = (function () {
         }
         this.hide();
         this.active = true;
+        document.title = "Urtela Chat " + this.title;
         this.notification = new Notification(Utils.unwindHtml(Utils.stripXml(this.title)), { "body": Utils.unwindHtml(Utils.stripXml(this.text)), "icon": "http://urtela.redlynx.com/img/chaticon.jpg" });
         setTimeout(function () {
             NotificationSystem.get().hide();
@@ -1716,7 +1720,7 @@ var ProjectConfig = (function () {
     function ProjectConfig() {
         this.name = "Urtela Chat";
         this.codeName = "Nemesis";
-        this.version = "V.2.0.671";
+        this.version = "V.2.0.681";
     }
     return ProjectConfig;
 })();

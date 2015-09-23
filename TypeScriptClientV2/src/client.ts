@@ -252,8 +252,9 @@ class Client
 		
 		if(split[0] == "/mod")
 		{
-			var key:string = split[1];
-			var val:string = split[2];
+			split.shift();//mod strip
+			var key:string = split.shift();
+			var val:string = split.join(" ");
 			
 			this.sendData("channelmod",{mod:key,value:val,channel:channel.name});
 			return;

@@ -449,6 +449,7 @@ class Userinterface
 	}
 	idleTimer()
 	{
+		document.title = "Urtela Chat";
 		if(this.autoIdle)
 		{
 			if(this.autoIdleStartTime!=null)
